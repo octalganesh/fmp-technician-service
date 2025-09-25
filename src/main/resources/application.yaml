@@ -1,0 +1,13 @@
+spring:
+  profiles:
+    active: staging
+
+#JWT token, token validity in seconds
+jwt:
+  access:
+    token:
+      validity: 7776000
+  refresh:
+    token:
+      validity: 7776000
+  secret: fsm
