@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="Technician Service Test Reports">
+    <bannerLeft>
+        <name>Technician Service</name>
+    </bannerLeft>
+    
+    <skin>
+        <groupId>org.apache.maven.skins</groupId>
+        <artifactId>maven-fluido-skin</artifactId>
+        <version>1.11.0</version>
+    </skin>
+    
+    <body>
+        <menu name="Overview">
+            <item name="Introduction" href="index.html"/>
+            <item name="Test Results" href="surefire-report.html"/>
+            <item name="Code Coverage" href="jacoco/index.html"/>
+        </menu>
+        
+        <menu ref="reports"/>
+    </body>
+</project>
