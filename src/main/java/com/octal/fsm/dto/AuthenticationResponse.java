@@ -11,8 +11,6 @@ public class AuthenticationResponse implements Serializable {
     private String refreshToken;
     private String tokenType;
     private String profileImage;
-    private String roleId;
-    private Boolean isAdmin;
     private String id;
     private String userName;
 
@@ -32,22 +30,6 @@ public class AuthenticationResponse implements Serializable {
 
     public void setRefreshToken(String refreshToken) {
         this.refreshToken = refreshToken;
-    }
-
-    public String getRoleId() {
-        return roleId;
-    }
-
-    public void setRoleId(String roleId) {
-        this.roleId = roleId;
-    }
-
-    public Boolean getAdmin() {
-        return isAdmin;
-    }
-
-    public void setAdmin(Boolean admin) {
-        isAdmin = admin;
     }
 
     public String getId() {
