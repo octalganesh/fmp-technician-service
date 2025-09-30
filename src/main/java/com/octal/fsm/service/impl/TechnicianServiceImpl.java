@@ -6,6 +6,7 @@ import com.octal.fsm.entities.Technician;
 import com.octal.fsm.entities.UserOtpVerification;
 import com.octal.fsm.exceptions.CodeException;
 import com.octal.fsm.exceptions.ErrorCode;
+import com.octal.fsm.listeners.event.AddTechnicianUserInAuthEvent;
 import com.octal.fsm.models.request.PageRequest;
 import com.octal.fsm.repositories.TechnicianRepository;
 import com.octal.fsm.repositories.UserVerificationRepository;
@@ -16,6 +17,7 @@ import com.octal.fsm.specification.SpecificationFactory;
 import com.octal.fsm.utils.TechnicianTransformer;
 import com.octal.fsm.utils.TextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -52,6 +54,9 @@ public class TechnicianServiceImpl implements TechnicianService {
     private UserVerificationRepository userVerificationRepository;
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private ApplicationEventPublisher eventPublisher;
 
     public static boolean isPasswordValid(String password) {
         String regex = "^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[@#$%^&+=!])(.{8,})$";
@@ -112,6 +117,14 @@ public class TechnicianServiceImpl implements TechnicianService {
         newtechnicianRecord.setAddress(add.getAddress());
         newtechnicianRecord.setGender(add.getGender());
         Technician technician = technicianRepository.save(newtechnicianRecord);
+        TechnicianRegisterRequest technicianRegisterRequest=new TechnicianRegisterRequest();
+        technicianRegisterRequest.setActive(newtechnicianRecord.getActive());
+        technicianRegisterRequest.setEmail(newtechnicianRecord.getEmail());
+        technicianRegisterRequest.setRole("technician");
+        technicianRegisterRequest.setPassword("Technician@123");
+        technicianRegisterRequest.setCreatedAt(newtechnicianRecord.getCreatedAt());
+        technicianRegisterRequest.setFullName(technician.getName());
+        eventPublisher.publishEvent(new AddTechnicianUserInAuthEvent(technicianRegisterRequest));
         return technician.getUuid();
     }
 

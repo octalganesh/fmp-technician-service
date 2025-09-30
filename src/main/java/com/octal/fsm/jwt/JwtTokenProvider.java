@@ -16,7 +16,6 @@ import java.util.*;
 import java.util.function.Function;
 
 /**
- * @author naveen.kumawat
  * JwtTokenProvider - provides functionality to create JWT access and refresh token
  */
 @Component
@@ -43,7 +42,6 @@ public class JwtTokenProvider {
      * this method is used to create JWT token,
      * while generating token we pass scope and other user related information
      *
-     * @param user - registered user object
      * @return - jwt token
      */
     public String createAccessJwtToken(Technician technician) {
@@ -68,7 +66,7 @@ public class JwtTokenProvider {
         claims.put("role", roles.get(0));
         claims.put("profileImage", technician.getProfilePicture());
         claims.put("permission", "");
-
+        claims.put("serviceRole","technician");
         return Jwts.builder()
                 .setClaims(claims)
                 .setIssuer(technician.getEmail())
