@@ -16,8 +16,7 @@ spring:
         smtp:
           auth: true
           starttls:
-            enable: true  
-
+            enable: true
   jpa:
     hibernate:
       ddl-auto: update
@@ -47,8 +46,10 @@ eureka:
 
 
 
-
+forgot.password.time.in.second: 60
+forgot.password.otp.resend.count: 3
+user.activation.link.url: http://12.com:7070/?token=<token>
+user.forget.password.link: http://65.72/reset-password/<token>
 springdoc:
   api-docs.path : /api-docs
   swagger-ui.path : /swagger-ui.html
-
