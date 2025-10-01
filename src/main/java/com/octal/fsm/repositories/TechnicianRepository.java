@@ -24,5 +24,7 @@ public interface TechnicianRepository extends JpaRepository<Technician, Long>, J
     boolean existsByEmail(String email);
 
     Optional<Technician> findByMobileNumber(String mobileNumber);
+
+    Optional<Technician> findByEmployeeId(String employeeId);
 }
 
