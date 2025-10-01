@@ -85,7 +85,7 @@ public class TechnicianServiceImpl implements TechnicianService {
             newtechnicianRecord = new Technician();
             newtechnicianRecord.setCreatedAt(LocalDateTime.now());
             newtechnicianRecord.setUpdatedAt(LocalDateTime.now());
-            newtechnicianRecord.setEmployeeId(generateEmployeeId());
+            newtechnicianRecord.setEmployeeId(generateEmployeeUniqeId());
             newtechnicianRecord.setPassword(passwordEncoder.encode("Technician@123"));
             newtechnicianRecord.setActive(true);
         } else {
@@ -209,7 +209,9 @@ public class TechnicianServiceImpl implements TechnicianService {
         builder.with(technicianSpecificationFactory.isEqual("deleted", false));
 
         if (org.apache.commons.lang.StringUtils.isNotBlank(listRequest.getSearchText())) {
-            builder.with(technicianSpecificationFactory.like("name", listRequest.getSearchText()));
+            builder.with(technicianSpecificationFactory.like("name", listRequest.getSearchText()).or(technicianSpecificationFactory.like("employeeId", listRequest.getSearchText())).or(technicianSpecificationFactory.like("mobileNumber", listRequest.getSearchText()))
+                    .or(technicianSpecificationFactory.like("email", listRequest.getSearchText())));
+
         }
         if(listRequest.getIsActive()!=null){
             builder.with(technicianSpecificationFactory.isEqual("isActive", listRequest.getIsActive()));
@@ -231,6 +233,21 @@ public class TechnicianServiceImpl implements TechnicianService {
         return "TECH-" + datePart + "-" + sequencePart;
 
     }
+
+    public String generateEmployeeUniqeId() {
+        String code = "";
+        Optional<Technician> technician;
+        do {
+            String newCode = generateEmployeeId();
+            technician = technicianRepository.findByEmployeeId(newCode);
+            if (!technician.isPresent()) {
+                code = newCode;
+            }
+        } while (technician.isPresent());
+        return code;
+    }
+
+
 
     @Override
     public AuthTechnicianDTO fetchAuthenticatedUserDetailsByEmail(String email) {
