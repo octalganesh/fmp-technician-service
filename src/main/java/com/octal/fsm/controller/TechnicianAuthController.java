@@ -97,19 +97,19 @@ public class TechnicianAuthController extends BaseController {
         }
     }
 
-//    @GetMapping(value = "/auth/get-profile-details")
-//    public ResponseEntity<ApiResponse> getProfileDetails(@RequestParam("id") String id, HttpServletRequest httpServletRequest) {
-//        logger.info("AdminAuthController.getProfileDetails");
-//        String technicianname = httpServletRequest.getHeader(CommonConstants.technician_NAME);
-//        try {
-//            Technician loggedIntechnician = technicianService.getTechnicianByEmailId(technicianname);
-//            if (loggedIntechnician != null) {
-//                if (Boolean.TRUE.equals(loggedIntechnician.getIsAdmin())) {
-//                    return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "Profile Details.", technicianService.getProfileDetails(id),
-//                            "200", HttpStatus.OK), HttpStatus.OK);
+    @GetMapping(value = "/auth/get-profile-details")
+    public ResponseEntity<ApiResponse> getProfileDetails(@RequestParam("id") String id, HttpServletRequest httpServletRequest) {
+        logger.info("AdminAuthController.getProfileDetails");
+        String technicianname = httpServletRequest.getHeader(CommonConstants.technician_NAME);
+        try {
+            Technician loggedIntechnician = technicianService.getTechnicianByEmailId(technicianname);
+            if (loggedIntechnician != null) {
+                //if (Boolean.TRUE.equals(loggedIntechnician.getIsAdmin())) {
+                    return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "Profile Details.", technicianService.getProfileDetails(id),
+                            "200", HttpStatus.OK), HttpStatus.OK);
 //                } else {
 //                    String apiUri = "auth/get-profile-details";
-//                    Boolean access = checkApiAccess(loggedIntechnician.getRole().getUuid(), apiUri, "VIEW");
+//                    //Boolean access = checkApiAccess(loggedIntechnician.getRole().getUuid(), apiUri, "VIEW");
 //                    if (Boolean.TRUE.equals(access)) {
 //                        return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "Profile Details.", technicianService.getProfileDetails(id),
 //                                "200", HttpStatus.OK), HttpStatus.OK);
@@ -118,67 +118,67 @@ public class TechnicianAuthController extends BaseController {
 //                                "101", HttpStatus.OK), HttpStatus.OK);
 //                    }
 //                }
-//            } else {
-//                return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, "technician not found.",
-//                        null, "101", HttpStatus.OK), HttpStatus.OK);
-//            }
-//
-//        } catch (Exception e) {
-//            return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, e.getMessage(), null,
-//                    "101", HttpStatus.OK), HttpStatus.OK);
-//        }
-//
-//    }
+            } else {
+                return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, "technician not found.",
+                        null, "101", HttpStatus.OK), HttpStatus.OK);
+            }
 
-//    @PostMapping("/update-profile")
-//    public ResponseEntity<ApiResponse> updateProfile(@RequestPart(value = "updateProfile") TechnicianDetailDTO admintechnicianDetailDTO, @RequestPart(value = "profileImage", required = false) MultipartFile profileImage,
-//                                                     HttpServletRequest request) {
-//        logger.info("AdminAuthController.updateProfile");
-//        String technicianName = request.getHeader(CommonConstants.technician_NAME);
-//        try {
-//            Technician loggedIntechnician = technicianService.getTechnicianByEmailId(technicianName);
-//            if (loggedIntechnician != null) {
-//                technicianService.updateProfile(admintechnicianDetailDTO, profileImage);
-//                return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "Profile Update Successfully", null,
-//                        "200", HttpStatus.OK), HttpStatus.OK);
-//            } else {
-//                return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, "Invalid technician.", null,
-//                        "101", HttpStatus.OK), HttpStatus.OK);
-//            }
-//        } catch (CodeException c) {
-//            return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, c.getMessage(), null,
-//                    String.valueOf(c.getCode().getCode()), HttpStatus.OK), HttpStatus.OK);
-//        } catch (Exception o) {
-//            return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, o.getMessage(), null,
-//                    "101", HttpStatus.OK), HttpStatus.OK);
-//        }
-//
-//    }
+        } catch (Exception e) {
+            return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, e.getMessage(), null,
+                    "101", HttpStatus.OK), HttpStatus.OK);
+        }
 
-//    @PostMapping("/update-password")
-//    public ResponseEntity<ApiResponse> updatePassword(@RequestBody TechnicianDetailDTO.ChangePassword changePassword,
-//                                                      HttpServletRequest request) {
-//        logger.info("AdminAuthController.updatePassword");
-//        String technicianName = request.getHeader(CommonConstants.technician_NAME);
-//        try {
-//            Technician loggedIntechnician = technicianService.getTechnicianByEmailId(technicianName);
-//            if (loggedIntechnician != null) {
-//                technicianService.updatePassword(changePassword, loggedIntechnician);
-//                return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "Password Update Successfully", null,
-//                        "200", HttpStatus.OK), HttpStatus.OK);
-//            } else {
-//                return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, "Invalid technician.", null,
-//                        "101", HttpStatus.OK), HttpStatus.OK);
-//            }
-//        } catch (CodeException c) {
-//            return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, c.getMessage(), null,
-//                    String.valueOf(c.getCode().getCode()), HttpStatus.OK), HttpStatus.OK);
-//        } catch (Exception o) {
-//            return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, o.getMessage(), null,
-//                    "101", HttpStatus.OK), HttpStatus.OK);
-//        }
-//
-//    }
+    }
+
+    @PostMapping("/update-profile")
+    public ResponseEntity<ApiResponse> updateProfile(@RequestPart(value = "updateProfile") TechnicianDetailDTO admintechnicianDetailDTO, @RequestPart(value = "profileImage", required = false) MultipartFile profileImage,
+                                                     HttpServletRequest request) {
+        logger.info("AdminAuthController.updateProfile");
+        String technicianName = request.getHeader(CommonConstants.technician_NAME);
+        try {
+            Technician loggedIntechnician = technicianService.getTechnicianByEmailId(technicianName);
+            if (loggedIntechnician != null) {
+                technicianService.updateProfile(admintechnicianDetailDTO, profileImage);
+                return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "Profile Update Successfully", null,
+                        "200", HttpStatus.OK), HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, "Invalid technician.", null,
+                        "101", HttpStatus.OK), HttpStatus.OK);
+            }
+        } catch (CodeException c) {
+            return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, c.getMessage(), null,
+                    String.valueOf(c.getCode().getCode()), HttpStatus.OK), HttpStatus.OK);
+        } catch (Exception o) {
+            return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, o.getMessage(), null,
+                    "101", HttpStatus.OK), HttpStatus.OK);
+        }
+
+    }
+
+    @PostMapping("/update-password")
+    public ResponseEntity<ApiResponse> updatePassword(@RequestBody TechnicianDetailDTO.ChangePassword changePassword,
+                                                      HttpServletRequest request) {
+        logger.info("AdminAuthController.updatePassword");
+        String technicianName = request.getHeader(CommonConstants.technician_NAME);
+        try {
+            Technician loggedIntechnician = technicianService.getTechnicianByEmailId(technicianName);
+            if (loggedIntechnician != null) {
+                technicianService.updatePassword(changePassword, loggedIntechnician);
+                return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "Password Update Successfully", null,
+                        "200", HttpStatus.OK), HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, "Invalid technician.", null,
+                        "101", HttpStatus.OK), HttpStatus.OK);
+            }
+        } catch (CodeException c) {
+            return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, c.getMessage(), null,
+                    String.valueOf(c.getCode().getCode()), HttpStatus.OK), HttpStatus.OK);
+        } catch (Exception o) {
+            return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, o.getMessage(), null,
+                    "101", HttpStatus.OK), HttpStatus.OK);
+        }
+
+    }
 
     private void authenticate(String username, String password) {
         try {
@@ -196,24 +196,24 @@ public class TechnicianAuthController extends BaseController {
         }
     }
 
-//    @PostMapping(value = "/change/admin/password")
-//    public ResponseEntity<ApiResponse> changePassword(@Valid @RequestBody ChangePasswordDTO passwordDTO,
-//                                                      HttpServletRequest request) {
-//        try {
-//            technicianService.changeTechnicianPassword(passwordDTO, request.getHeader(CommonConstants.technician_NAME));
-//            return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "Password successfully changed", null,
-//                    "200", HttpStatus.OK), HttpStatus.OK);
-//        } catch (CodeException e) {
-//            return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, e.getMessage(), null,
-//                    String.valueOf(e.getCode().getCode()), HttpStatus.OK), HttpStatus.OK);
-//        } catch (Exception e) {
-//            return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, e.getMessage(), null,
-//                    "101", HttpStatus.OK), HttpStatus.OK);
-//        }
-//    }
+    @PostMapping(value = "/change/password")
+    public ResponseEntity<ApiResponse> changePassword(@Valid @RequestBody ChangePasswordDTO passwordDTO,
+                                                      HttpServletRequest request) {
+        try {
+            technicianService.changeTechnicianPassword(passwordDTO, request.getHeader(CommonConstants.technician_NAME));
+            return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "Password successfully changed", null,
+                    "200", HttpStatus.OK), HttpStatus.OK);
+        } catch (CodeException e) {
+            return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, e.getMessage(), null,
+                    String.valueOf(e.getCode().getCode()), HttpStatus.OK), HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, e.getMessage(), null,
+                    "101", HttpStatus.OK), HttpStatus.OK);
+        }
+    }
 
     @GetMapping("/forget/password")
-    public ResponseEntity<ApiResponse> forgettechnicianPassword(@RequestParam("email") String email) {
+    public ResponseEntity<ApiResponse> forgetTechnicianPassword(@RequestParam("email") String email) {
         try {
             if (!TextUtils.isEmpty(email)) {
                 technicianService.resetTechnicianPassword(email);
@@ -233,8 +233,8 @@ public class TechnicianAuthController extends BaseController {
 
     }
 
-    @PostMapping("/reset/password")
-    public ResponseEntity<ApiResponse> resettechnicianPassword(@Valid @RequestBody ChangePasswordDTO passwordDTO,
+        @PostMapping("/reset/password")
+    public ResponseEntity<ApiResponse> resetTechnicianPassword(@Valid @RequestBody ChangePasswordDTO passwordDTO,
                                                          HttpServletRequest request) {
         try {
             technicianService.resetTechnicianPassword(passwordDTO.getToken(), passwordDTO.getNewPassword(), passwordDTO.getConfirmPassword());
