@@ -5,11 +5,11 @@ import com.octal.fsm.common.ApiResponse;
 import com.octal.fsm.common.CommonConstants;
 import com.octal.fsm.dto.*;
 import com.octal.fsm.entities.Technician;
- import com.octal.fsm.exceptions.CodeException;
+import com.octal.fsm.exceptions.CodeException;
 import com.octal.fsm.exceptions.InvalidPasswordException;
 import com.octal.fsm.jwt.JwtTokenProvider;
 import com.octal.fsm.repositories.TechnicianRepository;
-  import com.octal.fsm.service.TechnicianService;
+import com.octal.fsm.service.TechnicianService;
 import com.octal.fsm.utils.TextUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -52,15 +52,12 @@ public class TechnicianAuthController extends BaseController {
     @PostMapping(value = "/auth/login")
     public ResponseEntity<ApiResponse> technicianLogin(@Valid @RequestBody LoginRequest request) {
         try {
-            authenticate(request.getEmail(), request.getPassword());
-
             Technician technician = technicianService.getTechnicianByEmailId(request.getEmail());
             if (technician == null) {
                 return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "Invalid email address provided. Please enter a registered and valid email.", null,
                         "200", HttpStatus.OK), HttpStatus.OK);
-
             }
-
+            authenticate(request.getEmail(), request.getPassword());
             AuthenticationResponse authenticationResponse = jwtTokenProvider.generateToken(technician);
             //save jwt token on the time of log in
             technician.setToken(authenticationResponse.getJwtToken());
@@ -76,7 +73,7 @@ public class TechnicianAuthController extends BaseController {
     }
 
     @PostMapping(value = "/auth/signout")
-    public ResponseEntity<ApiResponse>technicianLogout(HttpServletRequest request) {
+    public ResponseEntity<ApiResponse> technicianLogout(HttpServletRequest request) {
         logger.info("TechnicianAuthController.technicianLogout");
         String technicianName = request.getHeader(CommonConstants.technician_NAME);
         try {
@@ -105,8 +102,8 @@ public class TechnicianAuthController extends BaseController {
             Technician loggedIntechnician = technicianService.getTechnicianByEmailId(technicianname);
             if (loggedIntechnician != null) {
                 //if (Boolean.TRUE.equals(loggedIntechnician.getIsAdmin())) {
-                    return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "Profile Details.", technicianService.getProfileDetails(id),
-                            "200", HttpStatus.OK), HttpStatus.OK);
+                return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "Profile Details.", technicianService.getProfileDetails(id),
+                        "200", HttpStatus.OK), HttpStatus.OK);
 //                } else {
 //                    String apiUri = "auth/get-profile-details";
 //                    //Boolean access = checkApiAccess(loggedIntechnician.getRole().getUuid(), apiUri, "VIEW");
@@ -233,9 +230,9 @@ public class TechnicianAuthController extends BaseController {
 
     }
 
-        @PostMapping("/reset/password")
+    @PostMapping("/reset/password")
     public ResponseEntity<ApiResponse> resetTechnicianPassword(@Valid @RequestBody ChangePasswordDTO passwordDTO,
-                                                         HttpServletRequest request) {
+                                                               HttpServletRequest request) {
         try {
             technicianService.resetTechnicianPassword(passwordDTO.getToken(), passwordDTO.getNewPassword(), passwordDTO.getConfirmPassword());
             return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "Password reset successfully", null,
