@@ -55,7 +55,7 @@ public class TechnicianAuthController extends BaseController {
             Technician technician = technicianService.getTechnicianByEmailId(request.getEmail());
             if (technician == null) {
                 return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "Invalid email address provided. Please enter a registered and valid email.", null,
-                        "200", HttpStatus.OK), HttpStatus.OK);
+                        "400", HttpStatus.OK), HttpStatus.OK);
             }
             authenticate(request.getEmail(), request.getPassword());
             AuthenticationResponse authenticationResponse = jwtTokenProvider.generateToken(technician);
@@ -66,8 +66,13 @@ public class TechnicianAuthController extends BaseController {
             return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "User logged in successfully", authenticationResponse,
                     "200", HttpStatus.OK), HttpStatus.OK);
         } catch (Exception e) {
+            if(e instanceof InvalidPasswordException){
+                InvalidPasswordException invalidPasswordException= (InvalidPasswordException) e;
+                return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, invalidPasswordException.getMessage(), null,
+                        invalidPasswordException.getCode(), HttpStatus.OK), HttpStatus.OK);
+            }
             return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, e.getMessage(), null,
-                    "101", HttpStatus.OK), HttpStatus.OK);
+                    "500", HttpStatus.OK), HttpStatus.OK);
         }
 
     }
@@ -86,11 +91,11 @@ public class TechnicianAuthController extends BaseController {
                         "200", HttpStatus.OK), HttpStatus.OK);
             } else {
                 return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, "Invalid technician.", null,
-                        "101", HttpStatus.OK), HttpStatus.OK);
+                        "400", HttpStatus.OK), HttpStatus.OK);
             }
         } catch (Exception e) {
             return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, e.getMessage(), null,
-                    "101", HttpStatus.OK), HttpStatus.OK);
+                    "500", HttpStatus.OK), HttpStatus.OK);
         }
     }
 
@@ -183,10 +188,10 @@ public class TechnicianAuthController extends BaseController {
 
         } catch (DisabledException e) {
             e.getMessage();
-            throw new InvalidPasswordException("Invalid User");
+            throw new InvalidPasswordException("Invalid User","500");
         } catch (BadCredentialsException e) {
             e.getMessage();
-            throw new InvalidPasswordException("The password you entered is incorrect. Please verify your credentials and try again.");
+            throw new InvalidPasswordException("The password you entered is incorrect. Please verify your credentials and try again.","400");
 
         } catch (Exception e) {
             throw e;
@@ -218,14 +223,14 @@ public class TechnicianAuthController extends BaseController {
                         "200", HttpStatus.OK), HttpStatus.OK);
             } else {
                 return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "Invalid request,email id not found in request", null,
-                        "101", HttpStatus.OK), HttpStatus.OK);
+                        "400", HttpStatus.OK), HttpStatus.OK);
             }
         } catch (CodeException e) {
             return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, e.getMessage(), null,
                     String.valueOf(e.getCode().getCode()), HttpStatus.OK), HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, e.getMessage(), null,
-                    "101", HttpStatus.OK), HttpStatus.OK);
+                    "500", HttpStatus.OK), HttpStatus.OK);
         }
 
     }
@@ -242,7 +247,7 @@ public class TechnicianAuthController extends BaseController {
                     String.valueOf(e.getCode().getCode()), HttpStatus.OK), HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, e.getMessage(), null,
-                    "101", HttpStatus.OK), HttpStatus.OK);
+                    "500", HttpStatus.OK), HttpStatus.OK);
         }
 
     }
