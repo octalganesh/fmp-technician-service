@@ -24,7 +24,7 @@ pipeline {
         stage('Deploy') {
             steps {
                 script {
-                    if (env.BRANCH_NAME == 'staging') {
+                    if (env.BRANCH_NAME == 'development') {
                         echo "🚀 Deploying branch: ${env.BRANCH_NAME}"
 
                         withCredentials([usernamePassword(credentialsId: '46957a41-b9d8-40ec-8b21-3b41ecca86b9', usernameVariable: 'DEPLOY_USER', passwordVariable: 'DEPLOY_PASS')]) {
