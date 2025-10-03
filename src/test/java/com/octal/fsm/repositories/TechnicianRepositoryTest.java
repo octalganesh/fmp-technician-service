@@ -265,7 +265,7 @@ class TechnicianRepositoryTest {
         assertThat(saved.getUuid()).isNotNull();
         assertThat(saved.getName()).isEqualTo("Bob Wilson");
         assertThat(saved.getEmail()).isEqualTo("bob.wilson@example.com");
-        
+
         // Verify it's persisted
         Optional<Technician> found = technicianRepository.findByUuid(saved.getUuid());
         assertThat(found).isPresent();

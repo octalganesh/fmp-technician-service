@@ -1,8 +1,6 @@
 package com.octal.fsm.utils;
 
 public class TextUtils {
-    public static final String currencyConversionApiKey = "09468f522d5caeef1a1ace12";
-//    public static final String currencyConversionApiKey = "e129088ccde611a385ccb0cf";
 
     private TextUtils() {
         //default constructor
