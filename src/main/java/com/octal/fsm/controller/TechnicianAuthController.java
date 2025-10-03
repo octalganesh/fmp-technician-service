@@ -56,7 +56,7 @@ public class TechnicianAuthController extends BaseController {
 
             Technician technician = technicianService.getTechnicianByEmailId(request.getEmail());
             if (technician == null) {
-                return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "Invalid credential, please try with valid email or password", null,
+                return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "Invalid email address provided. Please enter a registered and valid email.", null,
                         "200", HttpStatus.OK), HttpStatus.OK);
 
             }
@@ -66,7 +66,7 @@ public class TechnicianAuthController extends BaseController {
             technician.setToken(authenticationResponse.getJwtToken());
             technicianRepository.save(technician);
             authenticationResponse.setId(technician.getUuid());
-            return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "user login successfully", authenticationResponse,
+            return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "User logged in successfully", authenticationResponse,
                     "200", HttpStatus.OK), HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, e.getMessage(), null,
@@ -189,7 +189,7 @@ public class TechnicianAuthController extends BaseController {
             throw new InvalidPasswordException("Invalid User");
         } catch (BadCredentialsException e) {
             e.getMessage();
-            throw new InvalidPasswordException("Please enter the correct combination of password");
+            throw new InvalidPasswordException("The password you entered is incorrect. Please verify your credentials and try again.");
 
         } catch (Exception e) {
             throw e;
@@ -217,7 +217,7 @@ public class TechnicianAuthController extends BaseController {
         try {
             if (!TextUtils.isEmpty(email)) {
                 technicianService.resetTechnicianPassword(email);
-                return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "Email sent, Please click on the link to reset your password", null,
+                return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "A password reset email has been sent. Please check your inbox and follow the link to reset your password.", null,
                         "200", HttpStatus.OK), HttpStatus.OK);
             } else {
                 return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "Invalid request,email id not found in request", null,
