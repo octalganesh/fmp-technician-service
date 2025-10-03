@@ -111,6 +111,7 @@ public class TechnicianServiceImpl implements TechnicianService {
         //newtechnicianRecord.setAddress(new Address(add.getAddress().getStreet(), add.getAddress().getCity(), add.getAddress().getState(), add.getAddress().getPostalCode(), add.getAddress().getCountry()));
         newtechnicianRecord.setAddress(add.getAddress());
         newtechnicianRecord.setGender(add.getGender());
+        newtechnicianRecord.setJoinDate(add.getJoinedDate().atStartOfDay());
         Technician technician = technicianRepository.save(newtechnicianRecord);
         return technician.getUuid();
     }
@@ -142,6 +143,7 @@ public class TechnicianServiceImpl implements TechnicianService {
             technician.setMobileNumber(technicianRecord.get().getMobileNumber());
             technician.setProfilePicture(technicianRecord.get().getProfilePicture());
             technician.setIsActive(technicianRecord.get().getActive());
+            technician.setJoinedDate(technicianRecord.get().getJoinDate()!=null?technicianRecord.get().getJoinDate().toString():LocalDateTime.now().toString());
             technician.setCreatedAt(technicianRecord.get().getCreatedAt().toString());
             technician.setUpdatedAt(technicianRecord.get().getUpdatedAt().toString());
             technician.setGender(technicianRecord.get().getGender());
@@ -195,6 +197,7 @@ public class TechnicianServiceImpl implements TechnicianService {
             dto.setCreatedAt(String.valueOf(technician.getCreatedAt()));
             dto.setEmployeeId(technician.getEmployeeId());
             dto.setUpdatedAt(technician.getUpdatedAt().toString());
+            dto.setJoinedDate(technician.getJoinDate()!=null?technician.getJoinDate().toString():LocalDateTime.now().toString());
             dto.setGender(technician.getGender());
             responseList.add(dto);
         }
@@ -213,15 +216,18 @@ public class TechnicianServiceImpl implements TechnicianService {
                     .or(technicianSpecificationFactory.like("email", listRequest.getSearchText())));
 
         }
+        if(listRequest.getGender()!=null){
+            builder.with(technicianSpecificationFactory.isEqual("gender", listRequest.getGender()));
+        }
         if(listRequest.getIsActive()!=null){
             builder.with(technicianSpecificationFactory.isEqual("isActive", listRequest.getIsActive()));
         }
         if (listRequest.getStartDate() != null) {
-            builder.with(technicianSpecificationFactory.isGreaterThanOrEquals("createdAt", listRequest.getStartDate().atStartOfDay()));
+            builder.with(technicianSpecificationFactory.isGreaterThanOrEquals("joinDate", listRequest.getStartDate().atStartOfDay()));
         }
 
         if (listRequest.getEndDate() != null) {
-            builder.with(technicianSpecificationFactory.isLessThanOrEquals("createdAt", listRequest.getEndDate().atTime(23,59,59)));
+            builder.with(technicianSpecificationFactory.isLessThanOrEquals("joinDate", listRequest.getEndDate().atTime(23,59,59)));
         }
 
     }
