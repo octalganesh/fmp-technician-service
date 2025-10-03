@@ -289,7 +289,7 @@ public class TechnicianServiceImpl implements TechnicianService {
                 }
             });
         } else {
-            throw new CodeException("user is not present with email : " + email, ErrorCode.COMMON);
+            throw new CodeException("email does not exist . Please enter a valid email" + email, ErrorCode.COMMON);
         }
     }
 
