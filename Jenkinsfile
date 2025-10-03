@@ -32,7 +32,7 @@ pipeline {
                                 #!/bin/bash
                                 set -e
 
-                                DEPLOY_HOST=192.168.1.38
+                                DEPLOY_HOST=192.168.1.73
                                 DEPLOY_DIR=/opt/apps/technician-service
                                 REMOTE_JAR=$DEPLOY_DIR/technician-service-0.0.1-SNAPSHOT.jar
 
