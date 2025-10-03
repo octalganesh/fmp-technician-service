@@ -295,7 +295,7 @@ public class TechnicianServiceImpl implements TechnicianService {
                 }
             });
         } else {
-            throw new CodeException("email does not exist . Please enter a valid email" + email, ErrorCode.COMMON);
+            throw new CodeException("email does not exist . Please enter a valid email" + email, ErrorCode.BAD_REQUEST);
         }
     }
 
