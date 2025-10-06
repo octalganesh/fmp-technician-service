@@ -1,5 +1,7 @@
 package com.octal.fsm.service.impl;
 
+import com.octal.fsm.clients.AdminClient;
+import com.octal.fsm.common.ApiResponse;
 import com.octal.fsm.common.CommonConstants;
 import com.octal.fsm.dto.*;
 import com.octal.fsm.entities.Technician;
@@ -15,10 +17,12 @@ import com.octal.fsm.specification.GenericSpecificationsBuilder;
 import com.octal.fsm.specification.SpecificationFactory;
 import com.octal.fsm.utils.TechnicianTransformer;
 import com.octal.fsm.utils.TextUtils;
+import feign.FeignException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,6 +44,8 @@ import java.util.regex.Pattern;
 public class TechnicianServiceImpl implements TechnicianService {
 
     private static final AtomicInteger sequence = new AtomicInteger(1);
+    @Autowired
+    private AdminClient adminClient;
 
     @Autowired
     private TechnicianRepository technicianRepository;
@@ -334,6 +340,18 @@ public class TechnicianServiceImpl implements TechnicianService {
     @Override
     public Object getProfileDetails(String id) throws CodeException {
         return null;
+    }
+
+    @Override
+    public ResponseEntity<ApiResponse> getStaticContentBySlug(String slug) throws CodeException {
+        try {
+            ResponseEntity<ApiResponse> response = adminClient.getBySlug(slug);
+
+            return response;
+
+        } catch (FeignException e) {
+            throw new CodeException("Remote admin-service failed: " + e.contentUTF8(), ErrorCode.COMMON);
+        }
     }
 
     private void updateUserVerificationStatus(Optional<UserOtpVerification> userVerificationToken, Technician user) throws CodeException {
