@@ -235,6 +235,21 @@ public class TechnicianAuthController extends BaseController {
 
     }
 
+    @GetMapping("/verify/token")
+    public ResponseEntity<ApiResponse> verifyResetToken(@RequestParam("token") String token,@RequestParam("type") String userType) {
+        try {
+            technicianService.verifyResetToken(token);
+            return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "Token is valid", null,
+                    "200", HttpStatus.OK), HttpStatus.OK);
+        } catch (CodeException e) {
+            return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, e.getMessage(), null,
+                    String.valueOf(e.getCode().getCode()), HttpStatus.OK), HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, e.getMessage(), null,
+                    "500", HttpStatus.OK), HttpStatus.OK);
+        }
+    }
+
     @PostMapping("/reset/password")
     public ResponseEntity<ApiResponse> resetTechnicianPassword(@Valid @RequestBody ChangePasswordDTO passwordDTO,
                                                                HttpServletRequest request) {

@@ -354,6 +354,18 @@ public class TechnicianServiceImpl implements TechnicianService {
         }
     }
 
+    @Override
+    public void verifyResetToken(String token) throws CodeException {
+        Optional<UserOtpVerification>userOtpVerification=userVerificationRepository.findByToken(token);
+        if(userOtpVerification.isEmpty()){
+            throw new CodeException("Invalid token",ErrorCode.BAD_REQUEST);
+        }else{
+            if(LocalDateTime.now().isAfter(userOtpVerification.get().getExpiredDateTime())){
+                throw new CodeException("Token is expired",ErrorCode.BAD_REQUEST);
+            }
+        }
+    }
+
     private void updateUserVerificationStatus(Optional<UserOtpVerification> userVerificationToken, Technician user) throws CodeException {
 
         if (userVerificationToken.isPresent()) {
