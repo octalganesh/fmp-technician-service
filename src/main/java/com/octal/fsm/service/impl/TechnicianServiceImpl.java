@@ -1,5 +1,7 @@
 package com.octal.fsm.service.impl;
 
+import com.octal.fsm.clients.AdminClient;
+import com.octal.fsm.common.ApiResponse;
 import com.octal.fsm.common.CommonConstants;
 import com.octal.fsm.dto.*;
 import com.octal.fsm.entities.Technician;
@@ -15,10 +17,12 @@ import com.octal.fsm.specification.GenericSpecificationsBuilder;
 import com.octal.fsm.specification.SpecificationFactory;
 import com.octal.fsm.utils.TechnicianTransformer;
 import com.octal.fsm.utils.TextUtils;
+import feign.FeignException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,6 +44,8 @@ import java.util.regex.Pattern;
 public class TechnicianServiceImpl implements TechnicianService {
 
     private static final AtomicInteger sequence = new AtomicInteger(1);
+    @Autowired
+    private AdminClient adminClient;
 
     @Autowired
     private TechnicianRepository technicianRepository;
@@ -111,6 +117,7 @@ public class TechnicianServiceImpl implements TechnicianService {
         //newtechnicianRecord.setAddress(new Address(add.getAddress().getStreet(), add.getAddress().getCity(), add.getAddress().getState(), add.getAddress().getPostalCode(), add.getAddress().getCountry()));
         newtechnicianRecord.setAddress(add.getAddress());
         newtechnicianRecord.setGender(add.getGender());
+        newtechnicianRecord.setJoinDate(add.getJoinedDate().atStartOfDay());
         Technician technician = technicianRepository.save(newtechnicianRecord);
         return technician.getUuid();
     }
@@ -142,6 +149,7 @@ public class TechnicianServiceImpl implements TechnicianService {
             technician.setMobileNumber(technicianRecord.get().getMobileNumber());
             technician.setProfilePicture(technicianRecord.get().getProfilePicture());
             technician.setIsActive(technicianRecord.get().getActive());
+            technician.setJoinedDate(technicianRecord.get().getJoinDate()!=null?technicianRecord.get().getJoinDate().toString():LocalDateTime.now().toString());
             technician.setCreatedAt(technicianRecord.get().getCreatedAt().toString());
             technician.setUpdatedAt(technicianRecord.get().getUpdatedAt().toString());
             technician.setGender(technicianRecord.get().getGender());
@@ -195,6 +203,7 @@ public class TechnicianServiceImpl implements TechnicianService {
             dto.setCreatedAt(String.valueOf(technician.getCreatedAt()));
             dto.setEmployeeId(technician.getEmployeeId());
             dto.setUpdatedAt(technician.getUpdatedAt().toString());
+            dto.setJoinedDate(technician.getJoinDate()!=null?technician.getJoinDate().toString():LocalDateTime.now().toString());
             dto.setGender(technician.getGender());
             responseList.add(dto);
         }
@@ -213,15 +222,18 @@ public class TechnicianServiceImpl implements TechnicianService {
                     .or(technicianSpecificationFactory.like("email", listRequest.getSearchText())));
 
         }
+        if(listRequest.getGender()!=null){
+            builder.with(technicianSpecificationFactory.isEqual("gender", listRequest.getGender()));
+        }
         if(listRequest.getIsActive()!=null){
             builder.with(technicianSpecificationFactory.isEqual("isActive", listRequest.getIsActive()));
         }
         if (listRequest.getStartDate() != null) {
-            builder.with(technicianSpecificationFactory.isGreaterThanOrEquals("createdAt", listRequest.getStartDate().atStartOfDay()));
+            builder.with(technicianSpecificationFactory.isGreaterThanOrEquals("joinDate", listRequest.getStartDate().atStartOfDay()));
         }
 
         if (listRequest.getEndDate() != null) {
-            builder.with(technicianSpecificationFactory.isLessThanOrEquals("createdAt", listRequest.getEndDate().atTime(23,59,59)));
+            builder.with(technicianSpecificationFactory.isLessThanOrEquals("joinDate", listRequest.getEndDate().atTime(23,59,59)));
         }
 
     }
@@ -289,7 +301,7 @@ public class TechnicianServiceImpl implements TechnicianService {
                 }
             });
         } else {
-            throw new CodeException("user is not present with email : " + email, ErrorCode.COMMON);
+            throw new CodeException("email does not exist . Please enter a valid email", ErrorCode.BAD_REQUEST);
         }
     }
 
@@ -328,6 +340,18 @@ public class TechnicianServiceImpl implements TechnicianService {
     @Override
     public Object getProfileDetails(String id) throws CodeException {
         return null;
+    }
+
+    @Override
+    public ResponseEntity<ApiResponse> getStaticContentBySlug(String slug) throws CodeException {
+        try {
+            ResponseEntity<ApiResponse> response = adminClient.getBySlug(slug);
+
+            return response;
+
+        } catch (FeignException e) {
+            throw new CodeException("Remote admin-service failed: " + e.contentUTF8(), ErrorCode.COMMON);
+        }
     }
 
     private void updateUserVerificationStatus(Optional<UserOtpVerification> userVerificationToken, Technician user) throws CodeException {

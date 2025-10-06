@@ -5,11 +5,11 @@ import com.octal.fsm.common.ApiResponse;
 import com.octal.fsm.common.CommonConstants;
 import com.octal.fsm.dto.*;
 import com.octal.fsm.entities.Technician;
- import com.octal.fsm.exceptions.CodeException;
+import com.octal.fsm.exceptions.CodeException;
 import com.octal.fsm.exceptions.InvalidPasswordException;
 import com.octal.fsm.jwt.JwtTokenProvider;
 import com.octal.fsm.repositories.TechnicianRepository;
-  import com.octal.fsm.service.TechnicianService;
+import com.octal.fsm.service.TechnicianService;
 import com.octal.fsm.utils.TextUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -52,31 +52,33 @@ public class TechnicianAuthController extends BaseController {
     @PostMapping(value = "/auth/login")
     public ResponseEntity<ApiResponse> technicianLogin(@Valid @RequestBody LoginRequest request) {
         try {
-            authenticate(request.getEmail(), request.getPassword());
-
             Technician technician = technicianService.getTechnicianByEmailId(request.getEmail());
             if (technician == null) {
-                return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "Invalid credential, please try with valid email or password", null,
-                        "200", HttpStatus.OK), HttpStatus.OK);
-
+                return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "Invalid email address provided. Please enter a registered and valid email.", null,
+                        "400", HttpStatus.OK), HttpStatus.OK);
             }
-
+            authenticate(request.getEmail(), request.getPassword());
             AuthenticationResponse authenticationResponse = jwtTokenProvider.generateToken(technician);
             //save jwt token on the time of log in
             technician.setToken(authenticationResponse.getJwtToken());
             technicianRepository.save(technician);
             authenticationResponse.setId(technician.getUuid());
-            return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "user login successfully", authenticationResponse,
+            return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "User logged in successfully", authenticationResponse,
                     "200", HttpStatus.OK), HttpStatus.OK);
         } catch (Exception e) {
+            if(e instanceof InvalidPasswordException){
+                InvalidPasswordException invalidPasswordException= (InvalidPasswordException) e;
+                return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, invalidPasswordException.getMessage(), null,
+                        invalidPasswordException.getCode(), HttpStatus.OK), HttpStatus.OK);
+            }
             return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, e.getMessage(), null,
-                    "101", HttpStatus.OK), HttpStatus.OK);
+                    "500", HttpStatus.OK), HttpStatus.OK);
         }
 
     }
 
     @PostMapping(value = "/auth/signout")
-    public ResponseEntity<ApiResponse>technicianLogout(HttpServletRequest request) {
+    public ResponseEntity<ApiResponse> technicianLogout(HttpServletRequest request) {
         logger.info("TechnicianAuthController.technicianLogout");
         String technicianName = request.getHeader(CommonConstants.technician_NAME);
         try {
@@ -89,11 +91,11 @@ public class TechnicianAuthController extends BaseController {
                         "200", HttpStatus.OK), HttpStatus.OK);
             } else {
                 return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, "Invalid technician.", null,
-                        "101", HttpStatus.OK), HttpStatus.OK);
+                        "400", HttpStatus.OK), HttpStatus.OK);
             }
         } catch (Exception e) {
             return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, e.getMessage(), null,
-                    "101", HttpStatus.OK), HttpStatus.OK);
+                    "500", HttpStatus.OK), HttpStatus.OK);
         }
     }
 
@@ -105,8 +107,8 @@ public class TechnicianAuthController extends BaseController {
             Technician loggedIntechnician = technicianService.getTechnicianByEmailId(technicianname);
             if (loggedIntechnician != null) {
                 //if (Boolean.TRUE.equals(loggedIntechnician.getIsAdmin())) {
-                    return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "Profile Details.", technicianService.getProfileDetails(id),
-                            "200", HttpStatus.OK), HttpStatus.OK);
+                return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "Profile Details.", technicianService.getProfileDetails(id),
+                        "200", HttpStatus.OK), HttpStatus.OK);
 //                } else {
 //                    String apiUri = "auth/get-profile-details";
 //                    //Boolean access = checkApiAccess(loggedIntechnician.getRole().getUuid(), apiUri, "VIEW");
@@ -186,10 +188,10 @@ public class TechnicianAuthController extends BaseController {
 
         } catch (DisabledException e) {
             e.getMessage();
-            throw new InvalidPasswordException("Invalid User");
+            throw new InvalidPasswordException("Invalid User","500");
         } catch (BadCredentialsException e) {
             e.getMessage();
-            throw new InvalidPasswordException("Please enter the correct combination of password");
+            throw new InvalidPasswordException("The password you entered is incorrect. Please verify your credentials and try again.","400");
 
         } catch (Exception e) {
             throw e;
@@ -217,25 +219,25 @@ public class TechnicianAuthController extends BaseController {
         try {
             if (!TextUtils.isEmpty(email)) {
                 technicianService.resetTechnicianPassword(email);
-                return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "Email sent, Please click on the link to reset your password", null,
+                return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "A password reset email has been sent. Please check your inbox and follow the link to reset your password.", null,
                         "200", HttpStatus.OK), HttpStatus.OK);
             } else {
                 return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "Invalid request,email id not found in request", null,
-                        "101", HttpStatus.OK), HttpStatus.OK);
+                        "400", HttpStatus.OK), HttpStatus.OK);
             }
         } catch (CodeException e) {
             return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, e.getMessage(), null,
                     String.valueOf(e.getCode().getCode()), HttpStatus.OK), HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, e.getMessage(), null,
-                    "101", HttpStatus.OK), HttpStatus.OK);
+                    "500", HttpStatus.OK), HttpStatus.OK);
         }
 
     }
 
-        @PostMapping("/reset/password")
+    @PostMapping("/reset/password")
     public ResponseEntity<ApiResponse> resetTechnicianPassword(@Valid @RequestBody ChangePasswordDTO passwordDTO,
-                                                         HttpServletRequest request) {
+                                                               HttpServletRequest request) {
         try {
             technicianService.resetTechnicianPassword(passwordDTO.getToken(), passwordDTO.getNewPassword(), passwordDTO.getConfirmPassword());
             return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "Password reset successfully", null,
@@ -245,7 +247,7 @@ public class TechnicianAuthController extends BaseController {
                     String.valueOf(e.getCode().getCode()), HttpStatus.OK), HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, e.getMessage(), null,
-                    "101", HttpStatus.OK), HttpStatus.OK);
+                    "500", HttpStatus.OK), HttpStatus.OK);
         }
 
     }

@@ -13,6 +13,15 @@ public class AuthenticationResponse implements Serializable {
     private String profileImage;
     private String id;
     private String userName;
+    private String email;
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
 
     @JsonProperty("access_token")
     public String getJwtToken() {

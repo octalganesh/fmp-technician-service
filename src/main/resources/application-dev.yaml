@@ -48,8 +48,8 @@ eureka:
 
 forgot.password.time.in.second: 60
 forgot.password.otp.resend.count: 3
-user.activation.link.url: http://12.com:7070/?token=<token>
-user.forget.password.link: http://65.72/reset-password/<token>
+user.activation.link.url: https://main.d1ig8p7rfwgvkb.amplifyapp.com/change-password?token=<token>&type=technician
+user.forget.password.link: https://main.d1ig8p7rfwgvkb.amplifyapp.com/change-password?token=<token>&type=technician
 springdoc:
   api-docs.path : /api-docs
   swagger-ui.path : /swagger-ui.html

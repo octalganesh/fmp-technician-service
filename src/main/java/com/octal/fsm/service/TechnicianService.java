@@ -1,9 +1,11 @@
 package com.octal.fsm.service;
 
+import com.octal.fsm.common.ApiResponse;
 import com.octal.fsm.dto.*;
 import com.octal.fsm.entities.Technician;
 import com.octal.fsm.exceptions.CodeException;
 import com.octal.fsm.models.request.PageRequest;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -40,5 +42,7 @@ public interface TechnicianService {
     void updateProfile(TechnicianDetailDTO admintechnicianDetailDTO, MultipartFile profileImage)throws CodeException;
 
     Object getProfileDetails(String id)throws CodeException;
+
+    ResponseEntity<ApiResponse> getStaticContentBySlug(String slug) throws CodeException;
 }
 
