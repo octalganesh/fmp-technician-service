@@ -27,7 +27,7 @@ pipeline {
                     if (env.BRANCH_NAME == 'staging') {
                         echo "🚀 Deploying branch: ${env.BRANCH_NAME}"
 
-                        withCredentials([usernamePassword(credentialsId: 'b16783c1-68dc-4c1c-a21a-3cb195001b91', usernameVariable: 'DEPLOY_USER', passwordVariable: 'DEPLOY_PASS')]) {
+                        withCredentials([usernamePassword(credentialsId: '46957a41-b9d8-40ec-8b21-3b41ecca86b9', usernameVariable: 'DEPLOY_USER', passwordVariable: 'DEPLOY_PASS')]) {
                             sh '''
                                 #!/bin/bash
                                 set -e
@@ -66,7 +66,7 @@ pipeline {
                                     if [ -n "$PID" ]; then
                                         echo "✅ Application started with PID $PID"
                                     else
-                                        echo "❌ Application failed to start. Check logs at /opt/apps/technician-service/technician-service.log"
+                                        echo "❌ Application failed to start. Check logs at /opt/apps/admin-service/admin-service.log"
                                         exit 1
                                     fi
 EOF
