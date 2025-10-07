@@ -4,6 +4,9 @@ import com.octal.fsm.entities.enums.Gender;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
+
+import java.time.LocalDate;
 
 @Data
 public class TechnicianDto {
@@ -20,6 +23,8 @@ public class TechnicianDto {
         private String address;
         private Boolean isActive;
         private Gender gender;
+        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+        private LocalDate joinedDate;
     }
 
     @Data
@@ -40,6 +45,7 @@ public class TechnicianDto {
         private Integer completedJobs;
         private Integer rating;
         private Gender gender;
+        private String joinedDate;
     }
 
 

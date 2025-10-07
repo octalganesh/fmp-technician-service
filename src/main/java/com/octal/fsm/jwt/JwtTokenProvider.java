@@ -89,6 +89,7 @@ public class JwtTokenProvider {
         response.setJwtToken(access);
         response.setTokenType(JWT_TOKEN_TYPE);
         response.setRefreshToken(refresh);
+        response.setEmail(userDetails.getEmail());
 //        response.setAdmin(userDetails.getIsAdmin());
 //        response.setRoleId(userDetails.getRole().getUuid());
         response.setProfileImage(userDetails.getProfilePicture());

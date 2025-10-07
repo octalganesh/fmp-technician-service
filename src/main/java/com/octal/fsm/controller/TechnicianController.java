@@ -1,6 +1,7 @@
 package com.octal.fsm.controller;
 
 
+import com.octal.fsm.clients.AdminClient;
 import com.octal.fsm.common.ApiResponse;
 import com.octal.fsm.common.CommonConstants;
 import com.octal.fsm.dto.TechnicianDto;
@@ -84,6 +85,27 @@ public class TechnicianController extends BaseController{
         }
 
     }
+
+    @GetMapping("/get-static-content/by/slug/{slug}")
+    public ResponseEntity<ApiResponse> getBySlug(@PathVariable("slug") String slug, HttpServletRequest request) {
+        logger.info("StaticContentController.getBySlug");
+        String username = request.getHeader("userName");
+        try {
+            // User loggedInUser = adminService.getUserByEmailId(username);
+            //if (loggedInUser != null) {
+            //return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "Static Content successfully!", technicianService.getStatiContentBySlug(slug), "200", HttpStatus.OK), HttpStatus.OK);
+            return technicianService.getStaticContentBySlug(slug);
+            //} else {
+            //  return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, messageHelper.getMessage(MessageConstants.USER_FOUND), null, "200", HttpStatus.OK), HttpStatus.OK);
+            //}
+
+        } catch (Exception e) {
+            return handleException(e);
+        }
+
+    }
+
+
 
 
 
