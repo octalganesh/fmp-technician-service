@@ -1,6 +1,6 @@
 package com.octal.fsm.listeners.event;
 
-import com.octal.fsm.feign.AuthServiceClient;
+import com.octal.fsm.clients.AuthServiceClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.scheduling.annotation.Async;

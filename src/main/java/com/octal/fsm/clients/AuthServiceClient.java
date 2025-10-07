@@ -1,4 +1,4 @@
-package com.octal.fsm.feign;
+package com.octal.fsm.clients;
 
 import com.octal.fsm.common.ApiResponse;
 import com.octal.fsm.dto.TechnicianRegisterRequest;
