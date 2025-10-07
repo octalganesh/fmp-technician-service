@@ -1,48 +1,75 @@
 package com.octal.fsm.service.impl;
 
+import com.octal.fsm.clients.AdminClient;
+import com.octal.fsm.common.ApiResponse;
 import com.octal.fsm.common.CommonConstants;
-import com.octal.fsm.dto.AuthTechnicianDTO;
-import com.octal.fsm.dto.ChangePasswordDTO;
-import com.octal.fsm.dto.PageItem;
-import com.octal.fsm.dto.TechnicianDto;
+import com.octal.fsm.dto.*;
 import com.octal.fsm.entities.Technician;
+import com.octal.fsm.entities.UserOtpVerification;
 import com.octal.fsm.exceptions.CodeException;
 import com.octal.fsm.exceptions.ErrorCode;
+import com.octal.fsm.listeners.event.AddTechnicianUserInAuthEvent;
 import com.octal.fsm.models.request.PageRequest;
 import com.octal.fsm.repositories.TechnicianRepository;
+import com.octal.fsm.repositories.UserVerificationRepository;
 import com.octal.fsm.service.TechnicianService;
+import com.octal.fsm.service.UserVerificationService;
 import com.octal.fsm.specification.GenericSpecificationsBuilder;
 import com.octal.fsm.specification.SpecificationFactory;
 import com.octal.fsm.utils.TechnicianTransformer;
 import com.octal.fsm.utils.TextUtils;
+import feign.FeignException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import javax.mail.MessagingException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 public class TechnicianServiceImpl implements TechnicianService {
 
     private static final AtomicInteger sequence = new AtomicInteger(1);
+    @Autowired
+    private AdminClient adminClient;
 
     @Autowired
     private TechnicianRepository technicianRepository;
     @Autowired
     private SpecificationFactory<Technician> technicianSpecificationFactory;
+    @Autowired
+    private UserVerificationService userVerificationService;
 
     @Autowired
+    private UserVerificationRepository userVerificationRepository;
+    @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private ApplicationEventPublisher eventPublisher;
+
+    public static boolean isPasswordValid(String password) {
+        String regex = "^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[@#$%^&+=!])(.{8,})$";
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(password);
+        return matcher.matches();
+    }
 
     @Override
     public String addTechnician(TechnicianDto.Add add) throws CodeException {
@@ -69,8 +96,8 @@ public class TechnicianServiceImpl implements TechnicianService {
             newtechnicianRecord = new Technician();
             newtechnicianRecord.setCreatedAt(LocalDateTime.now());
             newtechnicianRecord.setUpdatedAt(LocalDateTime.now());
-            newtechnicianRecord.setEmployeeId(generateEmployeeId());
-            newtechnicianRecord.setPassword(passwordEncoder.encode("technician@123"));
+            newtechnicianRecord.setEmployeeId(generateEmployeeUniqeId());
+            newtechnicianRecord.setPassword(passwordEncoder.encode("Technician@123"));
             newtechnicianRecord.setActive(true);
         } else {
             Optional<Technician> technician = technicianRepository.findByUuid(add.getId());
@@ -95,7 +122,16 @@ public class TechnicianServiceImpl implements TechnicianService {
         //newtechnicianRecord.setAddress(new Address(add.getAddress().getStreet(), add.getAddress().getCity(), add.getAddress().getState(), add.getAddress().getPostalCode(), add.getAddress().getCountry()));
         newtechnicianRecord.setAddress(add.getAddress());
         newtechnicianRecord.setGender(add.getGender());
+        newtechnicianRecord.setJoinDate(add.getJoinedDate().atStartOfDay());
         Technician technician = technicianRepository.save(newtechnicianRecord);
+        TechnicianRegisterRequest technicianRegisterRequest=new TechnicianRegisterRequest();
+        technicianRegisterRequest.setActive(newtechnicianRecord.getActive());
+        technicianRegisterRequest.setEmail(newtechnicianRecord.getEmail());
+        technicianRegisterRequest.setRole("technician");
+        technicianRegisterRequest.setPassword("Technician@123");
+        technicianRegisterRequest.setCreatedAt(newtechnicianRecord.getCreatedAt());
+        technicianRegisterRequest.setFullName(technician.getName());
+        eventPublisher.publishEvent(new AddTechnicianUserInAuthEvent(technicianRegisterRequest));
         return technician.getUuid();
     }
 
@@ -126,6 +162,7 @@ public class TechnicianServiceImpl implements TechnicianService {
             technician.setMobileNumber(technicianRecord.get().getMobileNumber());
             technician.setProfilePicture(technicianRecord.get().getProfilePicture());
             technician.setIsActive(technicianRecord.get().getActive());
+            technician.setJoinedDate(technicianRecord.get().getJoinDate()!=null?technicianRecord.get().getJoinDate().toString():LocalDateTime.now().toString());
             technician.setCreatedAt(technicianRecord.get().getCreatedAt().toString());
             technician.setUpdatedAt(technicianRecord.get().getUpdatedAt().toString());
             technician.setGender(technicianRecord.get().getGender());
@@ -179,6 +216,7 @@ public class TechnicianServiceImpl implements TechnicianService {
             dto.setCreatedAt(String.valueOf(technician.getCreatedAt()));
             dto.setEmployeeId(technician.getEmployeeId());
             dto.setUpdatedAt(technician.getUpdatedAt().toString());
+            dto.setJoinedDate(technician.getJoinDate()!=null?technician.getJoinDate().toString():LocalDateTime.now().toString());
             dto.setGender(technician.getGender());
             responseList.add(dto);
         }
@@ -193,17 +231,22 @@ public class TechnicianServiceImpl implements TechnicianService {
         builder.with(technicianSpecificationFactory.isEqual("deleted", false));
 
         if (org.apache.commons.lang.StringUtils.isNotBlank(listRequest.getSearchText())) {
-            builder.with(technicianSpecificationFactory.like("name", listRequest.getSearchText()));
+            builder.with(technicianSpecificationFactory.like("name", listRequest.getSearchText()).or(technicianSpecificationFactory.like("employeeId", listRequest.getSearchText())).or(technicianSpecificationFactory.like("mobileNumber", listRequest.getSearchText()))
+                    .or(technicianSpecificationFactory.like("email", listRequest.getSearchText())));
+
+        }
+        if(listRequest.getGender()!=null){
+            builder.with(technicianSpecificationFactory.isEqual("gender", listRequest.getGender()));
         }
         if(listRequest.getIsActive()!=null){
             builder.with(technicianSpecificationFactory.isEqual("isActive", listRequest.getIsActive()));
         }
         if (listRequest.getStartDate() != null) {
-            builder.with(technicianSpecificationFactory.isGreaterThanOrEquals("createdAt", listRequest.getStartDate().atStartOfDay()));
+            builder.with(technicianSpecificationFactory.isGreaterThanOrEquals("joinDate", listRequest.getStartDate().atStartOfDay()));
         }
 
         if (listRequest.getEndDate() != null) {
-            builder.with(technicianSpecificationFactory.isLessThanOrEquals("createdAt", listRequest.getEndDate().atTime(23,59,59)));
+            builder.with(technicianSpecificationFactory.isLessThanOrEquals("joinDate", listRequest.getEndDate().atTime(23,59,59)));
         }
 
     }
@@ -215,6 +258,21 @@ public class TechnicianServiceImpl implements TechnicianService {
         return "TECH-" + datePart + "-" + sequencePart;
 
     }
+
+    public String generateEmployeeUniqeId() {
+        String code = "";
+        Optional<Technician> technician;
+        do {
+            String newCode = generateEmployeeId();
+            technician = technicianRepository.findByEmployeeId(newCode);
+            if (!technician.isPresent()) {
+                code = newCode;
+            }
+        } while (technician.isPresent());
+        return code;
+    }
+
+
 
     @Override
     public AuthTechnicianDTO fetchAuthenticatedUserDetailsByEmail(String email) {
@@ -243,12 +301,103 @@ public class TechnicianServiceImpl implements TechnicianService {
 
     @Override
     public void resetTechnicianPassword(String email) throws CodeException {
-
+        Optional<Technician> user = technicianRepository.findByEmail(email);
+        // if user is present then send email with generated OTP
+        if (user.isPresent()) {
+            user.ifPresent(user1 -> {
+                try {
+                    userVerificationService.generateUserOtp(user1, UserOtpVerification.Types.FORGOT_PASSWORD);
+                } catch (CodeException e) {
+                    //throw new UserNotFoundException("Failed to generate OTP for user: " + user1.getEmail());
+                } catch (MessagingException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+        } else {
+            throw new CodeException("email does not exist . Please enter a valid email", ErrorCode.BAD_REQUEST);
+        }
     }
 
     @Override
     public void resetTechnicianPassword(String token, String newPassword, String confirmPassword) throws CodeException {
+        if (isPasswordValid(newPassword)) {
+            Optional<UserOtpVerification> userVerificationToken = userVerificationRepository.findByToken(token);
 
+            if (userVerificationToken.isPresent()) {
+
+                Technician user = userVerificationToken.get().getUser();
+                if (user != null) {
+                    user.setPassword(passwordEncoder.encode(newPassword));
+                    updateUserVerificationStatus(userVerificationToken, user);
+                } else {
+                    throw new CodeException("Invalid Request, User object not not found", ErrorCode.COMMON);
+                }
+            } else {
+                throw new CodeException("no given token present for user ", ErrorCode.COMMON);
+            }
+        } else {
+            throw new CodeException("password should  contain one lowercase, uppercase, digit and one special character", ErrorCode.COMMON);
+        }
+    }
+
+    @Override
+    public void updatePassword(TechnicianDetailDTO.ChangePassword changePassword, Technician loggedIntechnician) throws CodeException {
+
+    }
+
+    @Override
+    public void updateProfile(TechnicianDetailDTO admintechnicianDetailDTO, MultipartFile profileImage) throws CodeException {
+
+    }
+
+    @Override
+    public Object getProfileDetails(String id) throws CodeException {
+        return null;
+    }
+
+    @Override
+    public ResponseEntity<ApiResponse> getStaticContentBySlug(String slug) throws CodeException {
+        try {
+            ResponseEntity<ApiResponse> response = adminClient.getBySlug(slug);
+
+            return response;
+
+        } catch (FeignException e) {
+            throw new CodeException("Remote admin-service failed: " + e.contentUTF8(), ErrorCode.COMMON);
+        }
+    }
+
+    @Override
+    public void verifyResetToken(String token) throws CodeException {
+        Optional<UserOtpVerification>userOtpVerification=userVerificationRepository.findByToken(token);
+        if(userOtpVerification.isEmpty()){
+            throw new CodeException("Invalid link ",ErrorCode.BAD_REQUEST);
+        }else{
+            if(LocalDateTime.now().isAfter(userOtpVerification.get().getExpiredDateTime())){
+                throw new CodeException("Password reset link is expired",ErrorCode.BAD_REQUEST);
+            }
+        }
+    }
+
+    private void updateUserVerificationStatus(Optional<UserOtpVerification> userVerificationToken, Technician user) throws CodeException {
+
+        if (userVerificationToken.isPresent()) {
+            // check verification token is expired or not, if token is expired then throw
+            // exception
+            if (LocalDateTime.now().isBefore(userVerificationToken.get().getExpiredDateTime())) {
+                user.setUpdatedAt(LocalDateTime.now(ZoneOffset.UTC));
+                userVerificationToken.get().setUserVerificationStatus(UserOtpVerification.UserVerificationStatus.STATUS_VERIFIED);
+                userVerificationToken.get().setConfirmedDateTime(LocalDateTime.now(ZoneOffset.UTC));
+                userVerificationToken.get().setUpdatedAt(LocalDateTime.now(ZoneOffset.UTC));
+                userVerificationToken.get().setExpiredDateTime(userVerificationToken.get().getExpiredDateTime().minusDays(2));
+                userVerificationToken.get().setActive(false);
+                List<UserOtpVerification> otpVerifications = new ArrayList<>();
+                otpVerifications.add(userVerificationToken.get());
+                technicianRepository.save(user);
+            } else {
+                throw new CodeException("Security key is expired", ErrorCode.COMMON);
+            }
+        }
     }
 
 

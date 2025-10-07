@@ -24,12 +24,12 @@ public class TechnicianAuthorizationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
         String username = request.getHeader("username");
-        if (StringUtils.isNotEmpty(username)) {
-            UserDetails userDetails = customUserDetailsService.loadUserByUsername(username);
-            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                    userDetails.getUsername(), userDetails.getPassword(), userDetails.getAuthorities());
-            SecurityContextHolder.getContext().setAuthentication(authentication);
-        }
+//        if (StringUtils.isNotEmpty(username)) {
+//            UserDetails userDetails = customUserDetailsService.loadUserByUsername(username);
+//            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+//                    userDetails.getUsername(), userDetails.getPassword(), userDetails.getAuthorities());
+//            SecurityContextHolder.getContext().setAuthentication(authentication);
+//        }
 
         filterChain.doFilter(request, response);
     }
