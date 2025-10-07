@@ -2,9 +2,7 @@ package com.octal.fsm.dto;
 
 import javax.validation.constraints.NotBlank;
 
-/**
- * @author Naveen
- */
+
 public class ChangePasswordDTO {
 
     private String userId;

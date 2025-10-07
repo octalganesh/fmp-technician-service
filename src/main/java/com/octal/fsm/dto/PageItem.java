@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * @author Naveen
  * PageItem - contains pagination information like total number of pages, total data etc
  */
 @Data

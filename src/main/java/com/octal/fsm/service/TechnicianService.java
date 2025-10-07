@@ -44,5 +44,7 @@ public interface TechnicianService {
     Object getProfileDetails(String id)throws CodeException;
 
     ResponseEntity<ApiResponse> getStaticContentBySlug(String slug) throws CodeException;
+
+    void verifyResetToken(String token) throws CodeException;
 }
 
