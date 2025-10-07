@@ -4,6 +4,7 @@ server:
     include-stacktrace: never
 
 spring:
+
   application:
     name: technician-service
   mail:
@@ -17,22 +18,22 @@ spring:
           auth: true
           starttls:
             enable: true
+
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: false
+    show-sql: true
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQL5InnoDBDialect
 
-
-
   datasource:
-      url: jdbc:mysql://localhost:3306/fsm-technician
-      username: root
-      password: fns$321!#
-      driver-class-name: com.mysql.cj.jdbc.Driver
-      initialize: true
+    url: ${DB_URL}
+    username: ${DB_USER}
+    password: ${DB_PASS}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    initialize: true
+
 
 eureka:
   client:
@@ -45,11 +46,32 @@ eureka:
 #    ip-address: ${EUREKA_INSTANCE_IP:${spring.cloud.client.ip-address}}
 
 
+#JWT token, token validity in seconds
+jwt:
+  access:
+    token:
+      validity: 7776000
+  refresh:
+    token:
+      validity: 7776000
+  secret: fsm
+
+
 
 forgot.password.time.in.second: 60
 forgot.password.otp.resend.count: 3
-user.activation.link.url: https://main.d1ig8p7rfwgvkb.amplifyapp.com/change-password?token=<token>&type=technician
-user.forget.password.link: https://main.d1ig8p7rfwgvkb.amplifyapp.com/change-password?token=<token>&type=technician
+user.activation.link.url: http://12.com:7070/?token=<token>
+user.forget.password.link: http://65.72/reset-password/<token>
+
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 10000     # 10 seconds
+        readTimeout: 30000        # 30 seconds
+
+
+randomPassword : Octal@123
 springdoc:
   api-docs.path : /api-docs
   swagger-ui.path : /swagger-ui.html
