@@ -1,6 +1,6 @@
 spring:
   profiles:
-    active: staging
+    active: prod
 
 #JWT token, token validity in seconds
 jwt:
