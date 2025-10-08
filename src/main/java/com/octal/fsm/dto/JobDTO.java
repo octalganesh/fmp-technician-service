@@ -15,12 +15,13 @@ public class JobDTO {
     @NoArgsConstructor
     public static class Response {
         String id;
+        String jobId;
         String title;
         String status;
         String dateRange;
         String startTime;
         String endTime;
-        String assignedTo;
+        String customerName;
         String location;
     }
 

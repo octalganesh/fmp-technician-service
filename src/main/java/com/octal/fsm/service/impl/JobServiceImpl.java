@@ -10,22 +10,24 @@ import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Random;
+import java.util.UUID;
 
 @Service
 public class JobServiceImpl implements JobService {
     @Override
     public ResponseEntity<ApiResponse> getAllJobs(JobDTO.JobFilterRequestDTO jobFilterRequestDTO) {
-        JobDTO.Response job1 = new JobDTO.Response(
+        JobDTO.Response job1 = new JobDTO.Response(UUID.randomUUID().toString(),
                 "#3201", "Fence Installation", "New",
                 "20 Sep, 2025 - 23 Sep, 2025", "10:00 AM", "05:00 PM",
                 "Sophie Rivas", "135 South Losalle Street, Washington"
         );
-        JobDTO.Response job2 = new JobDTO.Response(
+        JobDTO.Response job2 = new JobDTO.Response(UUID.randomUUID().toString(),
                 "#3250", "Drain Maintenance", "New",
                 "20 Sep, 2025 - 23 Sep, 2025", "10:00 AM", "05:00 PM",
                 "Sophie Rivas", "135 South Losalle Street, Washington"
         );
-        JobDTO.Response job3 = new JobDTO.Response(
+        JobDTO.Response job3 = new JobDTO.Response(UUID.randomUUID().toString(),
                 "#3520", "Fence Installation", "New",
                 "20 Sep, 2025 - 23 Sep, 2025", "10:00 AM", "05:00 PM",
                 "Sophie Rivas", "135 South Losalle Street, Washington"
