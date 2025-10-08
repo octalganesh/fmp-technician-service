@@ -16,7 +16,7 @@ public class TechnicianDetailDTO {
 
     @Data
     public static class ChangePassword {
-        private String oldPassword;
+        private String currentPassword;
         private String newPassword;
         private String confirmPassword;
     }
