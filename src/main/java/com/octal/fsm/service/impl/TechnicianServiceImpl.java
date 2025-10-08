@@ -351,7 +351,7 @@ public class TechnicianServiceImpl implements TechnicianService {
                     loggedIntechnician.setUpdatedAt(LocalDateTime.now());
                     technicianRepository.save(loggedIntechnician);
                 } else {
-                    throw new CodeException("invalid.current.password", ErrorCode.BAD_REQUEST);
+                    throw new CodeException("The current password you entered is incorrect.", ErrorCode.BAD_REQUEST);
                 }
 
             } else {
@@ -371,8 +371,19 @@ public class TechnicianServiceImpl implements TechnicianService {
     }
 
     @Override
-    public Object getProfileDetails(String id) throws CodeException {
-        return null;
+    public TechnicianDetailDTO getProfileDetails(String id) throws CodeException {
+        Optional<Technician> user = technicianRepository.findByUuid(id);
+        if (user.isEmpty())
+            throw new CodeException("User not found.", ErrorCode.COMMON);
+        TechnicianDetailDTO response = new TechnicianDetailDTO();
+        response.setId(user.get().getUuid());
+        response.setTechnicianId(user.get().getEmployeeId());
+        response.setFullName(user.get().getName());
+        response.setEmail(user.get().getEmail());
+        response.setContactNumber(user.get().getMobileNumber());
+        response.setNotificationEnable(true);
+        response.setProfileImage(user.get().getProfilePicture());
+        return response;
     }
 
     @Override
