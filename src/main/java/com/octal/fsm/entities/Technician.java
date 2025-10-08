@@ -50,7 +50,8 @@ public class Technician extends AbstractPersistable{
     @Column(name = "jwt_token")
     private String token;
 
-
+    @Column(name = "available")
+    private boolean available;
 
 }
 

@@ -225,11 +225,38 @@ public class TechnicianServiceImpl implements TechnicianService {
                 listRequest.getPageSize());
     }
 
+    @Override
+    public PageItem<TechnicianDto.ListForAssignment> getListForAssignment(PageRequest.List listRequest) {
+        String trimmedText = listRequest.getSearchText().trim();
+        listRequest.setSearchText(trimmedText);
+        GenericSpecificationsBuilder<Technician> builder = new GenericSpecificationsBuilder<>();
+        Pageable pageable = null;
+        if (Boolean.TRUE.equals(listRequest.getAsc())) {
+            pageable = org.springframework.data.domain.PageRequest.of(listRequest.getPageNumber(), listRequest.getPageSize(), Sort.by(listRequest.getShortingField()).ascending());
+        } else {
+            pageable = org.springframework.data.domain.PageRequest.of(listRequest.getPageNumber(), listRequest.getPageSize(), Sort.by(listRequest.getShortingField()).descending());
+        }
+        prepareTechnicianSearchFilter(listRequest, builder);
+        builder.with(technicianSpecificationFactory.isEqual("available", true));
+        Page<Technician> pagedResult = technicianRepository.findAll(builder.build(), pageable);
+        List<TechnicianDto.ListForAssignment> responseList = new ArrayList<>();
+        for(Technician technician:pagedResult.getContent()){
+            TechnicianDto.ListForAssignment dto=new TechnicianDto.ListForAssignment();
+            dto.setId(technician.getUuid());
+            dto.setName(technician.getName());
+            dto.setEmail(technician.getEmail());
+            dto.setMobileNumber(technician.getMobileNumber());
+            dto.setEmployeeId(technician.getEmployeeId());
+            responseList.add(dto);
+        }
+        return new PageItem<>(pagedResult.getTotalPages(), pagedResult.getTotalElements(), responseList, listRequest.getPageNumber(),
+                listRequest.getPageSize());
+    }
+
     private void prepareTechnicianSearchFilter(PageRequest.List listRequest, GenericSpecificationsBuilder<Technician> builder) {
 
-
         builder.with(technicianSpecificationFactory.isEqual("deleted", false));
-
+        builder.with(technicianSpecificationFactory.isEqual("blocked", false));
         if (org.apache.commons.lang.StringUtils.isNotBlank(listRequest.getSearchText())) {
             builder.with(technicianSpecificationFactory.like("name", listRequest.getSearchText()).or(technicianSpecificationFactory.like("employeeId", listRequest.getSearchText())).or(technicianSpecificationFactory.like("mobileNumber", listRequest.getSearchText()))
                     .or(technicianSpecificationFactory.like("email", listRequest.getSearchText())));

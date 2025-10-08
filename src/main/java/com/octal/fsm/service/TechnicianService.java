@@ -23,6 +23,7 @@ public interface TechnicianService {
     Boolean changeStatus(String id ) throws CodeException;
 
     PageItem<TechnicianDto.list> getAllTechnician(PageRequest.List listRequest );
+    PageItem<TechnicianDto.ListForAssignment> getListForAssignment(PageRequest.List listRequest );
 
 
     AuthTechnicianDTO fetchAuthenticatedUserDetailsByEmail(String email);
@@ -46,5 +47,6 @@ public interface TechnicianService {
     ResponseEntity<ApiResponse> getStaticContentBySlug(String slug) throws CodeException;
 
     void verifyResetToken(String token) throws CodeException;
+
 }
 
