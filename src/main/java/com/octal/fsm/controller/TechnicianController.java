@@ -4,9 +4,12 @@ package com.octal.fsm.controller;
 import com.octal.fsm.clients.AdminClient;
 import com.octal.fsm.common.ApiResponse;
 import com.octal.fsm.common.CommonConstants;
+import com.octal.fsm.dto.AwsDTO;
 import com.octal.fsm.dto.TechnicianDto;
- import com.octal.fsm.models.request.PageRequest;
- import com.octal.fsm.service.TechnicianService;
+import com.octal.fsm.entities.Technician;
+import com.octal.fsm.models.request.PageRequest;
+import com.octal.fsm.service.S3PresignedUrlService;
+import com.octal.fsm.service.TechnicianService;
 import com.octal.fsm.utils.TextUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -20,9 +23,12 @@ import javax.validation.Valid;
 
 @RestController
 @RequestMapping("/technician")
-public class TechnicianController extends BaseController{
+public class TechnicianController extends BaseController {
 
     private static final Logger logger = LogManager.getLogger(TechnicianController.class);
+
+    @Autowired
+    private S3PresignedUrlService s3PresignedUrlService;
 
 
     @PostMapping("/add-technician")
@@ -31,7 +37,7 @@ public class TechnicianController extends BaseController{
         String loginUserId = request.getHeader(CommonConstants.USER_NAME);
         try {
             String messageResponse = TextUtils.isEmpty(technicianDto.getId()) ? "technician added Successfully!" : "technician updated Successfully!";
-            return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, messageResponse,technicianService.addTechnician(technicianDto), "200", HttpStatus.OK), HttpStatus.OK);
+            return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, messageResponse, technicianService.addTechnician(technicianDto), "200", HttpStatus.OK), HttpStatus.OK);
         } catch (Exception e) {
             return handleException(e);
         }
@@ -65,7 +71,7 @@ public class TechnicianController extends BaseController{
         logger.info("TechnicianController./delete/by/id");
         String userName = request.getHeader(CommonConstants.USER_NAME);
         try {
-             return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "technician deleted successfully", technicianService.deleteById(id), "200", HttpStatus.OK), HttpStatus.OK);
+            return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "technician deleted successfully", technicianService.deleteById(id), "200", HttpStatus.OK), HttpStatus.OK);
         } catch (Exception e) {
             return handleException(e);
         }
@@ -113,12 +119,27 @@ public class TechnicianController extends BaseController{
         } catch (Exception e) {
             return handleException(e);
         }
-
     }
 
+    @PostMapping("/presigned-url")
+    public ResponseEntity<ApiResponse> getPresignedUrl(@RequestBody AwsDTO.GetPreSignedUrlRequest getPreSignedUrlRequest, HttpServletRequest httpServletRequest) {
+        logger.info("AdminAuthController.getPresignedUrl");
+        String technicianname = httpServletRequest.getHeader(CommonConstants.technician_NAME);
+        try {
+            Technician loggedIntechnician = technicianService.getTechnicianByEmailId(technicianname);
+            if (loggedIntechnician != null) {
+                String url = s3PresignedUrlService.generatePresignedUrl(getPreSignedUrlRequest.getPath(), getPreSignedUrlRequest.getContentType());
+                return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "Presigned URL Generated Successfully.", url,
+                        "200", HttpStatus.OK), HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, "technician not found.",
+                        null, "101", HttpStatus.OK), HttpStatus.OK);
+            }
 
-
-
-
+        } catch (Exception e) {
+            return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, e.getMessage(), null,
+                    "101", HttpStatus.OK), HttpStatus.OK);
+        }
+    }
 }
 
