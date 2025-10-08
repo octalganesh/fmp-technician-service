@@ -41,7 +41,7 @@ public interface TechnicianService {
 
     void updateProfile(Technician technician,TechnicianDetailDTO technicianDetailDTO)throws CodeException;
 
-    Object getProfileDetails(String id)throws CodeException;
+    TechnicianDetailDTO getProfileDetails(String id)throws CodeException;
 
     ResponseEntity<ApiResponse> getStaticContentBySlug(String slug) throws CodeException;
 

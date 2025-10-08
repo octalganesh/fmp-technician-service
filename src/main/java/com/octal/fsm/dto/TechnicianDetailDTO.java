@@ -6,13 +6,12 @@ import lombok.Data;
 @Data
 public class TechnicianDetailDTO {
     private String id;
-    private String firstName;
-    private String lastName;
+    private String fullName;
     private String email;
     private String contactNumber;
-    private String ext;
     private Boolean notificationEnable;
     private String profileImage;
+    private String technicianId;
 
     @Data
     public static class ChangePassword {

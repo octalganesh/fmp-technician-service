@@ -100,14 +100,14 @@ public class TechnicianAuthController extends BaseController {
     }
 
     @GetMapping(value = "/auth/get-profile-details")
-    public ResponseEntity<ApiResponse> getProfileDetails(@RequestParam("id") String id, HttpServletRequest httpServletRequest) {
+    public ResponseEntity<ApiResponse> getProfileDetails(HttpServletRequest httpServletRequest) {
         logger.info("AdminAuthController.getProfileDetails");
-        String technicianname = httpServletRequest.getHeader(CommonConstants.technician_NAME);
+        String technicianName = httpServletRequest.getHeader(CommonConstants.technician_NAME);
         try {
-            Technician loggedIntechnician = technicianService.getTechnicianByEmailId(technicianname);
+            Technician loggedIntechnician = technicianService.getTechnicianByEmailId(technicianName);
             if (loggedIntechnician != null) {
                 //if (Boolean.TRUE.equals(loggedIntechnician.getIsAdmin())) {
-                return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "Profile Details.", technicianService.getProfileDetails(id),
+                return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "Profile Details.", technicianService.getProfileDetails(loggedIntechnician.getUuid()),
                         "200", HttpStatus.OK), HttpStatus.OK);
 //                } else {
 //                    String apiUri = "auth/get-profile-details";
