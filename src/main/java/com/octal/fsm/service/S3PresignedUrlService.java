@@ -1,48 +1,51 @@
 package com.octal.fsm.service;
-
-import com.amazonaws.HttpMethod;
-import com.amazonaws.auth.AWSStaticCredentialsProvider;
-import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.octal.fsm.utils.TextUtils;
 import org.springframework.stereotype.Service;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
 
-import java.awt.*;
 import java.net.URL;
-import java.util.Date;
+import java.time.Duration;
 
 @Service
 public class S3PresignedUrlService {
 
-    private final AmazonS3 s3Client;
+    private final S3Presigner presigner;
     private final String bucketName = "yutka-fence";
 
     public S3PresignedUrlService() {
-        BasicAWSCredentials awsCreds = new BasicAWSCredentials("AKIA3FLD6ARUFCC532BI", "c9CloTw0jHyjxnc1eME4EaNUqZSDGhWO6NSjlIhN");
-        this.s3Client = AmazonS3ClientBuilder.standard()
-                .withRegion("ap-south-1")
-                .withCredentials(new AWSStaticCredentialsProvider(awsCreds))
+        this.presigner = S3Presigner.builder()
+                .region(Region.AP_SOUTH_1)
+                .credentialsProvider(StaticCredentialsProvider.create(
+                        AwsBasicCredentials.create("AKIA3FLD6ARUFCC532BI", "c9CloTw0jHyjxnc1eME4EaNUqZSDGhWO6NSjlIhN")
+                ))
                 .build();
     }
-    public String generatePresignedUrl(String path, String contentType) {
+
+    public String generatePresignedUrl(String path,String contentType) {
         try {
-            // Generate a unique file name
             String extension = getExtensionFromContentType(contentType);
-            String objectKey = !TextUtils.isEmpty(path) ? path : "/default/" + System.currentTimeMillis() + "-file." + extension;
-            // Set expiration (1 hour)
-            Date expiration = new Date();
-            long expTimeMillis = expiration.getTime();
-            expTimeMillis += 1000 * 60 * 60; // 1 hour
-            expiration.setTime(expTimeMillis);
-            // Generate pre-signed URL for PUT operation
-            URL url = s3Client.generatePresignedUrl(
-                    bucketName,
-                    objectKey,
-                    expiration,
-                    HttpMethod.PUT
+            String objectKey = !TextUtils.isEmpty(path) ? path : "default/" + System.currentTimeMillis() + "-file." + extension;
+
+            PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+                    .bucket(bucketName)
+                    .key(objectKey)
+                    .contentType(contentType)
+                    .build();
+
+            PresignedPutObjectRequest presignedRequest = presigner.presignPutObject(r -> r
+                    .signatureDuration(Duration.ofHours(1))
+                    .putObjectRequest(putObjectRequest)
             );
+
+            URL url = presignedRequest.url();
             return url.toString();
+
         } catch (Exception e) {
             throw new RuntimeException("Error generating presigned URL: " + e.getMessage(), e);
         }

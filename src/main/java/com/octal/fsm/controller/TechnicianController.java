@@ -126,15 +126,20 @@ public class TechnicianController extends BaseController {
         logger.info("AdminAuthController.getPresignedUrl");
         String technicianname = httpServletRequest.getHeader(CommonConstants.technician_NAME);
         try {
-            Technician loggedIntechnician = technicianService.getTechnicianByEmailId(technicianname);
-            if (loggedIntechnician != null) {
-                String url = s3PresignedUrlService.generatePresignedUrl(getPreSignedUrlRequest.getPath(), getPreSignedUrlRequest.getContentType());
-                return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "Presigned URL Generated Successfully.", url,
-                        "200", HttpStatus.OK), HttpStatus.OK);
-            } else {
-                return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, "technician not found.",
-                        null, "101", HttpStatus.OK), HttpStatus.OK);
-            }
+            String url = s3PresignedUrlService.generatePresignedUrl(getPreSignedUrlRequest.getPath(), getPreSignedUrlRequest.getContentType());
+            return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "Presigned URL Generated Successfully.", url,
+                    "200", HttpStatus.OK), HttpStatus.OK);
+
+            //Todo Uncomment below code when technician login functionality is done.
+//            Technician loggedIntechnician = technicianService.getTechnicianByEmailId(technicianname);
+//            if (loggedIntechnician != null) {
+//                String url = s3PresignedUrlService.generatePresignedUrl(getPreSignedUrlRequest.getPath(), getPreSignedUrlRequest.getContentType());
+//                return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "Presigned URL Generated Successfully.", url,
+//                        "200", HttpStatus.OK), HttpStatus.OK);
+//            } else {
+//                return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, "technician not found.",
+//                        null, "101", HttpStatus.OK), HttpStatus.OK);
+//            }
 
         } catch (Exception e) {
             return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, e.getMessage(), null,
