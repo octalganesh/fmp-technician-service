@@ -40,7 +40,7 @@ public interface TechnicianService {
 
     void updatePassword(TechnicianDetailDTO.ChangePassword changePassword, Technician loggedIntechnician)throws CodeException;
 
-    void updateProfile(TechnicianDetailDTO admintechnicianDetailDTO, MultipartFile profileImage)throws CodeException;
+    void updateProfile(Technician technician,TechnicianDetailDTO technicianDetailDTO)throws CodeException;
 
     Object getProfileDetails(String id)throws CodeException;
 
