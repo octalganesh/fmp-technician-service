@@ -39,39 +39,36 @@ public class JobDTO {
         private String startDate;
         private String endDate;
     }
-    public static class StartJobData {
-        CustomerDetails customer;
-        JobDetails job;
-        String jobStatus;
-        List<FileUpload> fileUploads;
-        String customerSignature;
-        String notes;
-        String reviewOrFeedback;
-        // Constructor, getters, setters...
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class Details {
+        // Customer Info
+        private String customerName;
+        private String email;
+        private String mobileNumber;
+        private String address;
+        // Job Info
+        private String jobTitle;
+        private String jobId;
+        private String jobType;
+        private String startDate;
+        private String endDate;
+        private String startTime;
+        private String endTime;
+        // Tags, Documents, Description
+        private List<String> jobTags;
+        private List<Document> uploadedDocuments;
+        private String jobDescription;
     }
 
-    public static class CustomerDetails {
-        String name;
-        String email;
-        String mobile;
-        // Constructor, getters, setters...
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class Document {
+        private String file;
+        private String fileType;
     }
 
-    public static class JobDetails {
-        String id;
-        String title;
-        String type;
-        String dateRange;
-        String startTime;
-        String endTime;
-        // Constructor, getters, setters...
-    }
-
-    public static class FileUpload {
-        String fileName;
-        String acceptedTypes;
-        // Constructor, getters, setters...
-
-
-    }
 }

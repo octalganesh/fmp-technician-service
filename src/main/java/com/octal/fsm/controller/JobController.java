@@ -19,7 +19,8 @@ public class JobController {
         return jobService.getAllJobs(jobFilterRequestDTO);
     }
 
-    public ResponseEntity<ApiResponse>getJobById(@RequestParam("id")String id){
+    @GetMapping("/get-by-id/{id}")
+    public ResponseEntity<ApiResponse>getJobById(@PathVariable("id")String id){
         return jobService.getJobById(id);
     }
 
