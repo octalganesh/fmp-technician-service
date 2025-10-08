@@ -48,6 +48,17 @@ public class TechnicianController extends BaseController{
         }
     }
 
+    @PostMapping("/get-list-for-assignment")
+    public ResponseEntity<ApiResponse> getListForAssignment(@Valid @RequestBody PageRequest.List listRequest, HttpServletRequest request) {
+        logger.info("TechnicianController./getListForAssignment");
+        try {
+            return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, CommonConstants.DETAILS_FETCHED, technicianService.getListForAssignment(listRequest), "200", HttpStatus.OK), HttpStatus.OK);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return handleException(e);
+        }
+    }
+
 
     @DeleteMapping("/delete/by/id/{id}")
     public ResponseEntity<ApiResponse> deleteId(@PathVariable("id") String id, HttpServletRequest request) {

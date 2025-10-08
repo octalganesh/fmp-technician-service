@@ -48,6 +48,18 @@ public class TechnicianDto {
         private String joinedDate;
     }
 
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class ListForAssignment {
+        private String id;
+        private String name;
+        private String email;
+        private String mobileNumber;
+        private String employeeId;
+        private String profilePicture;
+    }
+
 
 
 
