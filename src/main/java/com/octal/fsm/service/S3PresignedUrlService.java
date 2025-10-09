@@ -1,5 +1,7 @@
 package com.octal.fsm.service;
+
 import com.octal.fsm.utils.TextUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
@@ -15,25 +17,51 @@ import java.time.Duration;
 @Service
 public class S3PresignedUrlService {
 
-    private final S3Presigner presigner;
-    private final String bucketName = "yutka-fence";
+    @Value(value = "${aws.secret-key}")
+    private final String awsAccessKey;
 
-    public S3PresignedUrlService() {
+    @Value(value = "${aws.access-key}")
+    private final String awsSecretKey;
+
+    @Value("${aws.region}")
+    private final String awsRegion;
+
+    @Value("${aws.s3-bucket}")
+    private final String awsS3BucketName;
+
+    @Value("${aws.base-url}")
+    private final String awsS3BaseUrl;
+
+
+    private final S3Presigner presigner;
+    //private final String bucketName = "yutka-fence";
+
+    public S3PresignedUrlService(@Value("${aws.access-key}") String awsAccessKey,
+                                 @Value("${aws.secret-key}") String awsSecretKey,
+                                 @Value("${aws.region}") String awsRegion,
+                                 @Value("${aws.s3-bucket}") String awsS3BucketName,
+                                 @Value("${aws.base-url}") String awsS3BaseUrl
+    ) {
+        this.awsAccessKey = awsAccessKey;
+        this.awsSecretKey = awsSecretKey;
+        this.awsRegion = awsRegion;
+        this.awsS3BucketName = awsS3BucketName;
+        this.awsS3BaseUrl = awsS3BaseUrl;
         this.presigner = S3Presigner.builder()
-                .region(Region.AP_SOUTH_1)
+                .region(Region.of(awsRegion))
                 .credentialsProvider(StaticCredentialsProvider.create(
-                        AwsBasicCredentials.create("AKIA3FLD6ARUFCC532BI", "c9CloTw0jHyjxnc1eME4EaNUqZSDGhWO6NSjlIhN")
+                        AwsBasicCredentials.create(awsAccessKey, awsSecretKey)
                 ))
                 .build();
     }
 
-    public String generatePresignedUrl(String path,String contentType) {
+    public String generatePresignedUrl(String path, String contentType) {
         try {
             String extension = getExtensionFromContentType(contentType);
             String objectKey = !TextUtils.isEmpty(path) ? path : "default/" + System.currentTimeMillis() + "-file." + extension;
 
             PutObjectRequest putObjectRequest = PutObjectRequest.builder()
-                    .bucket(bucketName)
+                    .bucket(awsS3BucketName)
                     .key(objectKey)
                     .contentType(contentType)
                     .build();
