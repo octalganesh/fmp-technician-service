@@ -140,8 +140,7 @@ public class TechnicianAuthController extends BaseController {
         try {
             Technician loggedIntechnician = technicianService.getTechnicianByEmailId(technicianName);
             if (loggedIntechnician != null) {
-                technicianService.updateProfile(loggedIntechnician,technicianDetailDTO);
-                return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "Profile Update Successfully", null,
+                return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "Profile Update Successfully", technicianService.updateProfile(loggedIntechnician,technicianDetailDTO),
                         "200", HttpStatus.OK), HttpStatus.OK);
             } else {
                 return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, "Invalid technician.", null,
