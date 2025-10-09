@@ -18,7 +18,8 @@ public class JobDTO {
         String jobId;
         String title;
         String status;
-        String dateRange;
+        String startDate;
+        String endDate;
         String startTime;
         String endTime;
         String customerName;
@@ -44,6 +45,7 @@ public class JobDTO {
     @AllArgsConstructor
     @NoArgsConstructor
     public static class Details {
+        private String id;
         // Customer Info
         private String customerName;
         private String email;
