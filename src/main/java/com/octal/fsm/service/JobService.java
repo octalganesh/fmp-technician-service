@@ -2,13 +2,14 @@ package com.octal.fsm.service;
 
 import com.octal.fsm.common.ApiResponse;
 import com.octal.fsm.dto.JobDTO;
+import com.octal.fsm.exceptions.CodeException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
 @Component
 public interface JobService {
 
-    ResponseEntity<ApiResponse> getAllJobs(JobDTO.JobFilterRequestDTO jobFilterRequestDTO);
+    ResponseEntity<ApiResponse> getAllJobs(JobDTO.JobFilterRequest jobFilterRequestDTO,String loggedInTechnicianId) throws CodeException;
 
     ResponseEntity<ApiResponse> getJobById(String id);
 }
