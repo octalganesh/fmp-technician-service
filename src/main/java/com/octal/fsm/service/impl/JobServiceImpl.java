@@ -34,7 +34,7 @@ public class JobServiceImpl implements JobService {
         List<JobDTO.Response> todaysJobs = Arrays.asList(job1, job2, job3);
 
 
-        return new ResponseEntity<>(new ApiResponse("Jobs list",new PageItem<>(jobFilterRequestDTO.getPage(), todaysJobs.size(), todaysJobs,jobFilterRequestDTO.getLimit(),jobFilterRequestDTO.getPage()),"success",HttpStatus.OK), HttpStatus.OK);
+        return new ResponseEntity<>(new ApiResponse("Jobs list",new PageItem<>(jobFilterRequestDTO.getPage(), todaysJobs.size(), todaysJobs,jobFilterRequestDTO.getLimit(),jobFilterRequestDTO.getPage()),"200",HttpStatus.OK), HttpStatus.OK);
     }
 
     @Override
@@ -60,6 +60,6 @@ public class JobServiceImpl implements JobService {
         ));
         mockJob.setJobDescription("We are seeking a reliable Cooling Technician to carry out company-assigned cooling tune-up tasks. The role involves inspecting, cleaning, and servicing cooling systems to ensure efficiency, safety, and long-lasting performance.");
 
-        return new ResponseEntity<>(new ApiResponse("Job detail",mockJob,"success",HttpStatus.OK), HttpStatus.OK);
+        return new ResponseEntity<>(new ApiResponse("Job detail",mockJob,"200",HttpStatus.OK), HttpStatus.OK);
     }
 }
