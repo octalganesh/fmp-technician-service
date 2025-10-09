@@ -19,17 +19,17 @@ public class JobServiceImpl implements JobService {
         JobDTO.Response job1 = new JobDTO.Response(UUID.randomUUID().toString(),
                 "3201", "Fence Installation", "New",
                 "2025-09-20","2025-09-23", "10:00 AM", "05:00 PM",
-                "Sophie Rivas", "135 South Losalle Street, Washington"
+                "Sophie Rivas","https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y", "135 South Losalle Street, Washington"
         );
         JobDTO.Response job2 = new JobDTO.Response(UUID.randomUUID().toString(),
                 "3250", "Drain Maintenance", "Ongoing",
                 "2025-09-20","2025-09-23", "10:00 AM", "05:00 PM",
-                "Sophie Rivas", "135 South Losalle Street, Washington"
+                "Sophie Rivas","https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y", "135 South Losalle Street, Washington"
         );
         JobDTO.Response job3 = new JobDTO.Response(UUID.randomUUID().toString(),
                 "3520", "Fence Installation", "Completed",
                 "2025-09-20","2025-09-23", "10:00 AM", "05:00 PM",
-                "Sophie Rivas", "135 South Losalle Street, Washington"
+                "Sophie Rivas","https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y", "135 South Losalle Street, Washington"
         );
         List<JobDTO.Response> todaysJobs = Arrays.asList(job1, job2, job3);
 

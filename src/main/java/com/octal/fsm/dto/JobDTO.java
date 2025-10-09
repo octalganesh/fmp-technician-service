@@ -3,6 +3,7 @@ package com.octal.fsm.dto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
 import java.util.List;
 
 @Data
@@ -12,16 +13,17 @@ public class JobDTO {
     @AllArgsConstructor
     @NoArgsConstructor
     public static class Response {
-        String id;
-        String jobId;
-        String title;
-        String status;
-        String startDate;
-        String endDate;
-        String startTime;
-        String endTime;
-        String customerName;
-        String location;
+        private String id;
+        private String jobId;
+        private String title;
+        private String status;
+        private String startDate;
+        private String endDate;
+        private String startTime;
+        private String endTime;
+        private String customerName;
+        private String customerImg;
+        private String location;
     }
 
     @Data
@@ -46,6 +48,7 @@ public class JobDTO {
         private String id;
         // Customer Info
         private String customerName;
+        private String customerImg;
         private String email;
         private String mobileNumber;
         private String address;
