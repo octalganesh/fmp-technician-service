@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Random;
 import java.util.UUID;
 
 @Service
@@ -56,8 +55,8 @@ public class JobServiceImpl implements JobService {
         mockJob.setEndTime("05:00 PM");
         mockJob.setJobTags(Arrays.asList(UUID.randomUUID().toString(), UUID.randomUUID().toString(), UUID.randomUUID().toString()));
         mockJob.setUploadedDocuments(Arrays.asList(
-                new JobDTO.Document("Window Installation.pdf", "pdf"),
-                new JobDTO.Document("Installation Needed.pdf", "pdf")
+                new JobDTO.Document("https://yutka-fence.s3.ap-south-1.amazonaws.com/sample-pdf/Yukta_Fence_Work_Permit.pdf", "pdf"),
+                new JobDTO.Document("https://yutka-fence.s3.ap-south-1.amazonaws.com/sample-pdf/Yukta_Fence_Work_Permit.pdf", "pdf")
         ));
         mockJob.setJobDescription("We are seeking a reliable Cooling Technician to carry out company-assigned cooling tune-up tasks. The role involves inspecting, cleaning, and servicing cooling systems to ensure efficiency, safety, and long-lasting performance.");
 
