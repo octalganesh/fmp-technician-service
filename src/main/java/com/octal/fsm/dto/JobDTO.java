@@ -3,8 +3,6 @@ package com.octal.fsm.dto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
@@ -32,11 +30,11 @@ public class JobDTO {
     public static class JobFilterRequestDTO {
         private Integer page;
         private Integer limit;
-        private String joinedDate;
+        private String jobDate;
         private String txt;
         private String status;
-        private String jobType;
-        private String jobTag;
+        private List<String> jobType;
+        private List<String> jobTag;
         private String startDate;
         private String endDate;
     }
