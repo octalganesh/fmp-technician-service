@@ -53,7 +53,7 @@ public class JobServiceImpl implements JobService {
         mockJob.setEndDate("2025-09-23");
         mockJob.setStartTime("10:00 AM");
         mockJob.setEndTime("05:00 PM");
-        mockJob.setJobTags(Arrays.asList(UUID.randomUUID().toString(), UUID.randomUUID().toString(), UUID.randomUUID().toString()));
+        mockJob.setJobTags(Arrays.asList("Installation Needed","Onsite Data Collected" ,"Permit Required" ));
         mockJob.setUploadedDocuments(Arrays.asList(
                 new JobDTO.Document("https://yutka-fence.s3.ap-south-1.amazonaws.com/sample-pdf/Yukta_Fence_Work_Permit.pdf", "pdf"),
                 new JobDTO.Document("https://yutka-fence.s3.ap-south-1.amazonaws.com/sample-pdf/Yukta_Fence_Work_Permit.pdf", "pdf")
