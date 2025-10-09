@@ -390,11 +390,20 @@ public class TechnicianServiceImpl implements TechnicianService {
     }
 
     @Override
-    public void updateProfile(Technician technician, TechnicianDetailDTO technicianDetailDTO) throws CodeException {
+    public TechnicianDetailDTO updateProfile(Technician technician, TechnicianDetailDTO technicianDetailDTO) throws CodeException {
         if (TextUtils.isEmpty(technicianDetailDTO.getProfileImage()))
             throw new CodeException("profile image is required", ErrorCode.BAD_REQUEST);
         technician.setProfilePicture(technicianDetailDTO.getProfileImage());
         technicianRepository.save(technician);
+        TechnicianDetailDTO response = new TechnicianDetailDTO();
+        response.setId(technician.getUuid());
+        response.setTechnicianId(technician.getEmployeeId());
+        response.setFullName(technician.getName());
+        response.setEmail(technician.getEmail());
+        response.setContactNumber(technician.getMobileNumber());
+        response.setNotificationEnable(true);
+        response.setProfileImage(technician.getProfilePicture());
+        return response;
     }
 
     @Override
