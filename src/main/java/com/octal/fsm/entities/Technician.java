@@ -25,6 +25,7 @@ public class Technician extends AbstractPersistable{
     private String employeeId;
 
 
+    @Lob
     @Column(name="profile_picture")
     private String profilePicture;
 
