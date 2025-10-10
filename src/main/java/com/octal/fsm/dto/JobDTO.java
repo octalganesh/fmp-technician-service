@@ -27,7 +27,7 @@ public class JobDTO {
     @Data
     @AllArgsConstructor
     @NoArgsConstructor
-    public static class JobFilterRequestDTO {
+    public static class JobFilterRequest {
         private Integer page;
         private Integer limit;
         private String jobDate;
@@ -61,6 +61,7 @@ public class JobDTO {
         private List<String> jobTags;
         private List<Document> uploadedDocuments;
         private String jobDescription;
+        private String status;
     }
 
     @Data
