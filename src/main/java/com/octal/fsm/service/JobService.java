@@ -12,5 +12,5 @@ public interface JobService {
 
     ResponseEntity<ApiResponse> getAllJobs(JobDTO.JobFilterRequest jobFilterRequestDTO, Technician loggedInTechnician) throws CodeException;
 
-    ResponseEntity<ApiResponse> getJobById(String id);
+    ResponseEntity<ApiResponse> getJobById(String taskId,Technician loggedInTechnician) throws CodeException;
 }

@@ -43,8 +43,21 @@ public class JobController extends BaseController {
     }
 
     @GetMapping("/get-by-id/{id}")
-    public ResponseEntity<ApiResponse> getJobById(@PathVariable("id") String id) {
-        return jobService.getJobById(id);
+    public ResponseEntity<ApiResponse> getJobById(@PathVariable("id") String taskId,HttpServletRequest request) {
+        logger.info("JobController.getJobById");
+        String technicianName = request.getHeader(CommonConstants.technician_NAME);
+        try {
+            Technician loggedIntechnician = technicianService.getTechnicianByEmailId(technicianName);
+            if (loggedIntechnician != null) {
+                return jobService.getJobById(taskId,loggedIntechnician);
+            } else {
+                return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, "technician not found.",
+                        null, "400", HttpStatus.OK), HttpStatus.OK);
+            }
+        } catch (Exception e) {
+            return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, e.getMessage(), null,
+                    "500", HttpStatus.OK), HttpStatus.OK);
+        }
     }
 
 }

@@ -49,36 +49,44 @@ public class JobServiceImpl implements JobService {
             return response;
 
         } catch (FeignException e) {
-            throw new CodeException("Remote admin-service failed: " + e.contentUTF8(), ErrorCode.COMMON);
+            throw new CodeException("Remote job-service failed: " + e.contentUTF8(), ErrorCode.COMMON);
         }
 
         //return new ResponseEntity<>(new ApiResponse("Jobs list", new PageItem<>(jobFilterRequestDTO.getPage(), todaysJobs.size(), todaysJobs, jobFilterRequestDTO.getLimit(), jobFilterRequestDTO.getPage()), "200", HttpStatus.OK), HttpStatus.OK);
     }
 
     @Override
-    public ResponseEntity<ApiResponse> getJobById(String id) {
-        // MockJobDetails
-        JobDTO.Details mockJob = new JobDTO.Details();
-        mockJob.setId(UUID.randomUUID().toString());
-        mockJob.setCustomerName("Sophie Rivas");
-        mockJob.setEmail("sophierivas@gmail.com");
-        mockJob.setMobileNumber("+14087412589");
-        mockJob.setAddress("135 South Lasalle Street, Washington");
-        mockJob.setJobTitle("Fence Installation");
-        mockJob.setJobId(id);
-        mockJob.setJobType("New Window Installation");
-        mockJob.setStartDate("2025-09-20");
-        mockJob.setEndDate("2025-09-23");
-        mockJob.setStartTime("10:00 AM");
-        mockJob.setEndTime("05:00 PM");
-        mockJob.setStatus("New");
-        mockJob.setJobTags(Arrays.asList("Installation Needed", "Onsite Data Collected", "Permit Required"));
-        mockJob.setUploadedDocuments(Arrays.asList(
-                new JobDTO.Document("https://yutka-fence.s3.ap-south-1.amazonaws.com/sample-pdf/Yukta_Fence_Work_Permit.pdf", "pdf"),
-                new JobDTO.Document("https://yutka-fence.s3.ap-south-1.amazonaws.com/sample-pdf/Yukta_Fence_Work_Permit.pdf", "pdf")
-        ));
-        mockJob.setJobDescription("We are seeking a reliable Cooling Technician to carry out company-assigned cooling tune-up tasks. The role involves inspecting, cleaning, and servicing cooling systems to ensure efficiency, safety, and long-lasting performance.");
+    public ResponseEntity<ApiResponse> getJobById(String taskId,Technician loggedInTechnician) throws CodeException {
+//        // MockJobDetails
+//        JobDTO.Details mockJob = new JobDTO.Details();
+//        mockJob.setId(UUID.randomUUID().toString());
+//        mockJob.setCustomerName("Sophie Rivas");
+//        mockJob.setEmail("sophierivas@gmail.com");
+//        mockJob.setMobileNumber("+14087412589");
+//        mockJob.setAddress("135 South Lasalle Street, Washington");
+//        mockJob.setJobTitle("Fence Installation");
+//        mockJob.setJobId(id);
+//        mockJob.setJobType("New Window Installation");
+//        mockJob.setStartDate("2025-09-20");
+//        mockJob.setEndDate("2025-09-23");
+//        mockJob.setStartTime("10:00 AM");
+//        mockJob.setEndTime("05:00 PM");
+//        mockJob.setStatus("New");
+//        mockJob.setJobTags(Arrays.asList("Installation Needed", "Onsite Data Collected", "Permit Required"));
+//        mockJob.setUploadedDocuments(Arrays.asList(
+//                new JobDTO.Document("https://yutka-fence.s3.ap-south-1.amazonaws.com/sample-pdf/Yukta_Fence_Work_Permit.pdf", "pdf"),
+//                new JobDTO.Document("https://yutka-fence.s3.ap-south-1.amazonaws.com/sample-pdf/Yukta_Fence_Work_Permit.pdf", "pdf")
+//        ));
+//        mockJob.setJobDescription("We are seeking a reliable Cooling Technician to carry out company-assigned cooling tune-up tasks. The role involves inspecting, cleaning, and servicing cooling systems to ensure efficiency, safety, and long-lasting performance.");
+//
+//        return new ResponseEntity<>(new ApiResponse("Job detail", mockJob, "200", HttpStatus.OK), HttpStatus.OK);
+        try {
+            ResponseEntity<ApiResponse> response = jobClient.getJobTaskDetailsForTechnician(loggedInTechnician.getUuid(),taskId,loggedInTechnician.getEmail());
 
-        return new ResponseEntity<>(new ApiResponse("Job detail", mockJob, "200", HttpStatus.OK), HttpStatus.OK);
+            return response;
+
+        } catch (FeignException e) {
+            throw new CodeException("Remote job-service failed: " + e.contentUTF8(), ErrorCode.COMMON);
+        }
     }
 }
