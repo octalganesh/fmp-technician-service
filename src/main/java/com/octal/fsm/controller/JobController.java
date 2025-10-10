@@ -31,7 +31,7 @@ public class JobController extends BaseController {
         try {
             Technician loggedIntechnician = technicianService.getTechnicianByEmailId(technicianName);
             if (loggedIntechnician != null) {
-                return jobService.getAllJobs(jobFilterRequestDTO,loggedIntechnician.getUuid());
+                return jobService.getAllJobs(jobFilterRequestDTO,loggedIntechnician);
             } else {
                 return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, "technician not found.",
                         null, "400", HttpStatus.OK), HttpStatus.OK);

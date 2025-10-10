@@ -4,6 +4,7 @@ import com.octal.fsm.clients.JobClient;
 import com.octal.fsm.common.ApiResponse;
 import com.octal.fsm.dto.JobDTO;
 import com.octal.fsm.dto.PageItem;
+import com.octal.fsm.entities.Technician;
 import com.octal.fsm.exceptions.CodeException;
 import com.octal.fsm.exceptions.ErrorCode;
 import com.octal.fsm.service.JobService;
@@ -24,7 +25,7 @@ public class JobServiceImpl implements JobService {
     private JobClient jobClient;
 
     @Override
-    public ResponseEntity<ApiResponse> getAllJobs(JobDTO.JobFilterRequest jobFilterRequestDTO,String loggedInTechnicianId)throws CodeException {
+    public ResponseEntity<ApiResponse> getAllJobs(JobDTO.JobFilterRequest jobFilterRequestDTO, Technician loggedInTechnician)throws CodeException {
 //        JobDTO.Response job1 = new JobDTO.Response(UUID.randomUUID().toString(),
 //                "3201", "Fence Installation", "New",
 //                "2025-09-20", "2025-09-23", "10:00 AM", "05:00 PM",
@@ -43,7 +44,7 @@ public class JobServiceImpl implements JobService {
 //        List<JobDTO.Response> todaysJobs = Arrays.asList(job1, job2, job3);
 
         try {
-            ResponseEntity<ApiResponse> response = jobClient.getJobTasksForTechnician(jobFilterRequestDTO,loggedInTechnicianId);
+            ResponseEntity<ApiResponse> response = jobClient.getJobTasksForTechnician(jobFilterRequestDTO,loggedInTechnician.getUuid(),loggedInTechnician.getEmail());
 
             return response;
 

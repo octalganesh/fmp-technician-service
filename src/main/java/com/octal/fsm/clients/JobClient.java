@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -16,7 +17,7 @@ import javax.servlet.http.HttpServletRequest;
 public interface JobClient {
 
     @PostMapping("/jobs/tasks-for-technician/{technicianId}")
-    ResponseEntity<ApiResponse> getJobTasksForTechnician(@RequestBody JobDTO.JobFilterRequest filterRequest, @PathVariable("technicianId") String technicianId);
+    ResponseEntity<ApiResponse> getJobTasksForTechnician(@RequestBody JobDTO.JobFilterRequest filterRequest, @PathVariable("technicianId") String technicianId, @RequestHeader("userName")String userName);
 
 
 }
