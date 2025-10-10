@@ -20,6 +20,7 @@ import com.octal.fsm.utils.TechnicianTransformer;
 import com.octal.fsm.utils.TextUtils;
 import feign.FeignException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -63,6 +64,11 @@ public class TechnicianServiceImpl implements TechnicianService {
 
     @Autowired
     private ApplicationEventPublisher eventPublisher;
+
+    @Value("${aws.base-url}")
+    private  String awsS3BaseUrl;
+
+
 
     public static boolean isPasswordValid(String password) {
         String regex = "^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[@#$%^&+=!])(.{8,})$";
@@ -122,6 +128,7 @@ public class TechnicianServiceImpl implements TechnicianService {
         //newtechnicianRecord.setAddress(new Address(add.getAddress().getStreet(), add.getAddress().getCity(), add.getAddress().getState(), add.getAddress().getPostalCode(), add.getAddress().getCountry()));
         newtechnicianRecord.setAddress(add.getAddress());
         newtechnicianRecord.setGender(add.getGender());
+        newtechnicianRecord.setProfilePicture(awsS3BaseUrl+add.getProfilePicture());
         newtechnicianRecord.setJoinDate(add.getJoinedDate().atStartOfDay());
         Technician technician = technicianRepository.save(newtechnicianRecord);
         TechnicianRegisterRequest technicianRegisterRequest = new TechnicianRegisterRequest();
@@ -210,6 +217,7 @@ public class TechnicianServiceImpl implements TechnicianService {
             dto.setName(technician.getName());
             dto.setEmail(technician.getEmail());
             dto.setMobileNumber(technician.getMobileNumber());
+            dto.setProfilePicture(technician.getProfilePicture());
             //dto.setAddress(new AddressDTO(technician.getAddress().getStreet(), technician.getAddress().getCity(), technician.getAddress().getState(), technician.getAddress().getPostalCode(), technician.getAddress().getCountry()));
             dto.setAddress(technician.getAddress());
             dto.setIsActive(technician.getActive());
