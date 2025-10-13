@@ -48,7 +48,7 @@ public class JobServiceImpl implements JobService {
 //        List<JobDTO.Response> todaysJobs = Arrays.asList(job1, job2, job3);
 
         try {
-            ResponseEntity<ApiResponse> response = jobClient.getJobTasksForTechnician(jobFilterRequestDTO,loggedInTechnician.getUuid(),loggedInTechnician.getEmail());
+            ResponseEntity<ApiResponse> response = jobClient.getJobTasksForTechnician(jobFilterRequestDTO,loggedInTechnician.getUuid(),null);// null passing in  the header need to manage later with auth client in admin-service
 
             return response;
 
@@ -85,7 +85,7 @@ public class JobServiceImpl implements JobService {
 //
 //        return new ResponseEntity<>(new ApiResponse("Job detail", mockJob, "200", HttpStatus.OK), HttpStatus.OK);
         try {
-            ResponseEntity<ApiResponse> response = jobClient.getJobTaskDetailsForTechnician(loggedInTechnician.getUuid(),taskId,loggedInTechnician.getEmail());
+            ResponseEntity<ApiResponse> response = jobClient.getJobTaskDetailsForTechnician(loggedInTechnician.getUuid(),taskId,null);// null passing in  the header need to manage later with auth client in admin-service
 
             return response;
 
