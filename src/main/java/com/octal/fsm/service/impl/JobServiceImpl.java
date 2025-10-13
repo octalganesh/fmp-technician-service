@@ -1,7 +1,9 @@
 package com.octal.fsm.service.impl;
 
+import com.octal.fsm.clients.AdminClient;
 import com.octal.fsm.clients.JobClient;
 import com.octal.fsm.common.ApiResponse;
+import com.octal.fsm.dto.CustomerFeedbackDTO;
 import com.octal.fsm.dto.JobDTO;
 import com.octal.fsm.dto.PageItem;
 import com.octal.fsm.entities.Technician;
@@ -23,6 +25,8 @@ public class JobServiceImpl implements JobService {
 
     @Autowired
     private JobClient jobClient;
+    @Autowired
+    private AdminClient adminClient;
 
     @Override
     public ResponseEntity<ApiResponse> getAllJobs(JobDTO.JobFilterRequest jobFilterRequestDTO, Technician loggedInTechnician)throws CodeException {
@@ -85,6 +89,31 @@ public class JobServiceImpl implements JobService {
 
             return response;
 
+        } catch (FeignException e) {
+            throw new CodeException("Remote job-service failed: " + e.contentUTF8(), ErrorCode.COMMON);
+        }
+    }
+
+    @Override
+    public String addFeedback(CustomerFeedbackDTO.Add feedback,Technician loggedInTechnician) throws CodeException {
+        try {
+            ResponseEntity<ApiResponse> response = adminClient.addOrUpdateFeedback(feedback, loggedInTechnician.getEmail());
+            if (response.getBody() != null && Boolean.TRUE.equals(response.getBody().getSuccessful())) {
+                return "Feedback submitted successfully";
+            } else {
+                throw new CodeException("Failed to submit feedback", ErrorCode.COMMON);
+            }
+
+        } catch (FeignException e) {
+            throw new CodeException("Remote admin-service failed: " + e.contentUTF8(), ErrorCode.COMMON);
+        }
+    }
+
+    @Override
+    public ResponseEntity<ApiResponse> updateJobTaskStatus(String taskId, String status, Technician loggedIntechnician) throws CodeException {
+        try {
+            ResponseEntity<ApiResponse> response = jobClient.updateJobTaskStatus(loggedIntechnician.getUuid(),taskId,status,loggedIntechnician.getEmail());
+            return response;
         } catch (FeignException e) {
             throw new CodeException("Remote job-service failed: " + e.contentUTF8(), ErrorCode.COMMON);
         }

@@ -5,9 +5,11 @@ import com.octal.fsm.clients.AdminClient;
 import com.octal.fsm.common.ApiResponse;
 import com.octal.fsm.common.CommonConstants;
 import com.octal.fsm.dto.AwsDTO;
+import com.octal.fsm.dto.CustomerFeedbackDTO;
 import com.octal.fsm.dto.TechnicianDto;
 import com.octal.fsm.entities.Technician;
 import com.octal.fsm.models.request.PageRequest;
+import com.octal.fsm.repositories.TechnicianRepository;
 import com.octal.fsm.service.S3PresignedUrlService;
 import com.octal.fsm.service.TechnicianService;
 import com.octal.fsm.utils.TextUtils;
@@ -29,6 +31,8 @@ public class TechnicianController extends BaseController {
 
     @Autowired
     private S3PresignedUrlService s3PresignedUrlService;
+    @Autowired
+    private TechnicianRepository technicianRepository;
 
 
     @PostMapping("/add-technician")

@@ -14,11 +14,16 @@ import javax.servlet.http.HttpServletRequest;
 public interface JobClient {
 
     @PostMapping("/jobs/tasks-for-technician/{technicianId}")
-    ResponseEntity<ApiResponse> getJobTasksForTechnician(@RequestBody JobDTO.JobFilterRequest filterRequest, @PathVariable("technicianId") String technicianId, @RequestHeader("userName")String userName);
+    ResponseEntity<ApiResponse> getJobTasksForTechnician(@RequestBody JobDTO.JobFilterRequest filterRequest, @PathVariable("technicianId") String technicianId, @RequestHeader("userName") String userName);
+
     @GetMapping("/jobs/task-for-technician/{technicianId}/{taskId}")
-    ResponseEntity<ApiResponse> getJobTaskDetailsForTechnician(@PathVariable("technicianId") String technicianId, @PathVariable("taskId") String taskId, @RequestHeader("userName")String userName);
+    ResponseEntity<ApiResponse> getJobTaskDetailsForTechnician(@PathVariable("technicianId") String technicianId, @PathVariable("taskId") String taskId, @RequestHeader("userName") String userName);
+
+    @PutMapping("/jobs/update-job-task-status/{technicianId}/{taskId}")
+    ResponseEntity<ApiResponse> updateJobTaskStatus(@PathVariable("technicianId") String technicianId,
+                                                    @PathVariable("taskId") String taskId,
+                                                    @RequestParam("status") String status,
+                                                    @RequestHeader("userName") String userName);
 
 
-
-
-    }
+}
