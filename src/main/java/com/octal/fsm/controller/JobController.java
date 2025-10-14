@@ -81,7 +81,7 @@ public class JobController extends BaseController {
         }
     }
 
-    @PutMapping("/update-job-task-status/{technicianId}/{taskId}")
+    @PutMapping("/update-job-task-status/{taskId}")
     public ResponseEntity<ApiResponse> updateJobTaskStatus(@PathVariable("taskId") String taskId,
                                                            @RequestParam("status") String status,
                                                            HttpServletRequest request) {
