@@ -9,6 +9,7 @@ import com.octal.fsm.dto.PageItem;
 import com.octal.fsm.entities.Technician;
 import com.octal.fsm.exceptions.CodeException;
 import com.octal.fsm.exceptions.ErrorCode;
+import com.octal.fsm.models.request.PageRequest;
 import com.octal.fsm.service.JobService;
 import feign.FeignException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +17,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import javax.validation.Valid;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -113,6 +115,26 @@ public class JobServiceImpl implements JobService {
     public ResponseEntity<ApiResponse> updateJobTaskStatus(String taskId, String status, Technician loggedIntechnician) throws CodeException {
         try {
             ResponseEntity<ApiResponse> response = jobClient.updateJobTaskStatus(loggedIntechnician.getUuid(),taskId,status,loggedIntechnician.getEmail());
+            return response;
+        } catch (FeignException e) {
+            throw new CodeException("Remote job-service failed: " + e.contentUTF8(), ErrorCode.COMMON);
+        }
+    }
+
+    @Override
+    public ResponseEntity<ApiResponse> getAllJobTypes(PageRequest.List listRequest) throws CodeException {
+        try {
+            ResponseEntity<ApiResponse> response = jobClient.JobTypeList(listRequest);
+            return response;
+        } catch (FeignException e) {
+            throw new CodeException("Remote job-service failed: " + e.contentUTF8(), ErrorCode.COMMON);
+        }
+    }
+
+    @Override
+    public ResponseEntity<ApiResponse> getAllJobTags(PageRequest.@Valid List listRequest) throws CodeException {
+        try {
+            ResponseEntity<ApiResponse> response = jobClient.JobTagList(listRequest);
             return response;
         } catch (FeignException e) {
             throw new CodeException("Remote job-service failed: " + e.contentUTF8(), ErrorCode.COMMON);

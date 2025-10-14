@@ -6,6 +6,7 @@ import com.octal.fsm.dto.CustomerFeedbackDTO;
 import com.octal.fsm.dto.JobDTO;
 import com.octal.fsm.entities.Technician;
 import com.octal.fsm.exceptions.CodeException;
+import com.octal.fsm.models.request.PageRequest;
 import com.octal.fsm.service.JobService;
 import com.octal.fsm.utils.TextUtils;
 import org.apache.logging.log4j.LogManager;
@@ -16,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
 
 @RequestMapping("/jobs")
 @RestController
