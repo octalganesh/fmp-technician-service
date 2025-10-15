@@ -100,14 +100,14 @@ public class TechnicianAuthController extends BaseController {
     }
 
     @GetMapping(value = "/auth/get-profile-details")
-    public ResponseEntity<ApiResponse> getProfileDetails(@RequestParam("id") String id, HttpServletRequest httpServletRequest) {
+    public ResponseEntity<ApiResponse> getProfileDetails(HttpServletRequest httpServletRequest) {
         logger.info("AdminAuthController.getProfileDetails");
-        String technicianname = httpServletRequest.getHeader(CommonConstants.technician_NAME);
+        String technicianName = httpServletRequest.getHeader(CommonConstants.technician_NAME);
         try {
-            Technician loggedIntechnician = technicianService.getTechnicianByEmailId(technicianname);
+            Technician loggedIntechnician = technicianService.getTechnicianByEmailId(technicianName);
             if (loggedIntechnician != null) {
                 //if (Boolean.TRUE.equals(loggedIntechnician.getIsAdmin())) {
-                return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "Profile Details.", technicianService.getProfileDetails(id),
+                return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "Profile Details.", technicianService.getProfileDetails(loggedIntechnician.getUuid()),
                         "200", HttpStatus.OK), HttpStatus.OK);
 //                } else {
 //                    String apiUri = "auth/get-profile-details";
@@ -133,34 +133,33 @@ public class TechnicianAuthController extends BaseController {
     }
 
     @PostMapping("/update-profile")
-    public ResponseEntity<ApiResponse> updateProfile(@RequestPart(value = "updateProfile") TechnicianDetailDTO admintechnicianDetailDTO, @RequestPart(value = "profileImage", required = false) MultipartFile profileImage,
+    public ResponseEntity<ApiResponse> updateProfile(@RequestBody TechnicianDetailDTO technicianDetailDTO,
                                                      HttpServletRequest request) {
         logger.info("AdminAuthController.updateProfile");
         String technicianName = request.getHeader(CommonConstants.technician_NAME);
         try {
             Technician loggedIntechnician = technicianService.getTechnicianByEmailId(technicianName);
             if (loggedIntechnician != null) {
-                technicianService.updateProfile(admintechnicianDetailDTO, profileImage);
-                return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "Profile Update Successfully", null,
+                return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "Profile Update Successfully", technicianService.updateProfile(loggedIntechnician,technicianDetailDTO),
                         "200", HttpStatus.OK), HttpStatus.OK);
             } else {
                 return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, "Invalid technician.", null,
-                        "101", HttpStatus.OK), HttpStatus.OK);
+                        "400", HttpStatus.OK), HttpStatus.OK);
             }
         } catch (CodeException c) {
             return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, c.getMessage(), null,
                     String.valueOf(c.getCode().getCode()), HttpStatus.OK), HttpStatus.OK);
         } catch (Exception o) {
             return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, o.getMessage(), null,
-                    "101", HttpStatus.OK), HttpStatus.OK);
+                    "500", HttpStatus.OK), HttpStatus.OK);
         }
 
     }
 
-    @PostMapping("/update-password")
+    @PostMapping("/change/password")
     public ResponseEntity<ApiResponse> updatePassword(@RequestBody TechnicianDetailDTO.ChangePassword changePassword,
                                                       HttpServletRequest request) {
-        logger.info("AdminAuthController.updatePassword");
+        logger.info("TechnicianAuthController.change-password");
         String technicianName = request.getHeader(CommonConstants.technician_NAME);
         try {
             Technician loggedIntechnician = technicianService.getTechnicianByEmailId(technicianName);
@@ -170,14 +169,14 @@ public class TechnicianAuthController extends BaseController {
                         "200", HttpStatus.OK), HttpStatus.OK);
             } else {
                 return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, "Invalid technician.", null,
-                        "101", HttpStatus.OK), HttpStatus.OK);
+                        "400", HttpStatus.OK), HttpStatus.OK);
             }
         } catch (CodeException c) {
             return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, c.getMessage(), null,
                     String.valueOf(c.getCode().getCode()), HttpStatus.OK), HttpStatus.OK);
         } catch (Exception o) {
             return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, o.getMessage(), null,
-                    "101", HttpStatus.OK), HttpStatus.OK);
+                    "500", HttpStatus.OK), HttpStatus.OK);
         }
 
     }
@@ -195,22 +194,6 @@ public class TechnicianAuthController extends BaseController {
 
         } catch (Exception e) {
             throw e;
-        }
-    }
-
-    @PostMapping(value = "/change/password")
-    public ResponseEntity<ApiResponse> changePassword(@Valid @RequestBody ChangePasswordDTO passwordDTO,
-                                                      HttpServletRequest request) {
-        try {
-            technicianService.changeTechnicianPassword(passwordDTO, request.getHeader(CommonConstants.technician_NAME));
-            return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "Password successfully changed", null,
-                    "200", HttpStatus.OK), HttpStatus.OK);
-        } catch (CodeException e) {
-            return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, e.getMessage(), null,
-                    String.valueOf(e.getCode().getCode()), HttpStatus.OK), HttpStatus.OK);
-        } catch (Exception e) {
-            return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, e.getMessage(), null,
-                    "101", HttpStatus.OK), HttpStatus.OK);
         }
     }
 

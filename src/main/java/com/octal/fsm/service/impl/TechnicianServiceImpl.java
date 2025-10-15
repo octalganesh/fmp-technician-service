@@ -20,6 +20,7 @@ import com.octal.fsm.utils.TechnicianTransformer;
 import com.octal.fsm.utils.TextUtils;
 import feign.FeignException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -64,6 +65,10 @@ public class TechnicianServiceImpl implements TechnicianService {
     @Autowired
     private ApplicationEventPublisher eventPublisher;
 
+    @Value("${aws.base-url}")
+    private String awsS3BaseUrl;
+
+
     public static boolean isPasswordValid(String password) {
         String regex = "^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[@#$%^&+=!])(.{8,})$";
         Pattern pattern = Pattern.compile(regex);
@@ -81,7 +86,7 @@ public class TechnicianServiceImpl implements TechnicianService {
             throw new CodeException("email id is required", ErrorCode.COMMON);
         if (TextUtils.isEmpty(add.getAddress()))
             throw new CodeException("address is required", ErrorCode.COMMON);
-        if(add.getGender()==null)
+        if (add.getGender() == null)
             throw new CodeException("gender is required", ErrorCode.COMMON);
         Optional<Technician> optionalTechnician = technicianRepository.findByUuid(add.getId());
         if (optionalTechnician.isPresent() && !optionalTechnician.get().getUuid().equals(add.getId())) {
@@ -89,24 +94,25 @@ public class TechnicianServiceImpl implements TechnicianService {
         }
         Technician newtechnicianRecord = null;
         if (TextUtils.isEmpty(add.getId())) {
-            if(technicianRepository.existsByMobileNumber(add.getMobileNumber()))
-                throw new CodeException("Technician with mobile number "+add.getMobileNumber()+" already exists",ErrorCode.RECORD_NOT_FOUND);
-            if(technicianRepository.existsByEmail(add.getEmail()))
-                throw new CodeException("Technician with email "+add.getEmail()+" already exists",ErrorCode.RECORD_NOT_FOUND);
+            if (technicianRepository.existsByMobileNumber(add.getMobileNumber()))
+                throw new CodeException("Technician with mobile number " + add.getMobileNumber() + " already exists", ErrorCode.RECORD_NOT_FOUND);
+            if (technicianRepository.existsByEmail(add.getEmail()))
+                throw new CodeException("Technician with email " + add.getEmail() + " already exists", ErrorCode.RECORD_NOT_FOUND);
             newtechnicianRecord = new Technician();
             newtechnicianRecord.setCreatedAt(LocalDateTime.now());
             newtechnicianRecord.setUpdatedAt(LocalDateTime.now());
             newtechnicianRecord.setEmployeeId(generateEmployeeUniqeId());
+            newtechnicianRecord.setAvailable(true);
             newtechnicianRecord.setPassword(passwordEncoder.encode("Technician@123"));
             newtechnicianRecord.setActive(true);
         } else {
             Optional<Technician> technician = technicianRepository.findByUuid(add.getId());
-            Optional<Technician>optional=technicianRepository.findByMobileNumber(add.getMobileNumber());
-            Optional<Technician>optionalTechnician1=technicianRepository.findByEmail(add.getEmail());
-            if(optionalTechnician1.isPresent() && !optionalTechnician1.get().getUuid().equals(add.getId()))
-                throw new CodeException("Technician with email "+add.getEmail()+" already exists",ErrorCode.RECORD_NOT_FOUND);
-            if(optional.isPresent() && !optional.get().getUuid().equals(add.getId()))
-                throw new CodeException("Technician with mobile number "+add.getMobileNumber()+" already exists",ErrorCode.RECORD_NOT_FOUND);
+            Optional<Technician> optional = technicianRepository.findByMobileNumber(add.getMobileNumber());
+            Optional<Technician> optionalTechnician1 = technicianRepository.findByEmail(add.getEmail());
+            if (optionalTechnician1.isPresent() && !optionalTechnician1.get().getUuid().equals(add.getId()))
+                throw new CodeException("Technician with email " + add.getEmail() + " already exists", ErrorCode.RECORD_NOT_FOUND);
+            if (optional.isPresent() && !optional.get().getUuid().equals(add.getId()))
+                throw new CodeException("Technician with mobile number " + add.getMobileNumber() + " already exists", ErrorCode.RECORD_NOT_FOUND);
             if (technician.isPresent()) {
                 newtechnicianRecord = technician.get();
                 newtechnicianRecord.setUpdatedAt(LocalDateTime.now());
@@ -122,16 +128,18 @@ public class TechnicianServiceImpl implements TechnicianService {
         //newtechnicianRecord.setAddress(new Address(add.getAddress().getStreet(), add.getAddress().getCity(), add.getAddress().getState(), add.getAddress().getPostalCode(), add.getAddress().getCountry()));
         newtechnicianRecord.setAddress(add.getAddress());
         newtechnicianRecord.setGender(add.getGender());
+        newtechnicianRecord.setProfilePicture(awsS3BaseUrl + add.getProfilePicture());
         newtechnicianRecord.setJoinDate(add.getJoinedDate().atStartOfDay());
         Technician technician = technicianRepository.save(newtechnicianRecord);
-        TechnicianRegisterRequest technicianRegisterRequest=new TechnicianRegisterRequest();
+        TechnicianRegisterRequest technicianRegisterRequest = new TechnicianRegisterRequest();
         technicianRegisterRequest.setActive(newtechnicianRecord.getActive());
         technicianRegisterRequest.setEmail(newtechnicianRecord.getEmail());
         technicianRegisterRequest.setRole("technician");
         technicianRegisterRequest.setPassword("Technician@123");
         technicianRegisterRequest.setCreatedAt(newtechnicianRecord.getCreatedAt());
         technicianRegisterRequest.setFullName(technician.getName());
-        eventPublisher.publishEvent(new AddTechnicianUserInAuthEvent(technicianRegisterRequest));
+        technician.setPassword("Technician@123");
+        eventPublisher.publishEvent(new AddTechnicianUserInAuthEvent(technicianRegisterRequest,technician));
         return technician.getUuid();
     }
 
@@ -162,7 +170,7 @@ public class TechnicianServiceImpl implements TechnicianService {
             technician.setMobileNumber(technicianRecord.get().getMobileNumber());
             technician.setProfilePicture(technicianRecord.get().getProfilePicture());
             technician.setIsActive(technicianRecord.get().getActive());
-            technician.setJoinedDate(technicianRecord.get().getJoinDate()!=null?technicianRecord.get().getJoinDate().toString():LocalDateTime.now().toString());
+            technician.setJoinedDate(technicianRecord.get().getJoinDate() != null ? technicianRecord.get().getJoinDate().toString() : LocalDateTime.now().toString());
             technician.setCreatedAt(technicianRecord.get().getCreatedAt().toString());
             technician.setUpdatedAt(technicianRecord.get().getUpdatedAt().toString());
             technician.setGender(technicianRecord.get().getGender());
@@ -204,19 +212,20 @@ public class TechnicianServiceImpl implements TechnicianService {
         prepareTechnicianSearchFilter(listRequest, builder);
         Page<Technician> pagedResult = technicianRepository.findAll(builder.build(), pageable);
         List<TechnicianDto.list> responseList = new ArrayList<>();
-        for(Technician technician:pagedResult.getContent()){
-            TechnicianDto.list dto=new TechnicianDto.list();
+        for (Technician technician : pagedResult.getContent()) {
+            TechnicianDto.list dto = new TechnicianDto.list();
             dto.setId(technician.getUuid());
             dto.setName(technician.getName());
             dto.setEmail(technician.getEmail());
             dto.setMobileNumber(technician.getMobileNumber());
+            dto.setProfilePicture(technician.getProfilePicture());
             //dto.setAddress(new AddressDTO(technician.getAddress().getStreet(), technician.getAddress().getCity(), technician.getAddress().getState(), technician.getAddress().getPostalCode(), technician.getAddress().getCountry()));
             dto.setAddress(technician.getAddress());
             dto.setIsActive(technician.getActive());
             dto.setCreatedAt(String.valueOf(technician.getCreatedAt()));
             dto.setEmployeeId(technician.getEmployeeId());
             dto.setUpdatedAt(technician.getUpdatedAt().toString());
-            dto.setJoinedDate(technician.getJoinDate()!=null?technician.getJoinDate().toString():LocalDateTime.now().toString());
+            dto.setJoinedDate(technician.getJoinDate() != null ? technician.getJoinDate().toString() : LocalDateTime.now().toString());
             dto.setGender(technician.getGender());
             responseList.add(dto);
         }
@@ -225,20 +234,47 @@ public class TechnicianServiceImpl implements TechnicianService {
                 listRequest.getPageSize());
     }
 
+    @Override
+    public PageItem<TechnicianDto.ListForAssignment> getListForAssignment(PageRequest.List listRequest) {
+        String trimmedText = listRequest.getSearchText().trim();
+        listRequest.setSearchText(trimmedText);
+        GenericSpecificationsBuilder<Technician> builder = new GenericSpecificationsBuilder<>();
+        Pageable pageable = null;
+        if (Boolean.TRUE.equals(listRequest.getAsc())) {
+            pageable = org.springframework.data.domain.PageRequest.of(listRequest.getPageNumber(), listRequest.getPageSize(), Sort.by(listRequest.getShortingField()).ascending());
+        } else {
+            pageable = org.springframework.data.domain.PageRequest.of(listRequest.getPageNumber(), listRequest.getPageSize(), Sort.by(listRequest.getShortingField()).descending());
+        }
+        prepareTechnicianSearchFilter(listRequest, builder);
+        builder.with(technicianSpecificationFactory.isEqual("available", true));
+        Page<Technician> pagedResult = technicianRepository.findAll(builder.build(), pageable);
+        List<TechnicianDto.ListForAssignment> responseList = new ArrayList<>();
+        for (Technician technician : pagedResult.getContent()) {
+            TechnicianDto.ListForAssignment dto = new TechnicianDto.ListForAssignment();
+            dto.setId(technician.getUuid());
+            dto.setName(technician.getName());
+            dto.setEmail(technician.getEmail());
+            dto.setMobileNumber(technician.getMobileNumber());
+            dto.setEmployeeId(technician.getEmployeeId());
+            responseList.add(dto);
+        }
+        return new PageItem<>(pagedResult.getTotalPages(), pagedResult.getTotalElements(), responseList, listRequest.getPageNumber(),
+                listRequest.getPageSize());
+    }
+
     private void prepareTechnicianSearchFilter(PageRequest.List listRequest, GenericSpecificationsBuilder<Technician> builder) {
 
-
         builder.with(technicianSpecificationFactory.isEqual("deleted", false));
-
+        builder.with(technicianSpecificationFactory.isEqual("blocked", false));
         if (org.apache.commons.lang.StringUtils.isNotBlank(listRequest.getSearchText())) {
             builder.with(technicianSpecificationFactory.like("name", listRequest.getSearchText()).or(technicianSpecificationFactory.like("employeeId", listRequest.getSearchText())).or(technicianSpecificationFactory.like("mobileNumber", listRequest.getSearchText()))
                     .or(technicianSpecificationFactory.like("email", listRequest.getSearchText())));
 
         }
-        if(listRequest.getGender()!=null){
+        if (listRequest.getGender() != null) {
             builder.with(technicianSpecificationFactory.isEqual("gender", listRequest.getGender()));
         }
-        if(listRequest.getIsActive()!=null){
+        if (listRequest.getIsActive() != null) {
             builder.with(technicianSpecificationFactory.isEqual("isActive", listRequest.getIsActive()));
         }
         if (listRequest.getStartDate() != null) {
@@ -246,7 +282,7 @@ public class TechnicianServiceImpl implements TechnicianService {
         }
 
         if (listRequest.getEndDate() != null) {
-            builder.with(technicianSpecificationFactory.isLessThanOrEquals("joinDate", listRequest.getEndDate().atTime(23,59,59)));
+            builder.with(technicianSpecificationFactory.isLessThanOrEquals("joinDate", listRequest.getEndDate().atTime(23, 59, 59)));
         }
 
     }
@@ -271,7 +307,6 @@ public class TechnicianServiceImpl implements TechnicianService {
         } while (technician.isPresent());
         return code;
     }
-
 
 
     @Override
@@ -342,17 +377,58 @@ public class TechnicianServiceImpl implements TechnicianService {
 
     @Override
     public void updatePassword(TechnicianDetailDTO.ChangePassword changePassword, Technician loggedIntechnician) throws CodeException {
+        if (isPasswordValid(changePassword.getNewPassword())) {
+            // new password and confirm password should be same
+            if (changePassword.getNewPassword().equals(changePassword.getConfirmPassword())) {
+                // Validate user with current password, if user has entered wrong current password then throw error
+                if (passwordEncoder.matches(changePassword.getCurrentPassword(), loggedIntechnician.getPassword())) {
+                    // encode user password
+                    loggedIntechnician.setPassword(passwordEncoder.encode(changePassword.getNewPassword()));
+                    loggedIntechnician.setUpdatedAt(LocalDateTime.now());
+                    technicianRepository.save(loggedIntechnician);
+                } else {
+                    throw new CodeException("The current password you entered is incorrect.", ErrorCode.BAD_REQUEST);
+                }
 
+            } else {
+                throw new CodeException("Confirm Password field is not matching with new password field.", ErrorCode.BAD_REQUEST);
+            }
+        } else {
+            throw new CodeException("password should  contain one lowercase, uppercase, digit and one special character", ErrorCode.BAD_REQUEST);
+        }
     }
 
     @Override
-    public void updateProfile(TechnicianDetailDTO admintechnicianDetailDTO, MultipartFile profileImage) throws CodeException {
-
+    public TechnicianDetailDTO updateProfile(Technician technician, TechnicianDetailDTO technicianDetailDTO) throws CodeException {
+        if (TextUtils.isEmpty(technicianDetailDTO.getProfileImage()))
+            throw new CodeException("profile image is required", ErrorCode.BAD_REQUEST);
+        technician.setProfilePicture(technicianDetailDTO.getProfileImage());
+        technicianRepository.save(technician);
+        TechnicianDetailDTO response = new TechnicianDetailDTO();
+        response.setId(technician.getUuid());
+        response.setTechnicianId(technician.getEmployeeId());
+        response.setFullName(technician.getName());
+        response.setEmail(technician.getEmail());
+        response.setContactNumber(technician.getMobileNumber());
+        response.setNotificationEnable(true);
+        response.setProfileImage(technician.getProfilePicture());
+        return response;
     }
 
     @Override
-    public Object getProfileDetails(String id) throws CodeException {
-        return null;
+    public TechnicianDetailDTO getProfileDetails(String id) throws CodeException {
+        Optional<Technician> user = technicianRepository.findByUuid(id);
+        if (user.isEmpty())
+            throw new CodeException("User not found.", ErrorCode.COMMON);
+        TechnicianDetailDTO response = new TechnicianDetailDTO();
+        response.setId(user.get().getUuid());
+        response.setTechnicianId(user.get().getEmployeeId());
+        response.setFullName(user.get().getName());
+        response.setEmail(user.get().getEmail());
+        response.setContactNumber(user.get().getMobileNumber());
+        response.setNotificationEnable(true);
+        response.setProfileImage(user.get().getProfilePicture());
+        return response;
     }
 
     @Override
@@ -369,12 +445,12 @@ public class TechnicianServiceImpl implements TechnicianService {
 
     @Override
     public void verifyResetToken(String token) throws CodeException {
-        Optional<UserOtpVerification>userOtpVerification=userVerificationRepository.findByToken(token);
-        if(userOtpVerification.isEmpty()){
-            throw new CodeException("Invalid link ",ErrorCode.BAD_REQUEST);
-        }else{
-            if(LocalDateTime.now().isAfter(userOtpVerification.get().getExpiredDateTime())){
-                throw new CodeException("Password reset link is expired",ErrorCode.BAD_REQUEST);
+        Optional<UserOtpVerification> userOtpVerification = userVerificationRepository.findByToken(token);
+        if (userOtpVerification.isEmpty()) {
+            throw new CodeException("Invalid link ", ErrorCode.BAD_REQUEST);
+        } else {
+            if (LocalDateTime.now().isAfter(userOtpVerification.get().getExpiredDateTime())) {
+                throw new CodeException("Password reset link is expired", ErrorCode.BAD_REQUEST);
             }
         }
     }

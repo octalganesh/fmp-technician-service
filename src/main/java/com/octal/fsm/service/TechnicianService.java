@@ -23,6 +23,7 @@ public interface TechnicianService {
     Boolean changeStatus(String id ) throws CodeException;
 
     PageItem<TechnicianDto.list> getAllTechnician(PageRequest.List listRequest );
+    PageItem<TechnicianDto.ListForAssignment> getListForAssignment(PageRequest.List listRequest );
 
 
     AuthTechnicianDTO fetchAuthenticatedUserDetailsByEmail(String email);
@@ -39,12 +40,13 @@ public interface TechnicianService {
 
     void updatePassword(TechnicianDetailDTO.ChangePassword changePassword, Technician loggedIntechnician)throws CodeException;
 
-    void updateProfile(TechnicianDetailDTO admintechnicianDetailDTO, MultipartFile profileImage)throws CodeException;
+    TechnicianDetailDTO updateProfile(Technician technician,TechnicianDetailDTO technicianDetailDTO)throws CodeException;
 
-    Object getProfileDetails(String id)throws CodeException;
+    TechnicianDetailDTO getProfileDetails(String id)throws CodeException;
 
     ResponseEntity<ApiResponse> getStaticContentBySlug(String slug) throws CodeException;
 
     void verifyResetToken(String token) throws CodeException;
+
 }
 

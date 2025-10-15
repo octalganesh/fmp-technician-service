@@ -15,7 +15,7 @@ public class Technician extends AbstractPersistable{
     @Column(name = "name")
     private String name;
 
-    @Column(name = "email")
+    @Column(name = "email",unique = true)
     private String email;
 
     @Column(name = "phone_number")
@@ -25,6 +25,7 @@ public class Technician extends AbstractPersistable{
     private String employeeId;
 
 
+    @Lob
     @Column(name="profile_picture")
     private String profilePicture;
 
@@ -50,7 +51,8 @@ public class Technician extends AbstractPersistable{
     @Column(name = "jwt_token")
     private String token;
 
-
+    @Column(name = "available")
+    private boolean available;
 
 }
 

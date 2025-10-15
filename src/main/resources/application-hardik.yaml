@@ -61,7 +61,7 @@ jwt:
 forgot.password.time.in.second: 60
 forgot.password.otp.resend.count: 3
 user.activation.link.url: http://12.com:7070/?token=<token>
-user.forget.password.link: http://65.72/reset-password/<token>
+user.forget.password.link: http://localhost:5173/reset-password?token=<token>&type=<type>
 
 feign:
   client:
@@ -75,4 +75,11 @@ randomPassword : Octal@123
 springdoc:
   api-docs.path : /api-docs
   swagger-ui.path : /swagger-ui.html
+
+aws:
+  access-key: ${AWS_ACCESS_KEY}
+  secret-key: ${AWS_SECRET_KEY}
+  region: ${AWS_S3_REGION}
+  s3-bucket: ${AWS_S3_BUCKET}
+  base-url: ${AWS_S3_BASE_URL}
 

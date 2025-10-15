@@ -25,6 +25,7 @@ public class TechnicianDto {
         private Gender gender;
         @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
         private LocalDate joinedDate;
+        private Boolean available;
     }
 
     @Data
@@ -46,6 +47,18 @@ public class TechnicianDto {
         private Integer rating;
         private Gender gender;
         private String joinedDate;
+    }
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class ListForAssignment {
+        private String id;
+        private String name;
+        private String email;
+        private String mobileNumber;
+        private String employeeId;
+        private String profilePicture;
     }
 
 
