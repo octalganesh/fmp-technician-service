@@ -2,7 +2,9 @@ package com.octal.fsm.clients;
 
 import com.octal.fsm.common.ApiResponse;
 import com.octal.fsm.dto.CustomerFeedbackDTO;
-import org.springframework.cloud.openfeign.FeignClient;
+import com.octal.fsm.dto.SendMailRequestDTO;
+ import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,4 +21,7 @@ public interface AdminClient {
 
     @PostMapping("/customer-feedback/add")
     ResponseEntity<ApiResponse> addOrUpdateFeedback(@RequestBody CustomerFeedbackDTO.Add feedbackRequest, @RequestHeader("userName") String userName);
+
+    @PostMapping(value = "/mail/send", consumes = MediaType.APPLICATION_JSON_VALUE)
+    ApiResponse sendDynamicMail(@RequestBody SendMailRequestDTO request);
 }
