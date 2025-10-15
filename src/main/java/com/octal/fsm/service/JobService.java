@@ -21,7 +21,7 @@ public interface JobService {
 
     String addFeedback(CustomerFeedbackDTO.Add feedback, Technician loggedInTechnician) throws CodeException;
 
-    ResponseEntity<ApiResponse> updateJobTaskStatus(String taskId, String status, Technician loggedIntechnician) throws CodeException;
+    ResponseEntity<ApiResponse> updateJobTaskStatus(String taskId, String status, String note, Technician loggedIntechnician) throws CodeException;
 
     ResponseEntity<ApiResponse> getAllJobTypes(PageRequest.List listRequest) throws CodeException;
 
