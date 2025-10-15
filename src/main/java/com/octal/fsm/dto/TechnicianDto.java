@@ -25,6 +25,7 @@ public class TechnicianDto {
         private Gender gender;
         @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
         private LocalDate joinedDate;
+        private Boolean available;
     }
 
     @Data
