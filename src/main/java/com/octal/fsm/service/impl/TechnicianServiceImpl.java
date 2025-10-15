@@ -66,8 +66,7 @@ public class TechnicianServiceImpl implements TechnicianService {
     private ApplicationEventPublisher eventPublisher;
 
     @Value("${aws.base-url}")
-    private  String awsS3BaseUrl;
-
+    private String awsS3BaseUrl;
 
 
     public static boolean isPasswordValid(String password) {
@@ -128,7 +127,7 @@ public class TechnicianServiceImpl implements TechnicianService {
         //newtechnicianRecord.setAddress(new Address(add.getAddress().getStreet(), add.getAddress().getCity(), add.getAddress().getState(), add.getAddress().getPostalCode(), add.getAddress().getCountry()));
         newtechnicianRecord.setAddress(add.getAddress());
         newtechnicianRecord.setGender(add.getGender());
-        newtechnicianRecord.setProfilePicture(awsS3BaseUrl+add.getProfilePicture());
+        newtechnicianRecord.setProfilePicture(awsS3BaseUrl + add.getProfilePicture());
         newtechnicianRecord.setJoinDate(add.getJoinedDate().atStartOfDay());
         Technician technician = technicianRepository.save(newtechnicianRecord);
         TechnicianRegisterRequest technicianRegisterRequest = new TechnicianRegisterRequest();
@@ -248,8 +247,8 @@ public class TechnicianServiceImpl implements TechnicianService {
         builder.with(technicianSpecificationFactory.isEqual("available", true));
         Page<Technician> pagedResult = technicianRepository.findAll(builder.build(), pageable);
         List<TechnicianDto.ListForAssignment> responseList = new ArrayList<>();
-        for(Technician technician:pagedResult.getContent()){
-            TechnicianDto.ListForAssignment dto=new TechnicianDto.ListForAssignment();
+        for (Technician technician : pagedResult.getContent()) {
+            TechnicianDto.ListForAssignment dto = new TechnicianDto.ListForAssignment();
             dto.setId(technician.getUuid());
             dto.setName(technician.getName());
             dto.setEmail(technician.getEmail());
