@@ -84,7 +84,7 @@ public class JobController extends BaseController {
     @PutMapping("/update-job-task-status/{taskId}")
     public ResponseEntity<ApiResponse> updateJobTaskStatus(@PathVariable("taskId") String taskId,
                                                            @RequestParam("status") String status,
-                                                           @RequestParam("note") String note,
+                                                           @RequestParam(value = "note",required = false,defaultValue = "") String note,
                                                            HttpServletRequest request) {
         logger.info("JobController.updateJobTaskStatus");
         String loggedInUserName = request.getHeader(CommonConstants.USER_NAME);
