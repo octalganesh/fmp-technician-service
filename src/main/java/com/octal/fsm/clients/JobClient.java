@@ -25,6 +25,7 @@ public interface JobClient {
     ResponseEntity<ApiResponse> updateJobTaskStatus(@PathVariable("technicianId") String technicianId,
                                                     @PathVariable("taskId") String taskId,
                                                     @RequestParam("status") String status,
+                                                    @RequestParam("note") String note,
                                                     @RequestHeader("userName") String userName);
 
     @PostMapping("/job-type/list-for-technician")

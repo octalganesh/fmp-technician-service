@@ -84,13 +84,14 @@ public class JobController extends BaseController {
     @PutMapping("/update-job-task-status/{taskId}")
     public ResponseEntity<ApiResponse> updateJobTaskStatus(@PathVariable("taskId") String taskId,
                                                            @RequestParam("status") String status,
+                                                           @RequestParam(value = "note",required = false,defaultValue = "") String note,
                                                            HttpServletRequest request) {
         logger.info("JobController.updateJobTaskStatus");
         String loggedInUserName = request.getHeader(CommonConstants.USER_NAME);
         try {
             Technician loggedIntechnician = technicianService.getTechnicianByEmailId(loggedInUserName);
             if (loggedIntechnician != null) {
-                return jobService.updateJobTaskStatus(taskId, status, loggedIntechnician);
+                return jobService.updateJobTaskStatus(taskId, status, note, loggedIntechnician);
             } else {
                 return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, "Invalid technician.", null,
                         "400", HttpStatus.OK), HttpStatus.OK);

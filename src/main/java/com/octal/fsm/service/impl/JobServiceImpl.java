@@ -112,9 +112,9 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
-    public ResponseEntity<ApiResponse> updateJobTaskStatus(String taskId, String status, Technician loggedIntechnician) throws CodeException {
+    public ResponseEntity<ApiResponse> updateJobTaskStatus(String taskId, String status, String note,Technician loggedIntechnician) throws CodeException {
         try {
-            ResponseEntity<ApiResponse> response = jobClient.updateJobTaskStatus(loggedIntechnician.getUuid(),taskId,status,loggedIntechnician.getEmail());
+            ResponseEntity<ApiResponse> response = jobClient.updateJobTaskStatus(loggedIntechnician.getUuid(),taskId,status,note,loggedIntechnician.getEmail());
             return response;
         } catch (FeignException e) {
             throw new CodeException("Remote job-service failed: " + e.contentUTF8(), ErrorCode.COMMON);

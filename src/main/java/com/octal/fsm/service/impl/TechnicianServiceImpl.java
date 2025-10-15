@@ -137,7 +137,8 @@ public class TechnicianServiceImpl implements TechnicianService {
         technicianRegisterRequest.setPassword("Technician@123");
         technicianRegisterRequest.setCreatedAt(newtechnicianRecord.getCreatedAt());
         technicianRegisterRequest.setFullName(technician.getName());
-        eventPublisher.publishEvent(new AddTechnicianUserInAuthEvent(technicianRegisterRequest));
+        technician.setPassword("Technician@123");
+        eventPublisher.publishEvent(new AddTechnicianUserInAuthEvent(technicianRegisterRequest,technician));
         return technician.getUuid();
     }
 
