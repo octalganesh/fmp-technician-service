@@ -102,6 +102,7 @@ public class TechnicianServiceImpl implements TechnicianService {
             newtechnicianRecord.setCreatedAt(LocalDateTime.now());
             newtechnicianRecord.setUpdatedAt(LocalDateTime.now());
             newtechnicianRecord.setEmployeeId(generateEmployeeUniqeId());
+            newtechnicianRecord.setAvailable(true);
             newtechnicianRecord.setPassword(passwordEncoder.encode("Technician@123"));
             newtechnicianRecord.setActive(true);
         } else {
