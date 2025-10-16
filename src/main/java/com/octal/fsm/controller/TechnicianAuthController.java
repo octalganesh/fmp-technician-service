@@ -54,7 +54,7 @@ public class TechnicianAuthController extends BaseController {
         try {
             Technician technician = technicianService.getTechnicianByEmailId(request.getEmail());
             if (technician == null) {
-                return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "Invalid email address provided. Please enter a registered and valid email.", null,
+                return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "Please enter valid credentials.", null,
                         "400", HttpStatus.OK), HttpStatus.OK);
             }
             authenticate(request.getEmail(), request.getPassword());
@@ -190,7 +190,7 @@ public class TechnicianAuthController extends BaseController {
             throw new InvalidPasswordException("Invalid User","500");
         } catch (BadCredentialsException e) {
             e.getMessage();
-            throw new InvalidPasswordException("The password you entered is incorrect. Please verify your credentials and try again.","400");
+            throw new InvalidPasswordException("Please enter valid credentials.","400");
 
         } catch (Exception e) {
             throw e;
