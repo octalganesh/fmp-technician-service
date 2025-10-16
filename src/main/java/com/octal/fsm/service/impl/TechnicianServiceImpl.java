@@ -30,6 +30,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import java.security.SecureRandom;
 
 import javax.mail.MessagingException;
 import java.time.LocalDate;
@@ -68,6 +69,18 @@ public class TechnicianServiceImpl implements TechnicianService {
     @Value("${aws.base-url}")
     private String awsS3BaseUrl;
 
+    private static final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%";
+    private static final int PASSWORD_LENGTH = 10;
+
+    public static String generateRandomPassword() {
+        SecureRandom random = new SecureRandom();
+        StringBuilder sb = new StringBuilder(PASSWORD_LENGTH);
+        for (int i = 0; i < PASSWORD_LENGTH; i++) {
+            sb.append(CHARACTERS.charAt(random.nextInt(CHARACTERS.length())));
+        }
+        return sb.toString();
+    }
+
 
     public static boolean isPasswordValid(String password) {
         String regex = "^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[@#$%^&+=!])(.{8,})$";
@@ -78,6 +91,7 @@ public class TechnicianServiceImpl implements TechnicianService {
 
     @Override
     public String addTechnician(TechnicianDto.Add add) throws CodeException {
+        String randomPassword = generateRandomPassword();
         if (TextUtils.isEmpty(add.getName()))
             throw new CodeException("name is required", ErrorCode.COMMON);
         if (TextUtils.isEmpty(add.getMobileNumber()))
@@ -103,7 +117,7 @@ public class TechnicianServiceImpl implements TechnicianService {
             newtechnicianRecord.setUpdatedAt(LocalDateTime.now());
             newtechnicianRecord.setEmployeeId(generateEmployeeUniqeId());
             newtechnicianRecord.setAvailable(true);
-            newtechnicianRecord.setPassword(passwordEncoder.encode("Technician@123"));
+            newtechnicianRecord.setPassword(passwordEncoder.encode(randomPassword));
             newtechnicianRecord.setActive(true);
         } else {
             Optional<Technician> technician = technicianRepository.findByUuid(add.getId());
@@ -138,7 +152,7 @@ public class TechnicianServiceImpl implements TechnicianService {
         technicianRegisterRequest.setPassword("Technician@123");
         technicianRegisterRequest.setCreatedAt(newtechnicianRecord.getCreatedAt());
         technicianRegisterRequest.setFullName(technician.getName());
-        technician.setPassword("Technician@123");
+        technician.setPassword(randomPassword);
         eventPublisher.publishEvent(new AddTechnicianUserInAuthEvent(technicianRegisterRequest,technician));
         return technician.getUuid();
     }
