@@ -30,6 +30,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+
 import java.security.SecureRandom;
 
 import javax.mail.MessagingException;
@@ -153,7 +154,7 @@ public class TechnicianServiceImpl implements TechnicianService {
         technicianRegisterRequest.setCreatedAt(newtechnicianRecord.getCreatedAt());
         technicianRegisterRequest.setFullName(technician.getName());
         technician.setPassword(randomPassword);
-        eventPublisher.publishEvent(new AddTechnicianUserInAuthEvent(technicianRegisterRequest,technician));
+        eventPublisher.publishEvent(new AddTechnicianUserInAuthEvent(technicianRegisterRequest, technician));
         return technician.getUuid();
     }
 
@@ -466,6 +467,18 @@ public class TechnicianServiceImpl implements TechnicianService {
             if (LocalDateTime.now().isAfter(userOtpVerification.get().getExpiredDateTime())) {
                 throw new CodeException("Password reset link is expired", ErrorCode.BAD_REQUEST);
             }
+        }
+    }
+
+    @Override
+    public ResponseEntity<ApiResponse> getAnnouncements(PageRequest.List listRequest) throws CodeException {
+        try {
+            ResponseEntity<ApiResponse> response = adminClient.getAllAnnouncementsForTechnician(listRequest);
+
+            return response;
+
+        } catch (FeignException e) {
+            throw new CodeException("Remote admin-service failed: " + e.contentUTF8(), ErrorCode.COMMON);
         }
     }
 
