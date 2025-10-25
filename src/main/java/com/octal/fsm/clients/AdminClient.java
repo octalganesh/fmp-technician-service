@@ -18,17 +18,22 @@ import javax.validation.Valid;
 public interface AdminClient {
 
     @GetMapping("/contents/get/by/slug/{slug}")
-    ResponseEntity<ApiResponse> getBySlug(@PathVariable("slug") String slug);
+    ResponseEntity<ApiResponse> getBySlug(@PathVariable("slug") String slug,@RequestHeader("tenantId") Long tenantId,
+                                          @RequestHeader("isSuperAdmin") boolean isSuperAdmin);
 
     @PostMapping("/customer-feedback/add")
-    ResponseEntity<ApiResponse> addOrUpdateFeedback(@RequestBody CustomerFeedbackDTO.Add feedbackRequest, @RequestHeader("userName") String userName);
+    ResponseEntity<ApiResponse> addOrUpdateFeedback(@RequestBody CustomerFeedbackDTO.Add feedbackRequest, @RequestHeader("userName") String userName,@RequestHeader("tenantId") Long tenantId,
+                                                    @RequestHeader("isSuperAdmin") boolean isSuperAdmin);
 
     @PostMapping(value = "/mail/send", consumes = MediaType.APPLICATION_JSON_VALUE)
-    ApiResponse sendDynamicMail(@RequestBody SendMailRequestDTO request);
+    ApiResponse sendDynamicMail(@RequestBody SendMailRequestDTO request,@RequestHeader("tenantId") Long tenantId,
+                                @RequestHeader("isSuperAdmin") boolean isSuperAdmin);
 
     @PostMapping(value = "/announcement/list-for-technician")
-    ResponseEntity<ApiResponse> getAllAnnouncementsForTechnician(@RequestBody PageRequest.List listRequest);
+    ResponseEntity<ApiResponse> getAllAnnouncementsForTechnician(@RequestBody PageRequest.List listRequest,@RequestHeader("tenantId") Long tenantId,
+                                                                 @RequestHeader("isSuperAdmin") boolean isSuperAdmin);
 
     @PostMapping("document-type/list-for-technician")
-    ResponseEntity<ApiResponse> documentList(@Valid @RequestBody PageRequest.List listRequest,@RequestHeader("userName") String userName);
+    ResponseEntity<ApiResponse> documentList(@Valid @RequestBody PageRequest.List listRequest,@RequestHeader("userName") String userName,@RequestHeader("tenantId") Long tenantId,
+                                             @RequestHeader("isSuperAdmin") boolean isSuperAdmin);
 }

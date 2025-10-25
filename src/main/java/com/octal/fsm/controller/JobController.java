@@ -34,9 +34,11 @@ public class JobController extends BaseController {
         logger.info("JobController.getJobs");
         String technicianName = request.getHeader(CommonConstants.technician_NAME);
         try {
-            Technician loggedIntechnician = technicianService.getTechnicianByEmailId(technicianName);
+            Long tenantId = getTenantId(request);
+            boolean isSuperAdmin=isSuperAdmin(request);
+            Technician loggedIntechnician = technicianService.getTechnicianByEmailId(technicianName );
             if (loggedIntechnician != null) {
-                return jobService.getAllJobs(jobFilterRequestDTO, loggedIntechnician);
+                return jobService.getAllJobs(jobFilterRequestDTO, loggedIntechnician,tenantId,isSuperAdmin);
             } else {
                 return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, "technician not found.",
                         null, "400", HttpStatus.OK), HttpStatus.OK);
@@ -52,9 +54,11 @@ public class JobController extends BaseController {
         logger.info("JobController.getJobById");
         String technicianName = request.getHeader(CommonConstants.technician_NAME);
         try {
-            Technician loggedIntechnician = technicianService.getTechnicianByEmailId(technicianName);
+            Long tenantId = getTenantId(request);
+            boolean isSuperAdmin=isSuperAdmin(request);
+            Technician loggedIntechnician = technicianService.getTechnicianByEmailId(technicianName );
             if (loggedIntechnician != null) {
-                return jobService.getJobById(taskId, loggedIntechnician);
+                return jobService.getJobById(taskId, loggedIntechnician,tenantId,isSuperAdmin);
             } else {
                 return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, "technician not found.",
                         null, "400", HttpStatus.OK), HttpStatus.OK);
@@ -70,9 +74,11 @@ public class JobController extends BaseController {
         logger.info("JobController.addFeedback");
         String loggedInUserName = request.getHeader(CommonConstants.USER_NAME);
         try {
-            Technician loggedIntechnician = technicianService.getTechnicianByEmailId(loggedInUserName);
+            Long tenantId = getTenantId(request);
+            boolean isSuperAdmin=isSuperAdmin(request);
+            Technician loggedIntechnician = technicianService.getTechnicianByEmailId(loggedInUserName );
             if (loggedIntechnician != null) {
-                String messageResponse = jobService.addFeedback(feedback, loggedIntechnician);
+                String messageResponse = jobService.addFeedback(feedback, loggedIntechnician,tenantId,isSuperAdmin);
                 return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, messageResponse, null, "200", HttpStatus.OK), HttpStatus.OK);
             } else {
                 return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, "Invalid technician.", null,
@@ -92,9 +98,11 @@ public class JobController extends BaseController {
         logger.info("JobController.updateJobTaskStatus");
         String loggedInUserName = request.getHeader(CommonConstants.USER_NAME);
         try {
-            Technician loggedIntechnician = technicianService.getTechnicianByEmailId(loggedInUserName);
+            Long tenantId = getTenantId(request);
+            boolean isSuperAdmin=isSuperAdmin(request);
+            Technician loggedIntechnician = technicianService.getTechnicianByEmailId(loggedInUserName );
             if (loggedIntechnician != null) {
-                return jobService.updateJobTaskStatus(taskId, status, note, signature, loggedIntechnician);
+                return jobService.updateJobTaskStatus(taskId, status, note, signature, loggedIntechnician,tenantId,isSuperAdmin);
             } else {
                 return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, "Invalid technician.", null,
                         "400", HttpStatus.OK), HttpStatus.OK);
@@ -108,6 +116,8 @@ public class JobController extends BaseController {
     public ResponseEntity<ApiResponse> documentUpload(@RequestBody List<DocumentDTO.Add> uploadDocument, HttpServletRequest request) {
         String userName = request.getHeader(CommonConstants.USER_NAME);
         try {
+            Long tenantId = getTenantId(request);
+            boolean isSuperAdmin=isSuperAdmin(request);
             Technician loggedIntechnician = technicianService.getTechnicianByEmailId(userName);
             if (loggedIntechnician != null) {
                 uploadDocument.forEach(obj -> {
@@ -116,7 +126,7 @@ public class JobController extends BaseController {
                             obj.setUploadByUserName(loggedIntechnician.getName());
                         }
                 );
-                return jobService.uploadDocument(uploadDocument, userName);
+                return jobService.uploadDocument(uploadDocument, userName,tenantId,isSuperAdmin);
             } else {
                 return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, "Invalid technician.", null,
                         "400", HttpStatus.OK), HttpStatus.OK);
@@ -134,9 +144,11 @@ public class JobController extends BaseController {
                                                     @RequestParam(defaultValue = "true") Boolean order, HttpServletRequest request) {
         String userName = request.getHeader(CommonConstants.USER_NAME);
         try {
+            Long tenantId = getTenantId(request);
+            boolean isSuperAdmin=isSuperAdmin(request);
             Technician loggedIntechnician = technicianService.getTechnicianByEmailId(userName);
             if (loggedIntechnician != null) {
-                return jobService.getDocumentTypeList(page, size, sortBy, order, loggedIntechnician.getEmail());
+                return jobService.getDocumentTypeList(page, size, sortBy, order, loggedIntechnician.getEmail(),tenantId,isSuperAdmin);
             } else {
                 return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, "Invalid technician.", null,
                         "400", HttpStatus.OK), HttpStatus.OK);
