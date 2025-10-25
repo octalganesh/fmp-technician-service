@@ -4,6 +4,7 @@ import com.octal.fsm.clients.AdminClient;
 import com.octal.fsm.clients.JobClient;
 import com.octal.fsm.common.ApiResponse;
 import com.octal.fsm.dto.CustomerFeedbackDTO;
+import com.octal.fsm.dto.DocumentDTO;
 import com.octal.fsm.dto.JobDTO;
 import com.octal.fsm.dto.PageItem;
 import com.octal.fsm.entities.Technician;
@@ -11,6 +12,7 @@ import com.octal.fsm.exceptions.CodeException;
 import com.octal.fsm.exceptions.ErrorCode;
 import com.octal.fsm.models.request.PageRequest;
 import com.octal.fsm.service.JobService;
+import com.octal.fsm.utils.TextUtils;
 import feign.FeignException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -31,7 +33,7 @@ public class JobServiceImpl implements JobService {
     private AdminClient adminClient;
 
     @Override
-    public ResponseEntity<ApiResponse> getAllJobs(JobDTO.JobFilterRequest jobFilterRequestDTO, Technician loggedInTechnician)throws CodeException {
+    public ResponseEntity<ApiResponse> getAllJobs(JobDTO.JobFilterRequest jobFilterRequestDTO, Technician loggedInTechnician) throws CodeException {
 //        JobDTO.Response job1 = new JobDTO.Response(UUID.randomUUID().toString(),
 //                "3201", "Fence Installation", "New",
 //                "2025-09-20", "2025-09-23", "10:00 AM", "05:00 PM",
@@ -50,7 +52,7 @@ public class JobServiceImpl implements JobService {
 //        List<JobDTO.Response> todaysJobs = Arrays.asList(job1, job2, job3);
 
         try {
-            ResponseEntity<ApiResponse> response = jobClient.getJobTasksForTechnician(jobFilterRequestDTO,loggedInTechnician.getUuid(),null);// null passing in  the header need to manage later with auth client in admin-service
+            ResponseEntity<ApiResponse> response = jobClient.getJobTasksForTechnician(jobFilterRequestDTO, loggedInTechnician.getUuid(), null);// null passing in  the header need to manage later with auth client in admin-service
 
             return response;
 
@@ -62,7 +64,7 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
-    public ResponseEntity<ApiResponse> getJobById(String taskId,Technician loggedInTechnician) throws CodeException {
+    public ResponseEntity<ApiResponse> getJobById(String taskId, Technician loggedInTechnician) throws CodeException {
 //        // MockJobDetails
 //        JobDTO.Details mockJob = new JobDTO.Details();
 //        mockJob.setId(UUID.randomUUID().toString());
@@ -87,7 +89,7 @@ public class JobServiceImpl implements JobService {
 //
 //        return new ResponseEntity<>(new ApiResponse("Job detail", mockJob, "200", HttpStatus.OK), HttpStatus.OK);
         try {
-            ResponseEntity<ApiResponse> response = jobClient.getJobTaskDetailsForTechnician(loggedInTechnician.getUuid(),taskId,null);// null passing in  the header need to manage later with auth client in admin-service
+            ResponseEntity<ApiResponse> response = jobClient.getJobTaskDetailsForTechnician(loggedInTechnician.getUuid(), taskId, null);// null passing in  the header need to manage later with auth client in admin-service
 
             return response;
 
@@ -97,7 +99,7 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
-    public String addFeedback(CustomerFeedbackDTO.Add feedback,Technician loggedInTechnician) throws CodeException {
+    public String addFeedback(CustomerFeedbackDTO.Add feedback, Technician loggedInTechnician) throws CodeException {
         try {
             ResponseEntity<ApiResponse> response = adminClient.addOrUpdateFeedback(feedback, loggedInTechnician.getEmail());
             if (response.getBody() != null && Boolean.TRUE.equals(response.getBody().getSuccessful())) {
@@ -112,9 +114,9 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
-    public ResponseEntity<ApiResponse> updateJobTaskStatus(String taskId, String status, String note,Technician loggedIntechnician) throws CodeException {
+    public ResponseEntity<ApiResponse> updateJobTaskStatus(String taskId, String status, String note,String signature, Technician loggedIntechnician) throws CodeException {
         try {
-            ResponseEntity<ApiResponse> response = jobClient.updateJobTaskStatus(loggedIntechnician.getUuid(),taskId,status,note,loggedIntechnician.getEmail());
+            ResponseEntity<ApiResponse> response = jobClient.updateJobTaskStatus(loggedIntechnician.getUuid(), taskId, status, note,signature, loggedIntechnician.getEmail());
             return response;
         } catch (FeignException e) {
             throw new CodeException("Remote job-service failed: " + e.contentUTF8(), ErrorCode.COMMON);
@@ -139,5 +141,22 @@ public class JobServiceImpl implements JobService {
         } catch (FeignException e) {
             throw new CodeException("Remote job-service failed: " + e.contentUTF8(), ErrorCode.COMMON);
         }
+    }
+
+    @Override
+    public ResponseEntity<ApiResponse> uploadDocument(List<DocumentDTO.Add> uploadDocument, String loggedInUserEmail) throws CodeException {
+        return jobClient.uploadDocument(uploadDocument, loggedInUserEmail);
+    }
+
+    @Override
+    public ResponseEntity<ApiResponse> getDocumentTypeList(Integer page, Integer size, String sortBy, Boolean order, String loggedInUserEmail) {
+        PageRequest.List list=new PageRequest.List();
+        list.setAsc(order);
+        list.setShortingField(sortBy);
+        list.setPageSize(size);
+        list.setPageNumber(page);
+        list.setIsActive(true);
+        list.setSearchText("");
+        return adminClient.documentList(list,loggedInUserEmail);
     }
 }

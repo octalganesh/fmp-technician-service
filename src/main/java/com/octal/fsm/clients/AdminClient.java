@@ -27,5 +27,8 @@ public interface AdminClient {
     ApiResponse sendDynamicMail(@RequestBody SendMailRequestDTO request);
 
     @PostMapping(value = "/announcement/list-for-technician")
-    ResponseEntity<ApiResponse>getAllAnnouncementsForTechnician(@RequestBody PageRequest.List listRequest);
+    ResponseEntity<ApiResponse> getAllAnnouncementsForTechnician(@RequestBody PageRequest.List listRequest);
+
+    @PostMapping("document-type/list-for-technician")
+    ResponseEntity<ApiResponse> documentList(@Valid @RequestBody PageRequest.List listRequest,@RequestHeader("userName") String userName);
 }
