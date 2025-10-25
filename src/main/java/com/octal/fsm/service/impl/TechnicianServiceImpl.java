@@ -417,7 +417,7 @@ public class TechnicianServiceImpl implements TechnicianService {
     public TechnicianDetailDTO updateProfile(Technician technician, TechnicianDetailDTO technicianDetailDTO) throws CodeException {
         if (TextUtils.isEmpty(technicianDetailDTO.getProfileImage()))
             throw new CodeException("profile image is required", ErrorCode.BAD_REQUEST);
-        technician.setProfilePicture(technicianDetailDTO.getProfileImage());
+        technician.setProfilePicture(awsS3BaseUrl+technicianDetailDTO.getProfileImage());
         technicianRepository.save(technician);
         TechnicianDetailDTO response = new TechnicianDetailDTO();
         response.setId(technician.getUuid());
