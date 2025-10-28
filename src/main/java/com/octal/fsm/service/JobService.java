@@ -25,6 +25,8 @@ public interface JobService {
 
     ResponseEntity<ApiResponse> updateJobTaskStatus(String taskId, String status, String note, String signature, Technician loggedIntechnician) throws CodeException;
 
+    ResponseEntity<ApiResponse> updateJobTask(String taskId, String note, Technician loggedIntechnician) throws CodeException;
+
     ResponseEntity<ApiResponse> getAllJobTypes(PageRequest.List listRequest) throws CodeException;
 
     ResponseEntity<ApiResponse> getAllJobTags(PageRequest.@Valid List listRequest) throws CodeException;

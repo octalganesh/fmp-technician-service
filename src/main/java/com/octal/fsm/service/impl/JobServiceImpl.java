@@ -6,23 +6,18 @@ import com.octal.fsm.common.ApiResponse;
 import com.octal.fsm.dto.CustomerFeedbackDTO;
 import com.octal.fsm.dto.DocumentDTO;
 import com.octal.fsm.dto.JobDTO;
-import com.octal.fsm.dto.PageItem;
 import com.octal.fsm.entities.Technician;
 import com.octal.fsm.exceptions.CodeException;
 import com.octal.fsm.exceptions.ErrorCode;
 import com.octal.fsm.models.request.PageRequest;
 import com.octal.fsm.service.JobService;
-import com.octal.fsm.utils.TextUtils;
 import feign.FeignException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import javax.validation.Valid;
-import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
 
 @Service
 public class JobServiceImpl implements JobService {
@@ -114,9 +109,19 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
-    public ResponseEntity<ApiResponse> updateJobTaskStatus(String taskId, String status, String note,String signature, Technician loggedIntechnician) throws CodeException {
+    public ResponseEntity<ApiResponse> updateJobTaskStatus(String taskId, String status, String note, String signature, Technician loggedIntechnician) throws CodeException {
         try {
-            ResponseEntity<ApiResponse> response = jobClient.updateJobTaskStatus(loggedIntechnician.getUuid(), taskId, status, note,signature, loggedIntechnician.getEmail());
+            ResponseEntity<ApiResponse> response = jobClient.updateJobTaskStatus(loggedIntechnician.getUuid(), taskId, status, note, signature, loggedIntechnician.getEmail());
+            return response;
+        } catch (FeignException e) {
+            throw new CodeException("Remote job-service failed: " + e.contentUTF8(), ErrorCode.COMMON);
+        }
+    }
+
+    @Override
+    public ResponseEntity<ApiResponse> updateJobTask(String taskId, String note, Technician loggedIntechnician) throws CodeException {
+        try {
+            ResponseEntity<ApiResponse> response = jobClient.updateJobTask(loggedIntechnician.getUuid(), taskId, note, loggedIntechnician.getEmail());
             return response;
         } catch (FeignException e) {
             throw new CodeException("Remote job-service failed: " + e.contentUTF8(), ErrorCode.COMMON);
@@ -150,13 +155,13 @@ public class JobServiceImpl implements JobService {
 
     @Override
     public ResponseEntity<ApiResponse> getDocumentTypeList(Integer page, Integer size, String sortBy, Boolean order, String loggedInUserEmail) {
-        PageRequest.List list=new PageRequest.List();
+        PageRequest.List list = new PageRequest.List();
         list.setAsc(order);
         list.setShortingField(sortBy);
         list.setPageSize(size);
         list.setPageNumber(page);
         list.setIsActive(true);
         list.setSearchText("");
-        return adminClient.documentList(list,loggedInUserEmail);
+        return adminClient.documentList(list, loggedInUserEmail);
     }
 }

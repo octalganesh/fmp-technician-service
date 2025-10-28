@@ -34,6 +34,12 @@ public interface JobClient {
                                                     @RequestParam("signature") String signature,
                                                     @RequestHeader("userName") String userName);
 
+    @PutMapping("/jobs/update-job-task/{technicianId}/{taskId}")
+    ResponseEntity<ApiResponse> updateJobTask(@PathVariable("technicianId") String technicianId,
+                                              @PathVariable("taskId") String taskId,
+                                              @RequestParam(value = "note", defaultValue = "") String note,
+                                              @RequestHeader("userName") String userName);
+
     @PostMapping("/job-type/list-for-technician")
     ResponseEntity<ApiResponse> JobTypeList(@Valid @RequestBody PageRequest.List listRequest);
 
