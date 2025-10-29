@@ -150,5 +150,23 @@ public class TechnicianController extends BaseController {
                     "101", HttpStatus.OK), HttpStatus.OK);
         }
     }
+
+    @PostMapping(value = "/get-announcements")
+    public ResponseEntity<ApiResponse> getAnnouncements(@RequestBody PageRequest.List listRequest, HttpServletRequest request) {
+        logger.info("TechnicianController./get-announcements");
+        String technicianName = request.getHeader(CommonConstants.technician_NAME);
+        try {
+            Technician loggedIntechnician = technicianService.getTechnicianByEmailId(technicianName);
+            if (loggedIntechnician != null) {
+                return technicianService.getAnnouncements(listRequest);
+            } else {
+                return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, "technician not found.",
+                        null, "400", HttpStatus.OK), HttpStatus.OK);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return handleException(e);
+        }
+    }
 }
 

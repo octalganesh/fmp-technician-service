@@ -48,5 +48,6 @@ public interface TechnicianService {
 
     void verifyResetToken(String token) throws CodeException;
 
+    ResponseEntity<ApiResponse> getAnnouncements(PageRequest.List listRequest) throws CodeException;
 }
 

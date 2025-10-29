@@ -3,6 +3,7 @@ package com.octal.fsm.controller;
 import com.octal.fsm.common.ApiResponse;
 import com.octal.fsm.common.CommonConstants;
 import com.octal.fsm.dto.CustomerFeedbackDTO;
+import com.octal.fsm.dto.DocumentDTO;
 import com.octal.fsm.dto.JobDTO;
 import com.octal.fsm.entities.Technician;
 import com.octal.fsm.exceptions.CodeException;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+import java.util.List;
 
 @RequestMapping("/jobs")
 @RestController
@@ -84,19 +86,83 @@ public class JobController extends BaseController {
     @PutMapping("/update-job-task-status/{taskId}")
     public ResponseEntity<ApiResponse> updateJobTaskStatus(@PathVariable("taskId") String taskId,
                                                            @RequestParam("status") String status,
-                                                           @RequestParam(value = "note",required = false,defaultValue = "") String note,
+                                                           @RequestParam(value = "note", required = false, defaultValue = "") String note,
+                                                           @RequestParam(value = "signature", required = false, defaultValue = "") String signature,
                                                            HttpServletRequest request) {
         logger.info("JobController.updateJobTaskStatus");
         String loggedInUserName = request.getHeader(CommonConstants.USER_NAME);
         try {
             Technician loggedIntechnician = technicianService.getTechnicianByEmailId(loggedInUserName);
             if (loggedIntechnician != null) {
-                return jobService.updateJobTaskStatus(taskId, status, note, loggedIntechnician);
+                return jobService.updateJobTaskStatus(taskId, status, note, signature, loggedIntechnician);
             } else {
                 return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, "Invalid technician.", null,
                         "400", HttpStatus.OK), HttpStatus.OK);
             }
         } catch (Exception e) {
+            return handleException(e);
+        }
+    }
+
+    @PutMapping("/update-job-task/{taskId}")
+    public ResponseEntity<ApiResponse> updateJobTask(@PathVariable("taskId") String taskId,
+                                                     @RequestParam(value = "note", defaultValue = "") String note,
+                                                     HttpServletRequest request) {
+        logger.info("JobController.updateJobTask");
+        String loggedInUserName = request.getHeader(CommonConstants.USER_NAME);
+        try {
+            Technician loggedIntechnician = technicianService.getTechnicianByEmailId(loggedInUserName);
+            if (loggedIntechnician != null) {
+                return jobService.updateJobTask(taskId, note, loggedIntechnician);
+            } else {
+                return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, "Invalid technician.", null,
+                        "400", HttpStatus.OK), HttpStatus.OK);
+            }
+        } catch (Exception e) {
+            return handleException(e);
+        }
+    }
+
+
+    @PostMapping("/document/upload")
+    public ResponseEntity<ApiResponse> documentUpload(@RequestBody List<DocumentDTO.Add> uploadDocument, HttpServletRequest request) {
+        String userName = request.getHeader(CommonConstants.USER_NAME);
+        try {
+            Technician loggedIntechnician = technicianService.getTechnicianByEmailId(userName);
+            if (loggedIntechnician != null) {
+                uploadDocument.forEach(obj -> {
+                            obj.setUploadedBType("TECHNICIAN");
+                            obj.setUploadedBTypeId(loggedIntechnician.getUuid());
+                            obj.setUploadByUserName(loggedIntechnician.getName());
+                        }
+                );
+                return jobService.uploadDocument(uploadDocument, userName);
+            } else {
+                return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, "Invalid technician.", null,
+                        "400", HttpStatus.OK), HttpStatus.OK);
+            }
+        } catch (Exception e) {
+            logger.error("Error uploading document: {}", e.getMessage(), e);
+            return handleException(e);
+        }
+    }
+
+    @GetMapping("/document-type/list")
+    public ResponseEntity<ApiResponse> documentList(@RequestParam(defaultValue = "0") Integer page,
+                                                    @RequestParam(defaultValue = "10") Integer size,
+                                                    @RequestParam(defaultValue = "createdAt") String sortBy,
+                                                    @RequestParam(defaultValue = "true") Boolean order, HttpServletRequest request) {
+        String userName = request.getHeader(CommonConstants.USER_NAME);
+        try {
+            Technician loggedIntechnician = technicianService.getTechnicianByEmailId(userName);
+            if (loggedIntechnician != null) {
+                return jobService.getDocumentTypeList(page, size, sortBy, order, loggedIntechnician.getEmail());
+            } else {
+                return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, "Invalid technician.", null,
+                        "400", HttpStatus.OK), HttpStatus.OK);
+            }
+        } catch (Exception e) {
+            logger.error("Error getting document type list: {}", e.getMessage(), e);
             return handleException(e);
         }
     }
