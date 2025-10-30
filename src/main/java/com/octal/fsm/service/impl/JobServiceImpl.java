@@ -162,6 +162,6 @@ public class JobServiceImpl implements JobService {
         list.setPageNumber(page);
         list.setIsActive(true);
         list.setSearchText("");
-        return adminClient.documentList(list, loggedInUserEmail);
+        return adminClient.documentList(list, null);
     }
 }
