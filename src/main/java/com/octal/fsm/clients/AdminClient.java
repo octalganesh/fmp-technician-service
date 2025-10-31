@@ -3,7 +3,8 @@ package com.octal.fsm.clients;
 import com.octal.fsm.common.ApiResponse;
 import com.octal.fsm.dto.CustomerFeedbackDTO;
 import com.octal.fsm.dto.SendMailRequestDTO;
- import org.springframework.cloud.openfeign.FeignClient;
+import com.octal.fsm.models.request.PageRequest;
+import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -24,4 +25,10 @@ public interface AdminClient {
 
     @PostMapping(value = "/mail/send", consumes = MediaType.APPLICATION_JSON_VALUE)
     ApiResponse sendDynamicMail(@RequestBody SendMailRequestDTO request);
+
+    @PostMapping(value = "/announcement/list-for-technician")
+    ResponseEntity<ApiResponse> getAllAnnouncementsForTechnician(@RequestBody PageRequest.List listRequest);
+
+    @PostMapping("document-type/list-for-technician")
+    ResponseEntity<ApiResponse> documentList(@Valid @RequestBody PageRequest.List listRequest,@RequestHeader("userName") String userName);
 }
