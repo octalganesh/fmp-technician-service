@@ -90,7 +90,10 @@ public class TechnicianServiceImpl implements TechnicianService {
     }
 
     @Override
-    public String addTechnician(TechnicianDto.Add add) throws CodeException {
+    public String addTechnician(TechnicianDto.Add add,Long tenantId,boolean isSuperAdmin) throws CodeException {
+        if(isSuperAdmin){
+            tenantId=1l;
+        }
         String randomPassword = generateRandomPassword();
         if (TextUtils.isEmpty(add.getName()))
             throw new CodeException("name is required", ErrorCode.COMMON);
@@ -102,15 +105,15 @@ public class TechnicianServiceImpl implements TechnicianService {
             throw new CodeException("address is required", ErrorCode.COMMON);
         if (add.getGender() == null)
             throw new CodeException("gender is required", ErrorCode.COMMON);
-        Optional<Technician> optionalTechnician = technicianRepository.findByUuid(add.getId());
+        Optional<Technician> optionalTechnician = technicianRepository.findByUuidAndTenantId(add.getId(),tenantId);
         if (optionalTechnician.isPresent() && !optionalTechnician.get().getUuid().equals(add.getId())) {
             throw new CodeException("technician name is already present!", ErrorCode.RECORD_NOT_FOUND);
         }
         Technician newtechnicianRecord = null;
         if (TextUtils.isEmpty(add.getId())) {
-            if (technicianRepository.existsByMobileNumber(add.getMobileNumber()))
+            if (technicianRepository.existsByMobileNumberAndTenantId(add.getMobileNumber(),tenantId))
                 throw new CodeException("Technician with mobile number " + add.getMobileNumber() + " already exists", ErrorCode.RECORD_NOT_FOUND);
-            if (technicianRepository.existsByEmail(add.getEmail()))
+            if (technicianRepository.existsByEmailAndTenantId(add.getEmail(),tenantId))
                 throw new CodeException("Technician with email " + add.getEmail() + " already exists", ErrorCode.RECORD_NOT_FOUND);
             newtechnicianRecord = new Technician();
             newtechnicianRecord.setCreatedAt(LocalDateTime.now());
@@ -120,8 +123,8 @@ public class TechnicianServiceImpl implements TechnicianService {
             newtechnicianRecord.setPassword(passwordEncoder.encode(randomPassword));
             newtechnicianRecord.setActive(true);
         } else {
-            Optional<Technician> technician = technicianRepository.findByUuid(add.getId());
-            Optional<Technician> optional = technicianRepository.findByMobileNumber(add.getMobileNumber());
+            Optional<Technician> technician = technicianRepository.findByUuidAndTenantId(add.getId(),tenantId);
+            Optional<Technician> optional = technicianRepository.findByMobileNumberAndTenantId(add.getMobileNumber(),tenantId);
             Optional<Technician> optionalTechnician1 = technicianRepository.findByEmail(add.getEmail());
             if (optionalTechnician1.isPresent() && !optionalTechnician1.get().getUuid().equals(add.getId()))
                 throw new CodeException("Technician with email " + add.getEmail() + " already exists", ErrorCode.RECORD_NOT_FOUND);
@@ -142,8 +145,10 @@ public class TechnicianServiceImpl implements TechnicianService {
         //newtechnicianRecord.setAddress(new Address(add.getAddress().getStreet(), add.getAddress().getCity(), add.getAddress().getState(), add.getAddress().getPostalCode(), add.getAddress().getCountry()));
         newtechnicianRecord.setAddress(add.getAddress());
         newtechnicianRecord.setGender(add.getGender());
-        newtechnicianRecord.setProfilePicture(awsS3BaseUrl + add.getProfilePicture());
+        if(!TextUtils.isEmpty(add.getProfilePicture()))
+            newtechnicianRecord.setProfilePicture(awsS3BaseUrl + add.getProfilePicture());
         newtechnicianRecord.setJoinDate(add.getJoinedDate().atStartOfDay());
+        newtechnicianRecord.setTenantId(tenantId);
         Technician technician = technicianRepository.save(newtechnicianRecord);
         TechnicianRegisterRequest technicianRegisterRequest = new TechnicianRegisterRequest();
         technicianRegisterRequest.setActive(newtechnicianRecord.getActive());
@@ -153,14 +158,17 @@ public class TechnicianServiceImpl implements TechnicianService {
         technicianRegisterRequest.setCreatedAt(newtechnicianRecord.getCreatedAt());
         technicianRegisterRequest.setFullName(technician.getName());
         technician.setPassword(randomPassword);
-        eventPublisher.publishEvent(new AddTechnicianUserInAuthEvent(technicianRegisterRequest, technician));
+        eventPublisher.publishEvent(new AddTechnicianUserInAuthEvent(technicianRegisterRequest, technician,tenantId,isSuperAdmin));
         return technician.getUuid();
     }
 
 
     @Override
-    public Boolean deleteById(String id) throws CodeException {
-        Optional<Technician> technicianRecord = technicianRepository.findByUuid(id);
+    public Boolean deleteById(String id,Long tenantId,boolean isSuperAdmin) throws CodeException {
+        if(isSuperAdmin){
+            tenantId=1l;
+        }
+        Optional<Technician> technicianRecord = technicianRepository.findByUuidAndTenantId(id,tenantId);
         if (technicianRecord.isPresent()) {
             technicianRecord.get().setDeleted(true);
             technicianRepository.save(technicianRecord.get());
@@ -171,8 +179,11 @@ public class TechnicianServiceImpl implements TechnicianService {
     }
 
     @Override
-    public TechnicianDto.list getTechnicianByUuid(String id) throws CodeException {
-        Optional<Technician> technicianRecord = technicianRepository.findByUuid(id);
+    public TechnicianDto.list getTechnicianByUuid(String id,Long tenantId,boolean isSuperAdmin) throws CodeException {
+        if(isSuperAdmin){
+            tenantId=1l;
+        }
+        Optional<Technician> technicianRecord = technicianRepository.findByUuidAndTenantId(id,tenantId);
         if (technicianRecord.isPresent()) {
             TechnicianDto.list technician = new TechnicianDto.list();
             technician.setEmployeeId(technicianRecord.get().getEmployeeId());
@@ -195,8 +206,11 @@ public class TechnicianServiceImpl implements TechnicianService {
     }
 
     @Override
-    public Boolean changeStatus(String id) throws CodeException {
-        Optional<Technician> technicianRecord = technicianRepository.findByUuid(id);
+    public Boolean changeStatus(String id,Long tenantId,boolean isSuperAdmin) throws CodeException {
+        if(isSuperAdmin){
+            tenantId=1l;
+        }
+        Optional<Technician> technicianRecord = technicianRepository.findByUuidAndTenantId(id,tenantId);
         if (technicianRecord.isPresent()) {
             if (Boolean.TRUE.equals(technicianRecord.get().getActive())) {
                 technicianRecord.get().setActive(false);
@@ -213,7 +227,10 @@ public class TechnicianServiceImpl implements TechnicianService {
     }
 
     @Override
-    public PageItem<TechnicianDto.list> getAllTechnician(PageRequest.List listRequest) {
+    public PageItem<TechnicianDto.list> getAllTechnician(PageRequest.List listRequest,Long tenantId,boolean isSuperAdmin) {
+        if(isSuperAdmin){
+            tenantId=1l;
+        }
         String trimmedText = listRequest.getSearchText().trim();
         listRequest.setSearchText(trimmedText);
         GenericSpecificationsBuilder<Technician> builder = new GenericSpecificationsBuilder<>();
@@ -223,7 +240,7 @@ public class TechnicianServiceImpl implements TechnicianService {
         } else {
             pageable = org.springframework.data.domain.PageRequest.of(listRequest.getPageNumber(), listRequest.getPageSize(), Sort.by(listRequest.getShortingField()).descending());
         }
-        prepareTechnicianSearchFilter(listRequest, builder);
+        prepareTechnicianSearchFilter(listRequest, builder,tenantId,isSuperAdmin);
         Page<Technician> pagedResult = technicianRepository.findAll(builder.build(), pageable);
         List<TechnicianDto.list> responseList = new ArrayList<>();
         for (Technician technician : pagedResult.getContent()) {
@@ -249,7 +266,10 @@ public class TechnicianServiceImpl implements TechnicianService {
     }
 
     @Override
-    public PageItem<TechnicianDto.ListForAssignment> getListForAssignment(PageRequest.List listRequest) {
+    public PageItem<TechnicianDto.ListForAssignment> getListForAssignment(PageRequest.List listRequest,Long tenantId,boolean isSuperAdmin) {
+        if(isSuperAdmin){
+            tenantId=1l;
+        }
         String trimmedText = listRequest.getSearchText().trim();
         listRequest.setSearchText(trimmedText);
         GenericSpecificationsBuilder<Technician> builder = new GenericSpecificationsBuilder<>();
@@ -259,7 +279,7 @@ public class TechnicianServiceImpl implements TechnicianService {
         } else {
             pageable = org.springframework.data.domain.PageRequest.of(listRequest.getPageNumber(), listRequest.getPageSize(), Sort.by(listRequest.getShortingField()).descending());
         }
-        prepareTechnicianSearchFilter(listRequest, builder);
+        prepareTechnicianSearchFilter(listRequest, builder,tenantId,isSuperAdmin);
         builder.with(technicianSpecificationFactory.isEqual("available", true));
         Page<Technician> pagedResult = technicianRepository.findAll(builder.build(), pageable);
         List<TechnicianDto.ListForAssignment> responseList = new ArrayList<>();
@@ -276,9 +296,10 @@ public class TechnicianServiceImpl implements TechnicianService {
                 listRequest.getPageSize());
     }
 
-    private void prepareTechnicianSearchFilter(PageRequest.List listRequest, GenericSpecificationsBuilder<Technician> builder) {
+    private void prepareTechnicianSearchFilter(PageRequest.List listRequest, GenericSpecificationsBuilder<Technician> builder,Long tenantId,boolean isSuperAdmin) {
 
         builder.with(technicianSpecificationFactory.isEqual("deleted", false));
+        builder.with(technicianSpecificationFactory.isEqual("tenantId", tenantId));
         builder.with(technicianSpecificationFactory.isEqual("blocked", false));
         if (org.apache.commons.lang.StringUtils.isNotBlank(listRequest.getSearchText())) {
             builder.with(technicianSpecificationFactory.like("name", listRequest.getSearchText()).or(technicianSpecificationFactory.like("employeeId", listRequest.getSearchText())).or(technicianSpecificationFactory.like("mobileNumber", listRequest.getSearchText()))
@@ -324,7 +345,7 @@ public class TechnicianServiceImpl implements TechnicianService {
 
 
     @Override
-    public AuthTechnicianDTO fetchAuthenticatedUserDetailsByEmail(String email) {
+    public AuthTechnicianDTO fetchAuthenticatedUserDetailsByEmail(String email,Long tenantId,boolean isSuperAdmin) {
         Optional<Technician> user = technicianRepository.findByEmail(email);
         return user.map(TechnicianTransformer.userToAuthDto::apply).orElse(null);
     }
@@ -338,7 +359,7 @@ public class TechnicianServiceImpl implements TechnicianService {
     }
 
     @Override
-    public AuthTechnicianDTO fetchAuthenticatedTechnicianDetailsByEmail(String email) {
+    public AuthTechnicianDTO fetchAuthenticatedTechnicianDetailsByEmail(String email ) {
         Optional<Technician> user = technicianRepository.findByEmail(email);
         return user.map(TechnicianTransformer.userToAuthDto).orElse(null);
     }
@@ -390,7 +411,7 @@ public class TechnicianServiceImpl implements TechnicianService {
     }
 
     @Override
-    public void updatePassword(TechnicianDetailDTO.ChangePassword changePassword, Technician loggedIntechnician) throws CodeException {
+    public void updatePassword(TechnicianDetailDTO.ChangePassword changePassword, Technician loggedIntechnician,Long tenantId,boolean isSuperAdmin) throws CodeException {
         if (isPasswordValid(changePassword.getNewPassword())) {
             // new password and confirm password should be same
             if (changePassword.getNewPassword().equals(changePassword.getConfirmPassword())) {
@@ -413,7 +434,10 @@ public class TechnicianServiceImpl implements TechnicianService {
     }
 
     @Override
-    public TechnicianDetailDTO updateProfile(Technician technician, TechnicianDetailDTO technicianDetailDTO) throws CodeException {
+    public TechnicianDetailDTO updateProfile(Technician technician, TechnicianDetailDTO technicianDetailDTO,Long tenantId,boolean isSuperAdmin) throws CodeException {
+        if(isSuperAdmin){
+            tenantId=1l;
+        }
         if (TextUtils.isEmpty(technicianDetailDTO.getProfileImage()))
             throw new CodeException("profile image is required", ErrorCode.BAD_REQUEST);
         technician.setProfilePicture(awsS3BaseUrl+technicianDetailDTO.getProfileImage());
@@ -446,9 +470,9 @@ public class TechnicianServiceImpl implements TechnicianService {
     }
 
     @Override
-    public ResponseEntity<ApiResponse> getStaticContentBySlug(String slug) throws CodeException {
+    public ResponseEntity<ApiResponse> getStaticContentBySlug(String slug,Long tenantId,boolean isSuperAdmin) throws CodeException {
         try {
-            ResponseEntity<ApiResponse> response = adminClient.getBySlug(slug);
+            ResponseEntity<ApiResponse> response = adminClient.getBySlug(slug,tenantId,isSuperAdmin);
 
             return response;
 
@@ -470,9 +494,9 @@ public class TechnicianServiceImpl implements TechnicianService {
     }
 
     @Override
-    public ResponseEntity<ApiResponse> getAnnouncements(PageRequest.List listRequest) throws CodeException {
+    public ResponseEntity<ApiResponse> getAnnouncements(PageRequest.List listRequest,Long tenantId,boolean isSuperAdmin) throws CodeException {
         try {
-            ResponseEntity<ApiResponse> response = adminClient.getAllAnnouncementsForTechnician(listRequest);
+            ResponseEntity<ApiResponse> response = adminClient.getAllAnnouncementsForTechnician(listRequest,tenantId,isSuperAdmin);
 
             return response;
 

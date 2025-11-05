@@ -10,12 +10,15 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @Entity
-@Table(name = "technicians")
-public class Technician extends AbstractPersistable {
+ @Table(
+        name = "technicians",
+        uniqueConstraints = @UniqueConstraint(columnNames = {"tenant_id", "email"})
+)
+public class Technician extends AbstractPersistable{
     @Column(name = "name")
     private String name;
 
-    @Column(name = "email", unique = true)
+    @Column(name = "email")
     private String email;
 
     @Column(name = "phone_number")

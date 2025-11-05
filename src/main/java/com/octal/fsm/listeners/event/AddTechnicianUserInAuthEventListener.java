@@ -79,7 +79,7 @@ public class AddTechnicianUserInAuthEventListener implements ApplicationListener
             request.setObjectData(event.getTechnician());
             request.setTemplateName("TECHNICIAN_WELCOME");
             request.setObjectName("Technician");
-            adminClient.sendDynamicMail(request);
+            adminClient.sendDynamicMail(request,event.getTenantId(),event.isSuperAdmin());
         } catch (Exception e) {
             e.printStackTrace();
         }
