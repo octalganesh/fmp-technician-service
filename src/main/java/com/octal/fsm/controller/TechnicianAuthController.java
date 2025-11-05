@@ -52,6 +52,7 @@ public class TechnicianAuthController extends BaseController {
     @PostMapping(value = "/auth/login")
     public ResponseEntity<ApiResponse> technicianLogin(@Valid @RequestBody LoginRequest request) {
         try {
+
             Technician technician = technicianService.getTechnicianByEmailId(request.getEmail());
             if (technician == null) {
                 return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "Invalid email address provided. Please enter a registered and valid email.", null,
@@ -138,9 +139,11 @@ public class TechnicianAuthController extends BaseController {
         logger.info("AdminAuthController.updateProfile");
         String technicianName = request.getHeader(CommonConstants.technician_NAME);
         try {
+            Long tenantId = getTenantId(request);
+            boolean isSuperAdmin=isSuperAdmin(request);
             Technician loggedIntechnician = technicianService.getTechnicianByEmailId(technicianName);
             if (loggedIntechnician != null) {
-                return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "Profile Update Successfully", technicianService.updateProfile(loggedIntechnician,technicianDetailDTO),
+                return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "Profile Update Successfully", technicianService.updateProfile(loggedIntechnician,technicianDetailDTO,tenantId,isSuperAdmin),
                         "200", HttpStatus.OK), HttpStatus.OK);
             } else {
                 return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, "Invalid technician.", null,
@@ -162,9 +165,11 @@ public class TechnicianAuthController extends BaseController {
         logger.info("TechnicianAuthController.change-password");
         String technicianName = request.getHeader(CommonConstants.technician_NAME);
         try {
+            Long tenantId = getTenantId(request);
+            boolean isSuperAdmin=isSuperAdmin(request);
             Technician loggedIntechnician = technicianService.getTechnicianByEmailId(technicianName);
             if (loggedIntechnician != null) {
-                technicianService.updatePassword(changePassword, loggedIntechnician);
+                technicianService.updatePassword(changePassword, loggedIntechnician,tenantId,isSuperAdmin);
                 return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "Password Update Successfully", null,
                         "200", HttpStatus.OK), HttpStatus.OK);
             } else {

@@ -14,40 +14,40 @@ import javax.validation.Valid;
 @Service
 public interface TechnicianService {
 
-    String addTechnician(TechnicianDto.Add add) throws CodeException;
+    String addTechnician(TechnicianDto.Add add,Long tenantId,boolean isSuperAdmin) throws CodeException;
 
-    Boolean deleteById(String id ) throws CodeException;
+    Boolean deleteById(String id,Long tenantId,boolean isSuperAdmin ) throws CodeException;
 
-    TechnicianDto.list getTechnicianByUuid(String id) throws CodeException;
+    TechnicianDto.list getTechnicianByUuid(String id,Long tenantId,boolean isSuperAdmin) throws CodeException;
 
-    Boolean changeStatus(String id ) throws CodeException;
+    Boolean changeStatus(String id,Long tenantId,boolean isSuperAdmin ) throws CodeException;
 
-    PageItem<TechnicianDto.list> getAllTechnician(PageRequest.List listRequest );
-    PageItem<TechnicianDto.ListForAssignment> getListForAssignment(PageRequest.List listRequest );
+    PageItem<TechnicianDto.list> getAllTechnician(PageRequest.List listRequest,Long tenantId,boolean isSuperAdmin );
+    PageItem<TechnicianDto.ListForAssignment> getListForAssignment(PageRequest.List listRequest,Long tenantId,boolean isSuperAdmin );
 
 
-    AuthTechnicianDTO fetchAuthenticatedUserDetailsByEmail(String email);
+    AuthTechnicianDTO fetchAuthenticatedUserDetailsByEmail(String email,Long tenantId,boolean isSuperAdmin);
 
-    Technician getTechnicianByEmailId(String email);
+    Technician getTechnicianByEmailId(String email );
 
-    AuthTechnicianDTO fetchAuthenticatedTechnicianDetailsByEmail(String email);
+    AuthTechnicianDTO fetchAuthenticatedTechnicianDetailsByEmail(String email );
 
     void changeTechnicianPassword(@Valid ChangePasswordDTO passwordDTO, String header)throws CodeException;
 
-    void resetTechnicianPassword(String email) throws CodeException;
+    void resetTechnicianPassword(String email ) throws CodeException;
 
     void resetTechnicianPassword(String token, String newPassword, String confirmPassword)throws CodeException;
 
-    void updatePassword(TechnicianDetailDTO.ChangePassword changePassword, Technician loggedIntechnician)throws CodeException;
+    void updatePassword(TechnicianDetailDTO.ChangePassword changePassword, Technician loggedIntechnician,Long tenantId,boolean isSuperAdmin)throws CodeException;
 
-    TechnicianDetailDTO updateProfile(Technician technician,TechnicianDetailDTO technicianDetailDTO)throws CodeException;
+    TechnicianDetailDTO updateProfile(Technician technician,TechnicianDetailDTO technicianDetailDTO,Long tenantId,boolean isSuperAdmin)throws CodeException;
 
     TechnicianDetailDTO getProfileDetails(String id)throws CodeException;
 
-    ResponseEntity<ApiResponse> getStaticContentBySlug(String slug) throws CodeException;
+    ResponseEntity<ApiResponse> getStaticContentBySlug(String slug,Long tenantId,boolean isSuperAdmin) throws CodeException;
 
     void verifyResetToken(String token) throws CodeException;
 
-    ResponseEntity<ApiResponse> getAnnouncements(PageRequest.List listRequest) throws CodeException;
+    ResponseEntity<ApiResponse> getAnnouncements(PageRequest.List listRequest,Long tenantId,boolean isSuperAdmin) throws CodeException;
 }
 
