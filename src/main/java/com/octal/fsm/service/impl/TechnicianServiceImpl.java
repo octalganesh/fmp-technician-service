@@ -143,7 +143,8 @@ public class TechnicianServiceImpl implements TechnicianService {
         //newtechnicianRecord.setAddress(new Address(add.getAddress().getStreet(), add.getAddress().getCity(), add.getAddress().getState(), add.getAddress().getPostalCode(), add.getAddress().getCountry()));
         newtechnicianRecord.setAddress(add.getAddress());
         newtechnicianRecord.setGender(add.getGender());
-        newtechnicianRecord.setProfilePicture(awsS3BaseUrl + add.getProfilePicture());
+        if(!TextUtils.isEmpty(add.getProfilePicture()))
+            newtechnicianRecord.setProfilePicture(awsS3BaseUrl + add.getProfilePicture());
         newtechnicianRecord.setJoinDate(add.getJoinedDate().atStartOfDay());
         Technician technician = technicianRepository.save(newtechnicianRecord);
         TechnicianRegisterRequest technicianRegisterRequest = new TechnicianRegisterRequest();
