@@ -61,6 +61,9 @@ public class TechnicianAuthController extends BaseController {
             AuthenticationResponse authenticationResponse = jwtTokenProvider.generateToken(technician);
             //save jwt token on the time of log in
             technician.setToken(authenticationResponse.getJwtToken());
+            technician.setDeviceId(request.getDeviceId());
+            technician.setDeviceType(request.getDeviceType());
+            technician.setFcmToken(request.getFcmToken());
             technicianRepository.save(technician);
             authenticationResponse.setId(technician.getUuid());
             return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "User logged in successfully", authenticationResponse,

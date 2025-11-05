@@ -54,5 +54,15 @@ public class Technician extends AbstractPersistable{
     @Column(name = "available")
     private boolean available;
 
+    @Column(name = "device_id")
+    private String deviceId;
+
+    @Column(name = "device_type")
+    private String deviceType;
+
+    @Column(name="fcm_token")
+    private String fcmToken;
+
+
 }
 

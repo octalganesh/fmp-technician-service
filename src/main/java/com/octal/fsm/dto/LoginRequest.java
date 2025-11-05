@@ -11,10 +11,20 @@ public class LoginRequest implements Serializable {
     private String email;
     @NotBlank
     private String password;
+    @NotBlank
+    private String deviceId;
 
-    public LoginRequest(String email, String password) {
-        this.setEmail(email);
-        this.setPassword(password);
+    @NotBlank
+    private String deviceType;
+    @NotBlank
+    private String fcmToken;
+
+    public LoginRequest(String email, String password, String deviceId, String deviceType, String fcmToken) {
+        this.email = email;
+        this.password = password;
+        this.deviceId = deviceId;
+        this.deviceType = deviceType;
+        this.fcmToken = fcmToken;
     }
 
     public LoginRequest() {
@@ -34,5 +44,29 @@ public class LoginRequest implements Serializable {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getDeviceId() {
+        return deviceId;
+    }
+
+    public void setDeviceId(String deviceId) {
+        this.deviceId = deviceId;
+    }
+
+    public String getDeviceType() {
+        return deviceType;
+    }
+
+    public void setDeviceType(String deviceType) {
+        this.deviceType = deviceType;
+    }
+
+    public String getFcmToken() {
+        return fcmToken;
+    }
+
+    public void setFcmToken(String fcmToken) {
+        this.fcmToken = fcmToken;
     }
 }
