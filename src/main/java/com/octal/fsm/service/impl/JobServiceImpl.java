@@ -134,6 +134,17 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
+    public ResponseEntity<ApiResponse> updateJobTask(String taskId, String note, Technician loggedIntechnician) throws CodeException {
+        try {
+            ResponseEntity<ApiResponse> response = jobClient.updateJobTask(loggedIntechnician.getUuid(), taskId, note, loggedIntechnician.getEmail());
+            return response;
+        } catch (FeignException e) {
+            throw new CodeException("Remote job-service failed: " + e.contentUTF8(), ErrorCode.COMMON);
+        }
+    }
+
+
+    @Override
     public ResponseEntity<ApiResponse> getAllJobTags(PageRequest.@Valid List listRequest,Long tenantId,boolean isSuperAdmin) throws CodeException {
         try {
             ResponseEntity<ApiResponse> response = jobClient.JobTagList(listRequest,tenantId,isSuperAdmin);

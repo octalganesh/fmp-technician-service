@@ -112,6 +112,26 @@ public class JobController extends BaseController {
         }
     }
 
+    @PutMapping("/update-job-task/{taskId}")
+    public ResponseEntity<ApiResponse> updateJobTask(@PathVariable("taskId") String taskId,
+                                                     @RequestParam(value = "note", defaultValue = "") String note,
+                                                     HttpServletRequest request) {
+        logger.info("JobController.updateJobTask");
+        String loggedInUserName = request.getHeader(CommonConstants.USER_NAME);
+        try {
+            Technician loggedIntechnician = technicianService.getTechnicianByEmailId(loggedInUserName);
+            if (loggedIntechnician != null) {
+                return jobService.updateJobTask(taskId, note, loggedIntechnician);
+            } else {
+                return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, "Invalid technician.", null,
+                        "400", HttpStatus.OK), HttpStatus.OK);
+            }
+        } catch (Exception e) {
+            return handleException(e);
+        }
+    }
+
+
     @PostMapping("/document/upload")
     public ResponseEntity<ApiResponse> documentUpload(@RequestBody List<DocumentDTO.Add> uploadDocument, HttpServletRequest request) {
         String userName = request.getHeader(CommonConstants.USER_NAME);
