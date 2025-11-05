@@ -4,6 +4,7 @@ package com.octal.fsm.controller;
 import com.octal.fsm.common.ApiResponse;
 import com.octal.fsm.common.CommonConstants;
 import com.octal.fsm.dto.*;
+import com.octal.fsm.entities.MultiUserDeviceDetails;
 import com.octal.fsm.entities.Technician;
 import com.octal.fsm.exceptions.CodeException;
 import com.octal.fsm.exceptions.InvalidPasswordException;
@@ -61,9 +62,11 @@ public class TechnicianAuthController extends BaseController {
             AuthenticationResponse authenticationResponse = jwtTokenProvider.generateToken(technician);
             //save jwt token on the time of log in
             technician.setToken(authenticationResponse.getJwtToken());
-            technician.setDeviceId(request.getDeviceId());
-            technician.setDeviceType(request.getDeviceType());
-            technician.setFcmToken(request.getFcmToken());
+            MultiUserDeviceDetails multiUserDeviceDetails=new MultiUserDeviceDetails();
+            multiUserDeviceDetails.setDeviceId(request.getDeviceId());
+            multiUserDeviceDetails.setDeviceType(request.getDeviceType());
+            multiUserDeviceDetails.setDeviceToken(request.getFcmToken());
+            technician.setMultiUserDeviceDetails(multiUserDeviceDetails);
             technicianRepository.save(technician);
             authenticationResponse.setId(technician.getUuid());
             return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "User logged in successfully", authenticationResponse,

@@ -7,23 +7,25 @@ import com.octal.fsm.exceptions.CodeException;
 import com.octal.fsm.models.request.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
+import java.util.List;
+import java.util.Set;
 
 @Service
 public interface TechnicianService {
 
     String addTechnician(TechnicianDto.Add add) throws CodeException;
 
-    Boolean deleteById(String id ) throws CodeException;
+    Boolean deleteById(String id) throws CodeException;
 
     TechnicianDto.list getTechnicianByUuid(String id) throws CodeException;
 
-    Boolean changeStatus(String id ) throws CodeException;
+    Boolean changeStatus(String id) throws CodeException;
 
-    PageItem<TechnicianDto.list> getAllTechnician(PageRequest.List listRequest );
-    PageItem<TechnicianDto.ListForAssignment> getListForAssignment(PageRequest.List listRequest );
+    PageItem<TechnicianDto.list> getAllTechnician(PageRequest.List listRequest);
+
+    PageItem<TechnicianDto.ListForAssignment> getListForAssignment(PageRequest.List listRequest);
 
 
     AuthTechnicianDTO fetchAuthenticatedUserDetailsByEmail(String email);
@@ -32,22 +34,24 @@ public interface TechnicianService {
 
     AuthTechnicianDTO fetchAuthenticatedTechnicianDetailsByEmail(String email);
 
-    void changeTechnicianPassword(@Valid ChangePasswordDTO passwordDTO, String header)throws CodeException;
+    void changeTechnicianPassword(@Valid ChangePasswordDTO passwordDTO, String header) throws CodeException;
 
     void resetTechnicianPassword(String email) throws CodeException;
 
-    void resetTechnicianPassword(String token, String newPassword, String confirmPassword)throws CodeException;
+    void resetTechnicianPassword(String token, String newPassword, String confirmPassword) throws CodeException;
 
-    void updatePassword(TechnicianDetailDTO.ChangePassword changePassword, Technician loggedIntechnician)throws CodeException;
+    void updatePassword(TechnicianDetailDTO.ChangePassword changePassword, Technician loggedIntechnician) throws CodeException;
 
-    TechnicianDetailDTO updateProfile(Technician technician,TechnicianDetailDTO technicianDetailDTO)throws CodeException;
+    TechnicianDetailDTO updateProfile(Technician technician, TechnicianDetailDTO technicianDetailDTO) throws CodeException;
 
-    TechnicianDetailDTO getProfileDetails(String id)throws CodeException;
+    TechnicianDetailDTO getProfileDetails(String id) throws CodeException;
 
     ResponseEntity<ApiResponse> getStaticContentBySlug(String slug) throws CodeException;
 
     void verifyResetToken(String token) throws CodeException;
 
     ResponseEntity<ApiResponse> getAnnouncements(PageRequest.List listRequest) throws CodeException;
+
+    Set<MultiUserDeviceDetailsDTO.Response> getTechniciansNotificationsData(TechnicianNotificationRequest notificationRequest) throws CodeException;
 }
 

@@ -4,6 +4,8 @@ import com.octal.fsm.clients.AdminClient;
 import com.octal.fsm.common.ApiResponse;
 import com.octal.fsm.common.CommonConstants;
 import com.octal.fsm.dto.*;
+import com.octal.fsm.dto.enums.NotificationUserGroup;
+import com.octal.fsm.entities.MultiUserDeviceDetails;
 import com.octal.fsm.entities.Technician;
 import com.octal.fsm.entities.UserOtpVerification;
 import com.octal.fsm.exceptions.CodeException;
@@ -29,7 +31,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.security.SecureRandom;
 
@@ -38,9 +39,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -480,6 +479,37 @@ public class TechnicianServiceImpl implements TechnicianService {
         } catch (FeignException e) {
             throw new CodeException("Remote admin-service failed: " + e.contentUTF8(), ErrorCode.COMMON);
         }
+    }
+
+    @Override
+    public Set<MultiUserDeviceDetailsDTO.Response> getTechniciansNotificationsData(TechnicianNotificationRequest notificationRequest) throws CodeException {
+        List<MultiUserDeviceDetails>multiUserDeviceDetails=new ArrayList<>();
+        if (notificationRequest.getUserGroup().equals(NotificationUserGroup.ALL_USER)) {
+            multiUserDeviceDetails = technicianRepository.findByDeviceTokenNotNullAndDeviceTypeNotNullAndDeviceTokenNot("");
+        } else if (notificationRequest.getUserGroup().equals(NotificationUserGroup.ALL_ANDROID_USER)) {
+            multiUserDeviceDetails = technicianRepository.findByDeviceTypeIgnoreCaseAndDeviceTokenIsNotNullAndDeviceTokenNot("android", "");
+
+        } else if (notificationRequest.getUserGroup().equals(NotificationUserGroup.ALL_IOS_USER)) {
+            multiUserDeviceDetails = technicianRepository.findByDeviceTypeIgnoreCaseAndDeviceTokenIsNotNullAndDeviceTokenNot("iOS", "");
+
+        } else if (notificationRequest.getUserGroup().equals(NotificationUserGroup.PARTICULAR_USER)) {
+
+            multiUserDeviceDetails = technicianRepository.findByUserIdIn(notificationRequest.getUserIds());
+
+        }
+        if (multiUserDeviceDetails.isEmpty()) {
+            throw new CodeException("No Active users found to send notification", ErrorCode.COMMON);
+        }
+        Set<MultiUserDeviceDetailsDTO.Response> deviceDetailsDTOS = new HashSet<>();
+        for( MultiUserDeviceDetails userDeviceDetails:multiUserDeviceDetails){
+            MultiUserDeviceDetailsDTO.Response dto=new MultiUserDeviceDetailsDTO.Response();
+            dto.setDeviceType(userDeviceDetails.getDeviceType());
+            dto.setDeviceToken(userDeviceDetails.getDeviceToken());
+            dto.setAppVersion(userDeviceDetails.getAppVersion());
+            dto.setDeviceId(userDeviceDetails.getDeviceId());
+            deviceDetailsDTOS.add(dto);
+        }
+        return deviceDetailsDTOS;
     }
 
     private void updateUserVerificationStatus(Optional<UserOtpVerification> userVerificationToken, Technician user) throws CodeException {

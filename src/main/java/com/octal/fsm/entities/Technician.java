@@ -11,11 +11,11 @@ import java.time.LocalDateTime;
 @Setter
 @Entity
 @Table(name = "technicians")
-public class Technician extends AbstractPersistable{
+public class Technician extends AbstractPersistable {
     @Column(name = "name")
     private String name;
 
-    @Column(name = "email",unique = true)
+    @Column(name = "email", unique = true)
     private String email;
 
     @Column(name = "phone_number")
@@ -26,12 +26,12 @@ public class Technician extends AbstractPersistable{
 
 
     @Lob
-    @Column(name="profile_picture")
+    @Column(name = "profile_picture")
     private String profilePicture;
 
     //@ManyToOne(cascade = CascadeType.ALL)
     //@JoinColumn(name = "address_id")
-    @Column(name="address")
+    @Column(name = "address")
     private String address;
 
     @Column(name = "blocked")
@@ -54,14 +54,9 @@ public class Technician extends AbstractPersistable{
     @Column(name = "available")
     private boolean available;
 
-    @Column(name = "device_id")
-    private String deviceId;
-
-    @Column(name = "device_type")
-    private String deviceType;
-
-    @Column(name="fcm_token")
-    private String fcmToken;
+    @JoinColumn(name = "device_details_id")
+    @OneToOne(cascade = CascadeType.ALL,orphanRemoval = true)
+    private MultiUserDeviceDetails multiUserDeviceDetails;
 
 
 }

@@ -1,17 +1,16 @@
 package com.octal.fsm.controller;
 
 
-import com.octal.fsm.clients.AdminClient;
+
 import com.octal.fsm.common.ApiResponse;
 import com.octal.fsm.common.CommonConstants;
 import com.octal.fsm.dto.AwsDTO;
-import com.octal.fsm.dto.CustomerFeedbackDTO;
 import com.octal.fsm.dto.TechnicianDto;
+import com.octal.fsm.dto.TechnicianNotificationRequest;
 import com.octal.fsm.entities.Technician;
 import com.octal.fsm.models.request.PageRequest;
 import com.octal.fsm.repositories.TechnicianRepository;
 import com.octal.fsm.service.S3PresignedUrlService;
-import com.octal.fsm.service.TechnicianService;
 import com.octal.fsm.utils.TextUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -165,6 +164,15 @@ public class TechnicianController extends BaseController {
             }
         } catch (Exception e) {
             e.printStackTrace();
+            return handleException(e);
+        }
+    }
+    @PostMapping("/get-technicians-notification-data")
+    public ResponseEntity<ApiResponse>getTechnicians(TechnicianNotificationRequest notificationRequest, HttpServletRequest request) {
+        logger.info("TechnicianController.getTechnicians");
+        try {
+            return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "Technicians fetched successfully!", technicianService.getTechniciansNotificationsData(notificationRequest), "200", HttpStatus.OK), HttpStatus.OK);
+        } catch (Exception e) {
             return handleException(e);
         }
     }

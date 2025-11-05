@@ -20,6 +20,5 @@ public class MultiUserDeviceDetails extends AbstractPersistable {
     private String deviceType;
     private String appVersion;
     private String deviceToken;
-    private String deviceData;
-    private String userId;
+    private String deviceId;
 }
