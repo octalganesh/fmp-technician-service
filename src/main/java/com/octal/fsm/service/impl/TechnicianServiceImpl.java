@@ -300,7 +300,9 @@ public class TechnicianServiceImpl implements TechnicianService {
     private void prepareTechnicianSearchFilter(PageRequest.List listRequest, GenericSpecificationsBuilder<Technician> builder,Long tenantId,boolean isSuperAdmin) {
 
         builder.with(technicianSpecificationFactory.isEqual("deleted", false));
-        builder.with(technicianSpecificationFactory.isEqual("tenantId", tenantId));
+
+            builder.with(technicianSpecificationFactory.isEqual("tenantId", tenantId));
+
         builder.with(technicianSpecificationFactory.isEqual("blocked", false));
         if (org.apache.commons.lang.StringUtils.isNotBlank(listRequest.getSearchText())) {
             builder.with(technicianSpecificationFactory.like("name", listRequest.getSearchText()).or(technicianSpecificationFactory.like("employeeId", listRequest.getSearchText())).or(technicianSpecificationFactory.like("mobileNumber", listRequest.getSearchText()))
