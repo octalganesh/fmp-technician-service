@@ -7,6 +7,7 @@ import com.octal.fsm.common.CommonConstants;
 import com.octal.fsm.dto.AwsDTO;
 import com.octal.fsm.dto.TechnicianDto;
 import com.octal.fsm.dto.TechnicianNotificationRequest;
+import com.octal.fsm.dto.UserNotificationListDTO;
 import com.octal.fsm.entities.Technician;
 import com.octal.fsm.models.request.PageRequest;
 import com.octal.fsm.repositories.TechnicianRepository;
@@ -183,11 +184,30 @@ public class TechnicianController extends BaseController {
         }
     }
     @PostMapping("/get-technicians-notification-data")
-    public ResponseEntity<ApiResponse>getTechnicians(TechnicianNotificationRequest notificationRequest, HttpServletRequest request) {
+    public ResponseEntity<ApiResponse>getTechnicians(@RequestBody TechnicianNotificationRequest notificationRequest, HttpServletRequest request) {
         logger.info("TechnicianController.getTechnicians");
         try {
             return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "Technicians fetched successfully!", technicianService.getTechniciansNotificationsData(notificationRequest), "200", HttpStatus.OK), HttpStatus.OK);
         } catch (Exception e) {
+            return handleException(e);
+        }
+    }
+    @PostMapping("/get-notification-list")
+    public ResponseEntity<ApiResponse>getNotificationList(UserNotificationListDTO.ListRequest listRequest, HttpServletRequest request) {
+        logger.info("TechnicianController.getNotificationList");
+        String technicianName = request.getHeader(CommonConstants.technician_NAME);
+        try {
+            //Long tenantId = getTenantId(request);
+            //boolean isSuperAdmin=isSuperAdmin(request);
+            Technician loggedIntechnician = technicianService.getTechnicianByEmailId(technicianName);
+            if (loggedIntechnician != null) {
+                return technicianService.getNotificationList(listRequest,loggedIntechnician);
+            } else {
+                return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, "technician not found.",
+                        null, "400", HttpStatus.OK), HttpStatus.OK);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
             return handleException(e);
         }
     }

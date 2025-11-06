@@ -50,8 +50,9 @@ public interface TechnicianService {
     void verifyResetToken(String token) throws CodeException;
 
     ResponseEntity<ApiResponse> getAnnouncements(PageRequest.List listRequest,Long tenantId,boolean isSuperAdmin) throws CodeException;
-    ResponseEntity<ApiResponse> getAnnouncements(PageRequest.List listRequest) throws CodeException;
 
     Set<MultiUserDeviceDetailsDTO.Response> getTechniciansNotificationsData(TechnicianNotificationRequest notificationRequest) throws CodeException;
+
+    ResponseEntity<ApiResponse> getNotificationList(UserNotificationListDTO.ListRequest listRequest, Technician loggedIntechnician) throws CodeException;
 }
 
