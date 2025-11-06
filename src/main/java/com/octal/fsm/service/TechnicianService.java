@@ -7,9 +7,10 @@ import com.octal.fsm.exceptions.CodeException;
 import com.octal.fsm.models.request.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
+import java.util.List;
+import java.util.Set;
 
 @Service
 public interface TechnicianService {
@@ -49,5 +50,9 @@ public interface TechnicianService {
     void verifyResetToken(String token) throws CodeException;
 
     ResponseEntity<ApiResponse> getAnnouncements(PageRequest.List listRequest,Long tenantId,boolean isSuperAdmin) throws CodeException;
+
+    Set<MultiUserDeviceDetailsDTO.Response> getTechniciansNotificationsData(TechnicianNotificationRequest notificationRequest) throws CodeException;
+
+    ResponseEntity<ApiResponse> getNotificationList(UserNotificationListDTO.ListRequest listRequest, Technician loggedIntechnician) throws CodeException;
 }
 

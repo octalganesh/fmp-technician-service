@@ -1,8 +1,11 @@
 package com.octal.fsm.repositories;
 
+import com.octal.fsm.entities.MultiUserDeviceDetails;
 import com.octal.fsm.entities.Technician;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -28,5 +31,25 @@ public interface TechnicianRepository extends JpaRepository<Technician, Long>, J
     Optional<Technician> findByEmployeeId (String employeeId );
 
     Optional<Technician> findByUuid(String id);
+
+    // For ALL_USER
+    @Query("SELECT t.multiUserDeviceDetails FROM Technician t " +
+            "WHERE t.multiUserDeviceDetails.deviceToken IS NOT NULL " +
+            "AND t.multiUserDeviceDetails.deviceToken <> '' " +
+            "AND t.multiUserDeviceDetails.deviceType IS NOT NULL " +
+            "AND t.multiUserDeviceDetails.deviceType <> ''")
+    List<MultiUserDeviceDetails> findByDeviceTokenNotNullAndDeviceTypeNotNullAndDeviceTokenNot(@Param("deviceToken") String deviceToken);
+
+    // For ALL_ANDROID_USER or ALL_IOS_USER
+    @Query("SELECT t.multiUserDeviceDetails FROM Technician t " +
+            "WHERE LOWER(t.multiUserDeviceDetails.deviceType) = LOWER(:deviceType) " +
+            "AND t.multiUserDeviceDetails.deviceToken IS NOT NULL " +
+            "AND t.multiUserDeviceDetails.deviceToken <> :deviceToken")
+    List<MultiUserDeviceDetails> findByDeviceTypeIgnoreCaseAndDeviceTokenIsNotNullAndDeviceTokenNot(@Param("deviceType") String deviceType,
+                                                                                                    @Param("deviceToken") String deviceToken);
+
+    // For PARTICULAR_USER
+    @Query("SELECT t.multiUserDeviceDetails FROM Technician t WHERE t.uuid IN :userIds")
+    List<MultiUserDeviceDetails> findByUserIdIn(@Param("userIds") List<String> userIds);
 }
 
