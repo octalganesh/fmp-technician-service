@@ -187,7 +187,7 @@ public class TechnicianServiceImpl implements TechnicianService {
         if (isSuperAdmin) {
             tenantId = 1l;
         }
-        Optional<Technician> technicianRecord = technicianRepository.findByUuidAndTenantId(id, tenantId);
+        Optional<Technician> technicianRecord = technicianRepository.findByUuid(id);
         if (technicianRecord.isPresent()) {
             TechnicianDto.list technician = new TechnicianDto.list();
             technician.setEmployeeId(technicianRecord.get().getEmployeeId());
