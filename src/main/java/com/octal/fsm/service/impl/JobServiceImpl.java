@@ -170,4 +170,14 @@ public class JobServiceImpl implements JobService {
         list.setSearchText("");
         return adminClient.documentList(list,loggedInUserEmail,tenantId,isSuperAdmin);
     }
+
+    @Override
+    public ResponseEntity<ApiResponse> addDrawingInTask(String taskId, JobDTO.TaskDrawingRequest taskDrawingRequest, Technician loggedIntechnician) throws CodeException {
+        try {
+            ResponseEntity<ApiResponse> response = jobClient.addDrawingToJobTask(loggedIntechnician.getUuid(), taskId, taskDrawingRequest, loggedIntechnician.getEmail());
+            return response;
+        } catch (FeignException e) {
+            throw new CodeException("Remote job-service failed: " + e.contentUTF8(), ErrorCode.COMMON);
+        }
+    }
 }

@@ -179,4 +179,23 @@ public class JobController extends BaseController {
         }
     }
 
+    @PostMapping("/add-drawing-in-task/{taskId}")
+    public ResponseEntity<ApiResponse>updateDrawing(@PathVariable("taskId") String taskId,
+                                                    @RequestBody JobDTO.TaskDrawingRequest taskDrawingRequest,
+                                                     HttpServletRequest request) {
+        logger.info("JobController.updateDrawing");
+        String loggedInUserName = request.getHeader(CommonConstants.USER_NAME);
+        try {
+            Technician loggedIntechnician = technicianService.getTechnicianByEmailId(loggedInUserName);
+            if (loggedIntechnician != null) {
+                return jobService.addDrawingInTask(taskId, taskDrawingRequest, loggedIntechnician);
+            } else {
+                return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, "Invalid technician.", null,
+                        "400", HttpStatus.OK), HttpStatus.OK);
+            }
+        } catch (Exception e) {
+            return handleException(e);
+        }
+    }
+
 }

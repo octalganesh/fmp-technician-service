@@ -55,4 +55,10 @@ public interface JobClient {
     ResponseEntity<ApiResponse> uploadDocument(@RequestBody List<DocumentDTO.Add> addJobDTO, @RequestHeader(USER_NAME) String userName,@RequestHeader("tenantId") Long tenantId,
                                                @RequestHeader("isSuperAdmin") boolean isSuperAdmin);
 
+    @PostMapping("/jobs/add-drawing-to-job-task/{technicianId}/{taskId}")
+    ResponseEntity<ApiResponse>addDrawingToJobTask(@PathVariable("technicianId") String technicianId,
+                                                          @PathVariable("taskId") String taskId,
+                                                          @RequestBody JobDTO.TaskDrawingRequest taskDrawingRequest,
+                                                          @RequestHeader("userName") String userName);
+
 }
