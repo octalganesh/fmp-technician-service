@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -51,5 +52,7 @@ public interface TechnicianRepository extends JpaRepository<Technician, Long>, J
     // For PARTICULAR_USER
     @Query("SELECT t.multiUserDeviceDetails FROM Technician t WHERE t.uuid IN :userIds")
     List<MultiUserDeviceDetails> findByUserIdIn(@Param("userIds") List<String> userIds);
+
+    long countByAndCreatedAtBetween(LocalDateTime startDate, LocalDateTime endDate);
 }
 

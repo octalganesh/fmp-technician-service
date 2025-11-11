@@ -6,6 +6,7 @@ import com.octal.fsm.common.ApiResponse;
 import com.octal.fsm.common.CommonConstants;
 import com.octal.fsm.dto.AwsDTO;
 import com.octal.fsm.dto.TechnicianDto;
+import com.octal.fsm.dto.JobDashboardResponseDTO;
 import com.octal.fsm.dto.TechnicianNotificationRequest;
 import com.octal.fsm.dto.UserNotificationListDTO;
 import com.octal.fsm.entities.Technician;
@@ -208,6 +209,16 @@ public class TechnicianController extends BaseController {
             }
         } catch (Exception e) {
             e.printStackTrace();
+            return handleException(e);
+        }
+    }
+
+    @PostMapping("/count")
+    public ResponseEntity<ApiResponse> totalCount(@RequestBody JobDashboardResponseDTO.Search search, HttpServletRequest request) {
+        logger.info("TechnicianController./count");
+        try {
+            return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "Dashboard data Generated Successfully.", technicianService.countTechnician(search), "200", HttpStatus.OK), HttpStatus.OK);
+        } catch (Exception e) {
             return handleException(e);
         }
     }

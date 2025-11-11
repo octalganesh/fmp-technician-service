@@ -54,5 +54,7 @@ public interface TechnicianService {
     Set<MultiUserDeviceDetailsDTO.Response> getTechniciansNotificationsData(TechnicianNotificationRequest notificationRequest) throws CodeException;
 
     ResponseEntity<ApiResponse> getNotificationList(UserNotificationListDTO.ListRequest listRequest, Technician loggedIntechnician) throws CodeException;
+
+    JobDashboardResponseDTO.Detail countTechnician(JobDashboardResponseDTO.Search search)throws CodeException;
 }
 
