@@ -10,12 +10,15 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @Entity
-@Table(name = "technicians")
+ @Table(
+        name = "technicians",
+        uniqueConstraints = @UniqueConstraint(columnNames = {"tenant_id", "email"})
+)
 public class Technician extends AbstractPersistable{
     @Column(name = "name")
     private String name;
 
-    @Column(name = "email",unique = true)
+    @Column(name = "email")
     private String email;
 
     @Column(name = "phone_number")
@@ -26,12 +29,12 @@ public class Technician extends AbstractPersistable{
 
 
     @Lob
-    @Column(name="profile_picture")
+    @Column(name = "profile_picture")
     private String profilePicture;
 
     //@ManyToOne(cascade = CascadeType.ALL)
     //@JoinColumn(name = "address_id")
-    @Column(name="address")
+    @Column(name = "address")
     private String address;
 
     @Column(name = "blocked")
@@ -53,6 +56,11 @@ public class Technician extends AbstractPersistable{
 
     @Column(name = "available")
     private boolean available;
+
+    @JoinColumn(name = "device_details_id")
+    @OneToOne(cascade = CascadeType.ALL,orphanRemoval = true)
+    private MultiUserDeviceDetails multiUserDeviceDetails;
+
 
 }
 

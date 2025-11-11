@@ -4,6 +4,7 @@ package com.octal.fsm.controller;
 import com.octal.fsm.common.ApiResponse;
 import com.octal.fsm.common.CommonConstants;
 import com.octal.fsm.dto.*;
+import com.octal.fsm.entities.MultiUserDeviceDetails;
 import com.octal.fsm.entities.Technician;
 import com.octal.fsm.exceptions.CodeException;
 import com.octal.fsm.exceptions.InvalidPasswordException;
@@ -52,6 +53,7 @@ public class TechnicianAuthController extends BaseController {
     @PostMapping(value = "/auth/login")
     public ResponseEntity<ApiResponse> technicianLogin(@Valid @RequestBody LoginRequest request) {
         try {
+
             Technician technician = technicianService.getTechnicianByEmailId(request.getEmail());
             if (technician == null) {
                 return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "Invalid email address provided. Please enter a registered and valid email.", null,
@@ -61,6 +63,11 @@ public class TechnicianAuthController extends BaseController {
             AuthenticationResponse authenticationResponse = jwtTokenProvider.generateToken(technician);
             //save jwt token on the time of log in
             technician.setToken(authenticationResponse.getJwtToken());
+            MultiUserDeviceDetails multiUserDeviceDetails=new MultiUserDeviceDetails();
+            multiUserDeviceDetails.setDeviceId(request.getDeviceId());
+            multiUserDeviceDetails.setDeviceType(request.getDeviceType());
+            multiUserDeviceDetails.setDeviceToken(request.getFcmToken());
+            technician.setMultiUserDeviceDetails(multiUserDeviceDetails);
             technicianRepository.save(technician);
             authenticationResponse.setId(technician.getUuid());
             return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "User logged in successfully", authenticationResponse,
@@ -138,9 +145,11 @@ public class TechnicianAuthController extends BaseController {
         logger.info("AdminAuthController.updateProfile");
         String technicianName = request.getHeader(CommonConstants.technician_NAME);
         try {
+            Long tenantId = getTenantId(request);
+            boolean isSuperAdmin=isSuperAdmin(request);
             Technician loggedIntechnician = technicianService.getTechnicianByEmailId(technicianName);
             if (loggedIntechnician != null) {
-                return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "Profile Update Successfully", technicianService.updateProfile(loggedIntechnician,technicianDetailDTO),
+                return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "Profile Update Successfully", technicianService.updateProfile(loggedIntechnician,technicianDetailDTO,tenantId,isSuperAdmin),
                         "200", HttpStatus.OK), HttpStatus.OK);
             } else {
                 return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, "Invalid technician.", null,
@@ -162,9 +171,11 @@ public class TechnicianAuthController extends BaseController {
         logger.info("TechnicianAuthController.change-password");
         String technicianName = request.getHeader(CommonConstants.technician_NAME);
         try {
+            Long tenantId = getTenantId(request);
+            boolean isSuperAdmin=isSuperAdmin(request);
             Technician loggedIntechnician = technicianService.getTechnicianByEmailId(technicianName);
             if (loggedIntechnician != null) {
-                technicianService.updatePassword(changePassword, loggedIntechnician);
+                technicianService.updatePassword(changePassword, loggedIntechnician,tenantId,isSuperAdmin);
                 return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "Password Update Successfully", null,
                         "200", HttpStatus.OK), HttpStatus.OK);
             } else {

@@ -72,4 +72,14 @@ public class JobDTO {
         private String fileType;
     }
 
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class TaskDrawingRequest {
+        private String drawingJson;
+        private String drawingFileUrl;
+    }
+
+
+
 }

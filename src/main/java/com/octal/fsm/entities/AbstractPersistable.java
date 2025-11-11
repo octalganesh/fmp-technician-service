@@ -29,6 +29,18 @@ public class AbstractPersistable implements Serializable {
     @Column(name = "is_deleted", columnDefinition = "boolean default false")
     private boolean deleted = false;
 
+
+
+    @Column(name = "tenant_id")
+    private Long tenantId;
+
+    public Long getTenantId() {
+        return tenantId;
+    }
+
+    public void setTenantId(Long tenantId) {
+        this.tenantId = tenantId;
+    }
     public boolean isDeleted() {
         return deleted;
     }
