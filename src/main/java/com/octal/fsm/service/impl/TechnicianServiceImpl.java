@@ -203,6 +203,7 @@ public class TechnicianServiceImpl implements TechnicianService {
             technician.setCreatedAt(technicianRecord.get().getCreatedAt().toString());
             technician.setUpdatedAt(technicianRecord.get().getUpdatedAt().toString());
             technician.setGender(technicianRecord.get().getGender());
+            technician.setMultiUserDeviceDetails(technicianRecord.get().getMultiUserDeviceDetails());
             return technician;
         } else {
             throw new CodeException(CommonConstants.TECHNICIAN_NOT_FOUND + id, ErrorCode.COMMON);

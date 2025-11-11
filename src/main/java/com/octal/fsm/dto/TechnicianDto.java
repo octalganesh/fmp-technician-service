@@ -1,5 +1,6 @@
 package com.octal.fsm.dto;
 
+import com.octal.fsm.entities.MultiUserDeviceDetails;
 import com.octal.fsm.entities.enums.Gender;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -47,6 +48,8 @@ public class TechnicianDto {
         private Integer rating;
         private Gender gender;
         private String joinedDate;
+        private MultiUserDeviceDetails multiUserDeviceDetails;
+
     }
 
     @Data

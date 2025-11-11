@@ -1,28 +1,31 @@
 package com.octal.fsm.service.impl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.octal.fsm.clients.AdminClient;
 import com.octal.fsm.clients.JobClient;
+import com.octal.fsm.clients.NotificationClient;
 import com.octal.fsm.common.ApiResponse;
-import com.octal.fsm.dto.CustomerFeedbackDTO;
-import com.octal.fsm.dto.DocumentDTO;
-import com.octal.fsm.dto.JobDTO;
-import com.octal.fsm.dto.PageItem;
+import com.octal.fsm.dto.*;
+import com.octal.fsm.dto.enums.PushNotificationType;
+import com.octal.fsm.entities.MultiUserDeviceDetails;
 import com.octal.fsm.entities.Technician;
 import com.octal.fsm.exceptions.CodeException;
 import com.octal.fsm.exceptions.ErrorCode;
+import com.octal.fsm.listeners.event.AddTechnicianUserInAuthEvent;
+import com.octal.fsm.listeners.event.SendMailAndPushEvent;
+import com.octal.fsm.listeners.event.SendMailToTechnicianEventListener;
 import com.octal.fsm.models.request.PageRequest;
 import com.octal.fsm.service.JobService;
 import com.octal.fsm.utils.TextUtils;
 import feign.FeignException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import javax.validation.Valid;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 public class JobServiceImpl implements JobService {
@@ -31,6 +34,12 @@ public class JobServiceImpl implements JobService {
     private JobClient jobClient;
     @Autowired
     private AdminClient adminClient;
+    @Autowired
+    private NotificationClient notificationClient;
+    @Autowired
+    private ObjectMapper objectMapper;
+    @Autowired
+    private ApplicationEventPublisher applicationEventPublisher;
 
     @Override
     public ResponseEntity<ApiResponse> getAllJobs(JobDTO.JobFilterRequest jobFilterRequestDTO, Technician loggedInTechnician,Long tenantId,boolean isSuperAdmin) throws CodeException {
@@ -156,6 +165,24 @@ public class JobServiceImpl implements JobService {
 
     @Override
     public ResponseEntity<ApiResponse> uploadDocument(List<DocumentDTO.Add> uploadDocument, String loggedInUserEmail,Long tenantId,boolean isSuperAdmin) throws CodeException {
+        PushNotificationRequest.SendBulkNotificationToUsers sendBulkNotificationToFront = new PushNotificationRequest.SendBulkNotificationToUsers();
+        ResponseEntity<ApiResponse> notificationSlugContent = notificationClient.getNotificationContent(PushNotificationType.TECHNICIAN_FILE_SUBMITTED.toString());
+        ApiResponse body = notificationSlugContent.getBody();
+        if(body != null){
+            NotificationContentDTO.Request content = objectMapper.convertValue(body.getData(), NotificationContentDTO.Request.class);
+            sendBulkNotificationToFront.setTitle(content.getTitle());
+            sendBulkNotificationToFront.setBody(content.getMessage());
+            sendBulkNotificationToFront.setType(PushNotificationType.TECHNICIAN_FILE_SUBMITTED);
+
+            DocumentDTO.Add firstDoc = uploadDocument.get(0);
+            sendBulkNotificationToFront.setTypeId(firstDoc.getDocumentTypeId());
+
+            Set<MultiUserDeviceDetails> set = new HashSet<>();//set front office staff ids
+            sendBulkNotificationToFront.setTechnicianFcmTokenList(new HashSet<>());
+            sendBulkNotificationToFront.setFrontOfficeFcmTokenList(set);
+            applicationEventPublisher.publishEvent(new SendMailAndPushEvent(null, null,null,sendBulkNotificationToFront));
+        }
+
         return jobClient.uploadDocument(uploadDocument, loggedInUserEmail,tenantId,isSuperAdmin);
     }
 
