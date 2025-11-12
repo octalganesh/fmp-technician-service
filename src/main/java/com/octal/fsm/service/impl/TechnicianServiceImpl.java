@@ -548,6 +548,7 @@ public class TechnicianServiceImpl implements TechnicianService {
         if(TextUtils.isEmpty(listRequest.getSort()))
             listRequest.setSort("createdAt");
         listRequest.setUserId(loggedIntechnician.getUuid());
+        listRequest.setType("TECHNICIAN");
         try {
             ResponseEntity<ApiResponse> response = notificationClient.getUserNotificationList(listRequest);
 
