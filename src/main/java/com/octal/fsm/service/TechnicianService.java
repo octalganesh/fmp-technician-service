@@ -2,6 +2,7 @@ package com.octal.fsm.service;
 
 import com.octal.fsm.common.ApiResponse;
 import com.octal.fsm.dto.*;
+import com.octal.fsm.entities.MultiUserDeviceDetails;
 import com.octal.fsm.entities.Technician;
 import com.octal.fsm.exceptions.CodeException;
 import com.octal.fsm.models.request.PageRequest;
@@ -54,5 +55,9 @@ public interface TechnicianService {
     Set<MultiUserDeviceDetailsDTO.Response> getTechniciansNotificationsData(TechnicianNotificationRequest notificationRequest) throws CodeException;
 
     ResponseEntity<ApiResponse> getNotificationList(UserNotificationListDTO.ListRequest listRequest, Technician loggedIntechnician) throws CodeException;
+
+    ResponseEntity<ApiResponse> getFrontOfficeDevices(String id,Long tenantId) throws CodeException;
+
+    List<MultiUserDeviceDetails> getAllTechnicianDevices(Long tenantId)throws CodeException;
 }
 

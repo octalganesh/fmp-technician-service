@@ -1,5 +1,6 @@
 package com.octal.fsm.service.impl;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.octal.fsm.clients.AdminClient;
 import com.octal.fsm.clients.JobClient;
@@ -16,6 +17,7 @@ import com.octal.fsm.listeners.event.SendMailAndPushEvent;
 import com.octal.fsm.listeners.event.SendMailToTechnicianEventListener;
 import com.octal.fsm.models.request.PageRequest;
 import com.octal.fsm.service.JobService;
+import com.octal.fsm.service.TechnicianService;
 import com.octal.fsm.utils.TextUtils;
 import feign.FeignException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,6 +42,8 @@ public class JobServiceImpl implements JobService {
     private ObjectMapper objectMapper;
     @Autowired
     private ApplicationEventPublisher applicationEventPublisher;
+    @Autowired
+    private TechnicianService technicianService;
 
     @Override
     public ResponseEntity<ApiResponse> getAllJobs(JobDTO.JobFilterRequest jobFilterRequestDTO, Technician loggedInTechnician,Long tenantId,boolean isSuperAdmin) throws CodeException {
@@ -177,12 +181,30 @@ public class JobServiceImpl implements JobService {
             DocumentDTO.Add firstDoc = uploadDocument.get(0);
             sendBulkNotificationToFront.setTypeId(firstDoc.getDocumentTypeId());
 
-            Set<MultiUserDeviceDetails> set = new HashSet<>();//set front office staff ids
-            sendBulkNotificationToFront.setTechnicianFcmTokenList(new HashSet<>());
-            sendBulkNotificationToFront.setFrontOfficeFcmTokenList(set);
-            applicationEventPublisher.publishEvent(new SendMailAndPushEvent(null, null,null,sendBulkNotificationToFront));
+            ResponseEntity<ApiResponse> frontOfficeDevices = technicianService.getFrontOfficeDevices(null,tenantId);
+            ApiResponse fronBdy = frontOfficeDevices.getBody();
+            Set<MultiUserDeviceDetails> frontOfficeDeviceDetails = new HashSet<>();
+            if(fronBdy != null) {
+                List<MultiUserDeviceDetails> frontOfficedeviceList = objectMapper.convertValue(
+                        fronBdy.getData(),
+                        new TypeReference<List<MultiUserDeviceDetails>>() {
+                        }
+                );
+                if (frontOfficedeviceList != null && !frontOfficedeviceList.isEmpty()) {
+                    for (MultiUserDeviceDetails multiUserDeviceDetails : frontOfficedeviceList) {
+                        MultiUserDeviceDetails dto = new MultiUserDeviceDetails();
+                        dto.setDeviceToken(multiUserDeviceDetails.getDeviceToken());
+                        dto.setDeviceType(multiUserDeviceDetails.getDeviceType());
+                        dto.setAppVersion(multiUserDeviceDetails.getAppVersion());
+                        dto.setDeviceId(multiUserDeviceDetails.getDeviceId());
+                        frontOfficeDeviceDetails.add(dto);
+                    }
+                }
+                sendBulkNotificationToFront.setTechnicianFcmTokenList(new HashSet<>());
+                sendBulkNotificationToFront.setFrontOfficeFcmTokenList(frontOfficeDeviceDetails);
+                applicationEventPublisher.publishEvent(new SendMailAndPushEvent(null, null, null, sendBulkNotificationToFront));
+            }
         }
-
         return jobClient.uploadDocument(uploadDocument, loggedInUserEmail,tenantId,isSuperAdmin);
     }
 

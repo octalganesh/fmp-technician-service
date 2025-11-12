@@ -36,4 +36,7 @@ public interface AdminClient {
     @PostMapping("document-type/list-for-technician")
     ResponseEntity<ApiResponse> documentList(@Valid @RequestBody PageRequest.List listRequest,@RequestHeader("userName") String userName,@RequestHeader("tenantId") Long tenantId,
                                              @RequestHeader("isSuperAdmin") boolean isSuperAdmin);
+
+    @GetMapping("/front-office/getFrontOfficeDevices/{id}")
+    ResponseEntity<ApiResponse> getFrontOfficeDevices(@PathVariable("id") String id,@RequestHeader("tenantId") Long tenantId);
 }

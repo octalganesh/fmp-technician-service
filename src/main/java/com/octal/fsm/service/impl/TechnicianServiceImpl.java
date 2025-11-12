@@ -44,6 +44,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Service
 public class TechnicianServiceImpl implements TechnicianService {
@@ -559,6 +560,7 @@ public class TechnicianServiceImpl implements TechnicianService {
         }
     }
 
+
     private void updateUserVerificationStatus(Optional<UserOtpVerification> userVerificationToken, Technician user) throws CodeException {
 
         if (userVerificationToken.isPresent()) {
@@ -580,5 +582,25 @@ public class TechnicianServiceImpl implements TechnicianService {
         }
     }
 
+    @Override
+    public ResponseEntity<ApiResponse> getFrontOfficeDevices(String id, Long tenantId) throws CodeException {
+       return  adminClient.getFrontOfficeDevices(id, tenantId);
+    }
+
+    @Override
+    public List<MultiUserDeviceDetails> getAllTechnicianDevices(Long tenantId) {
+        GenericSpecificationsBuilder<Technician> builder = new GenericSpecificationsBuilder<>();
+        builder.with(technicianSpecificationFactory.isEqual("tenantId", tenantId));
+        builder.with(technicianSpecificationFactory.isEqual("deleted", false));
+        List<Technician> technicianList = technicianRepository.findAll(builder.build());
+
+        return technicianList.stream()
+                .map(Technician::getMultiUserDeviceDetails)
+                .filter(Objects::nonNull)
+                .filter(device -> device.getDeviceToken() != null && !device.getDeviceToken().isEmpty())
+                .filter(device -> device.getDeviceType() != null && !device.getDeviceType().isEmpty())
+                .collect(Collectors.toList());
+
+    }
 
 }

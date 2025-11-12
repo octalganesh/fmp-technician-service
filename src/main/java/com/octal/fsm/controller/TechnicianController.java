@@ -9,6 +9,7 @@ import com.octal.fsm.dto.TechnicianDto;
 import com.octal.fsm.dto.TechnicianNotificationRequest;
 import com.octal.fsm.dto.UserNotificationListDTO;
 import com.octal.fsm.entities.Technician;
+import com.octal.fsm.exceptions.CodeException;
 import com.octal.fsm.models.request.PageRequest;
 import com.octal.fsm.repositories.TechnicianRepository;
 import com.octal.fsm.service.S3PresignedUrlService;
@@ -211,5 +212,18 @@ public class TechnicianController extends BaseController {
             return handleException(e);
         }
     }
+
+    @GetMapping("/getTechnicianDevices")
+    public ResponseEntity<ApiResponse> getTechnicianDevices(HttpServletRequest httpServletRequest) throws CodeException {
+        logger.info("Technician.getTechnicianDevices");
+        try {
+            Long tenantId = getTenantId(httpServletRequest);
+            return new ResponseEntity<>(new ApiResponse("Technician Data.", technicianService.getAllTechnicianDevices(tenantId), "200", HttpStatus.OK), HttpStatus.OK);
+        } catch (
+                Exception e) {
+            return handleException(e);
+        }
+    }
+
 }
 
