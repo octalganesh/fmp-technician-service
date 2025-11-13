@@ -503,6 +503,7 @@ public class TechnicianServiceImpl implements TechnicianService {
 
     @Override
     public ResponseEntity<ApiResponse> getAnnouncements(PageRequest.List listRequest, Long tenantId, boolean isSuperAdmin) throws CodeException {
+        listRequest.setIsActive(true);
         try {
             ResponseEntity<ApiResponse> response = adminClient.getAllAnnouncementsForTechnician(listRequest, tenantId, isSuperAdmin);
 
