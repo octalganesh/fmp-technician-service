@@ -582,6 +582,16 @@ public class TechnicianServiceImpl implements TechnicianService {
             }
         }
     }
+    @Override
+    public JobDashboardResponseDTO.Detail countTechnician(JobDashboardResponseDTO.Search search) throws CodeException{
+        if (search.getStartDate() == null || search.getEndDate() == null) {
+            throw new CodeException("Start date and end date are required", ErrorCode.COMMON);
+        }
+        long count =  technicianRepository.countByAndCreatedAtBetween(search.getStartDate().atStartOfDay(), search.getEndDate().atTime(23, 59, 59));
+        JobDashboardResponseDTO.Detail st = new JobDashboardResponseDTO.Detail();
+        st.setTotalNoOfTechnician(count);
+        return st;
+    }
 
     @Override
     public ResponseEntity<ApiResponse> getFrontOfficeDevices(String id, Long tenantId) throws CodeException {
