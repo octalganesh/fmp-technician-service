@@ -229,4 +229,9 @@ public class JobServiceImpl implements JobService {
             throw new CodeException("Remote job-service failed: " + e.contentUTF8(), ErrorCode.COMMON);
         }
     }
+
+    @Override
+    public ResponseEntity<ApiResponse> getFormByTaskId(String taskId, Long tenantId) throws CodeException {
+        return jobClient.getFormsDetailsForTechnician(taskId, tenantId);
+    }
 }

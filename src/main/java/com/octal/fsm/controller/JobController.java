@@ -198,4 +198,15 @@ public class JobController extends BaseController {
         }
     }
 
+    @GetMapping("/get-form-list/{taskId}")
+    public ResponseEntity<ApiResponse> getFormData(@PathVariable("taskId") String taskId,HttpServletRequest request) {
+        try {
+            Long tenantId = getTenantId(request);
+            return jobService.getFormByTaskId(taskId, tenantId);
+        } catch (Exception e) {
+            return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, e.getMessage(), null,
+                    "500", HttpStatus.OK), HttpStatus.OK);
+        }
+    }
+
 }

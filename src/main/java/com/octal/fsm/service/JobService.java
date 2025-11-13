@@ -35,4 +35,7 @@ public interface JobService {
     ResponseEntity<ApiResponse> getDocumentTypeList(Integer page, Integer size, String sortBy, Boolean order, String loggedInUserEmail,Long tenantId,boolean isSuperAdmin);
 
     ResponseEntity<ApiResponse> addDrawingInTask(String taskId, JobDTO.TaskDrawingRequest taskDrawingRequest, Technician loggedIntechnician) throws CodeException;
+
+    ResponseEntity<ApiResponse> getFormByTaskId(String taskId,Long tenantId)throws CodeException;
+
 }

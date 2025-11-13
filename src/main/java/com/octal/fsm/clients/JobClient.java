@@ -61,4 +61,7 @@ public interface JobClient {
                                                           @RequestBody JobDTO.TaskDrawingRequest taskDrawingRequest,
                                                           @RequestHeader("userName") String userName);
 
+    @GetMapping("/jobs/forms-by-taskId/{taskId}")
+    ResponseEntity<ApiResponse> getFormsDetailsForTechnician(@PathVariable("taskId") String taskId,@RequestHeader("tenantId") Long tenantId);
+
 }
