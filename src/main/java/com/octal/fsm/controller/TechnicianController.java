@@ -194,7 +194,7 @@ public class TechnicianController extends BaseController {
         }
     }
     @PostMapping("/get-notification-list")
-    public ResponseEntity<ApiResponse>getNotificationList(UserNotificationListDTO.ListRequest listRequest, HttpServletRequest request) {
+    public ResponseEntity<ApiResponse>getNotificationList(@RequestBody UserNotificationListDTO.ListRequest listRequest, HttpServletRequest request) {
         logger.info("TechnicianController.getNotificationList");
         String technicianName = request.getHeader(CommonConstants.technician_NAME);
         try {

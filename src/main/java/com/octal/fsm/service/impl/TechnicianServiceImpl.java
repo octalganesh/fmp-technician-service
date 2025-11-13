@@ -501,6 +501,7 @@ public class TechnicianServiceImpl implements TechnicianService {
 
     @Override
     public ResponseEntity<ApiResponse> getAnnouncements(PageRequest.List listRequest, Long tenantId, boolean isSuperAdmin) throws CodeException {
+        listRequest.setIsActive(true);
         try {
             ResponseEntity<ApiResponse> response = adminClient.getAllAnnouncementsForTechnician(listRequest, tenantId, isSuperAdmin);
 
@@ -547,6 +548,7 @@ public class TechnicianServiceImpl implements TechnicianService {
         if(TextUtils.isEmpty(listRequest.getSort()))
             listRequest.setSort("createdAt");
         listRequest.setUserId(loggedIntechnician.getUuid());
+        listRequest.setType("TECHNICIAN");
         try {
             ResponseEntity<ApiResponse> response = notificationClient.getUserNotificationList(listRequest);
 
