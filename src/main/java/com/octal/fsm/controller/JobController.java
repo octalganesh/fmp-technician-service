@@ -4,6 +4,7 @@ import com.octal.fsm.common.ApiResponse;
 import com.octal.fsm.common.CommonConstants;
 import com.octal.fsm.dto.CustomerFeedbackDTO;
 import com.octal.fsm.dto.DocumentDTO;
+import com.octal.fsm.dto.HTMLFormDTO;
 import com.octal.fsm.dto.JobDTO;
 import com.octal.fsm.entities.Technician;
 import com.octal.fsm.exceptions.CodeException;
@@ -203,6 +204,61 @@ public class JobController extends BaseController {
         try {
             Long tenantId = getTenantId(request);
             return jobService.getFormByTaskId(taskId, tenantId);
+        } catch (Exception e) {
+            return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, e.getMessage(), null,
+                    "500", HttpStatus.OK), HttpStatus.OK);
+        }
+    }
+
+    @PostMapping("/save-html-form")
+    public ResponseEntity<ApiResponse> saveHTMLFormData(@RequestBody HTMLFormDTO.Add add, HttpServletRequest request) {
+        try {
+            Long tenantId = getTenantId(request);
+            return jobService.saveHTMLForm(add, tenantId);
+        } catch (Exception e) {
+            return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, e.getMessage(), null,
+                    "500", HttpStatus.OK), HttpStatus.OK);
+        }
+    }
+
+    @GetMapping("/get-html-form-ById/{taskId}")
+    public ResponseEntity<ApiResponse> getHTMLFormData(@PathVariable("taskId") String taskId,HttpServletRequest request) {
+        try {
+            Long tenantId = getTenantId(request);
+            return jobService.getHTMLForm(taskId, tenantId);
+        } catch (Exception e) {
+            return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, e.getMessage(), null,
+                    "500", HttpStatus.OK), HttpStatus.OK);
+        }
+    }
+
+    @PostMapping("/get-html-form-list")
+    public ResponseEntity<ApiResponse> getListHTMLFormData(@Valid @RequestBody PageRequest.List listRequest, HttpServletRequest request) {
+        try {
+            Long tenantId = getTenantId(request);
+            return jobService.getListOfHTMLForm(listRequest, tenantId);
+        } catch (Exception e) {
+            return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, e.getMessage(), null,
+                    "500", HttpStatus.OK), HttpStatus.OK);
+        }
+    }
+
+    @GetMapping("/getFormById/{id}")
+    public ResponseEntity<ApiResponse> getHTMLFormDataBYId(@PathVariable("id") String id, HttpServletRequest request) {
+        try {
+            Long tenantId = getTenantId(request);
+            return jobService.getByIdHTMLForm(id, tenantId);
+        } catch (Exception e) {
+            return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, e.getMessage(), null,
+                    "500", HttpStatus.OK), HttpStatus.OK);
+        }
+    }
+
+    @PutMapping("/change-status/{id}")
+    public ResponseEntity<ApiResponse> changeStatusHTMLFormDataBYId(@PathVariable("id") String id, HttpServletRequest request) {
+        try {
+            Long tenantId = getTenantId(request);
+            return jobService.changeStatusHTMLForm(id, tenantId);
         } catch (Exception e) {
             return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, e.getMessage(), null,
                     "500", HttpStatus.OK), HttpStatus.OK);

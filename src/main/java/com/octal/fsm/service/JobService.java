@@ -1,10 +1,7 @@
 package com.octal.fsm.service;
 
 import com.octal.fsm.common.ApiResponse;
-import com.octal.fsm.dto.CustomerFeedbackDTO;
-import com.octal.fsm.dto.DocumentDTO;
-import com.octal.fsm.dto.JobDTO;
-import com.octal.fsm.dto.PageItem;
+import com.octal.fsm.dto.*;
 import com.octal.fsm.entities.Technician;
 import com.octal.fsm.exceptions.CodeException;
 import com.octal.fsm.models.request.PageRequest;
@@ -37,5 +34,15 @@ public interface JobService {
     ResponseEntity<ApiResponse> addDrawingInTask(String taskId, JobDTO.TaskDrawingRequest taskDrawingRequest, Technician loggedIntechnician) throws CodeException;
 
     ResponseEntity<ApiResponse> getFormByTaskId(String taskId,Long tenantId)throws CodeException;
+
+    ResponseEntity<ApiResponse> saveHTMLForm(HTMLFormDTO.Add add,Long tenantId)throws CodeException;
+
+    ResponseEntity<ApiResponse> getHTMLForm(String taskId,Long tenantId)throws CodeException;
+
+    ResponseEntity<ApiResponse> getListOfHTMLForm(PageRequest.@Valid List listRequest,Long tenantId);
+
+    ResponseEntity<ApiResponse> getByIdHTMLForm(String id,Long tenantId);
+
+    ResponseEntity<ApiResponse> changeStatusHTMLForm(String id,Long tenantId);
 
 }

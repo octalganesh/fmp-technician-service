@@ -2,6 +2,7 @@ package com.octal.fsm.clients;
 
 import com.octal.fsm.common.ApiResponse;
 import com.octal.fsm.dto.DocumentDTO;
+import com.octal.fsm.dto.HTMLFormDTO;
 import com.octal.fsm.dto.JobDTO;
 import com.octal.fsm.models.request.PageRequest;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -63,5 +64,20 @@ public interface JobClient {
 
     @GetMapping("/jobs/forms-by-taskId/{taskId}")
     ResponseEntity<ApiResponse> getFormsDetailsForTechnician(@PathVariable("taskId") String taskId,@RequestHeader("tenantId") Long tenantId);
+
+    @PostMapping("/jobs/add-html-form")
+    ResponseEntity<ApiResponse> addHTMLForm(@RequestBody HTMLFormDTO.Add add,@RequestHeader("tenantId") Long tenantId);
+
+    @GetMapping("/jobs/get-html-form-ById/{taskId}")
+    ResponseEntity<ApiResponse> getHTMLForm(@PathVariable("taskId") String taskId,@RequestHeader("tenantId") Long tenantId);
+
+    @PostMapping("/html-page/list")
+    ResponseEntity<ApiResponse> HTMLFormList(@RequestBody PageRequest.List listRequest,@RequestHeader("tenantId") Long tenantId);
+
+    @GetMapping("/html-page/get/by/{id}")
+    ResponseEntity<ApiResponse> getHTMLFormBYId(@PathVariable("id") String id,@RequestHeader("tenantId") Long tenantId);
+
+    @PutMapping("/html-page/change/status/{id}")
+    ResponseEntity<ApiResponse> changeStatusHTMLForm(@PathVariable("id") String id,@RequestHeader("tenantId") Long tenantId);
 
 }

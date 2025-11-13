@@ -234,4 +234,29 @@ public class JobServiceImpl implements JobService {
     public ResponseEntity<ApiResponse> getFormByTaskId(String taskId, Long tenantId) throws CodeException {
         return jobClient.getFormsDetailsForTechnician(taskId, tenantId);
     }
+
+    @Override
+    public ResponseEntity<ApiResponse> saveHTMLForm(HTMLFormDTO.Add add, Long tenantId) throws CodeException {
+        return jobClient.addHTMLForm(add, tenantId);
+    }
+
+    @Override
+    public ResponseEntity<ApiResponse> getHTMLForm(String taskId, Long tenantId) throws CodeException {
+        return jobClient.getHTMLForm(taskId, tenantId);
+    }
+
+    @Override
+    public ResponseEntity<ApiResponse> getListOfHTMLForm(PageRequest.@Valid List listRequest, Long tenantId) {
+        return  jobClient.HTMLFormList(listRequest,tenantId);
+    }
+
+    @Override
+    public ResponseEntity<ApiResponse> getByIdHTMLForm(String id, Long tenantId) {
+        return  jobClient.getHTMLFormBYId(id,tenantId);
+    }
+
+    @Override
+    public ResponseEntity<ApiResponse> changeStatusHTMLForm(String id, Long tenantId) {
+        return  jobClient.changeStatusHTMLForm(id,tenantId);
+    }
 }
