@@ -1,6 +1,7 @@
 package com.octal.fsm.service.impl;
 
 import com.octal.fsm.clients.AdminClient;
+import com.octal.fsm.clients.JobClient;
 import com.octal.fsm.clients.NotificationClient;
 import com.octal.fsm.common.ApiResponse;
 import com.octal.fsm.common.CommonConstants;
@@ -22,6 +23,7 @@ import com.octal.fsm.specification.SpecificationFactory;
 import com.octal.fsm.utils.TechnicianTransformer;
 import com.octal.fsm.utils.TextUtils;
 import feign.FeignException;
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
@@ -48,6 +50,7 @@ import java.util.stream.Collectors;
 
 @Service
 public class TechnicianServiceImpl implements TechnicianService {
+    private static final Logger LOGGER = org.slf4j.LoggerFactory.getLogger(TechnicianServiceImpl.class);
 
     private static final AtomicInteger sequence = new AtomicInteger(1);
     @Autowired
@@ -70,6 +73,9 @@ public class TechnicianServiceImpl implements TechnicianService {
 
     @Autowired
     private NotificationClient notificationClient;
+
+    @Autowired
+    private JobClient jobClient;
 
     @Value("${aws.base-url}")
     private String awsS3BaseUrl;
@@ -248,6 +254,33 @@ public class TechnicianServiceImpl implements TechnicianService {
         }
         prepareTechnicianSearchFilter(listRequest, builder, tenantId, isSuperAdmin);
         Page<Technician> pagedResult = technicianRepository.findAll(builder.build(), pageable);
+        Map<String, TechnicianDto.TaskStats> taskSummaryMap = new HashMap<>();
+        if (!pagedResult.isEmpty()) {
+            ResponseEntity<ApiResponse> response = jobClient.getTechnicianTaskSummary(pagedResult.get().map(Technician::getUuid).collect(Collectors.toList()), tenantId, isSuperAdmin);
+            if (response != null && response.getStatusCode().is2xxSuccessful()) {
+                ApiResponse apiResponse = response.getBody();
+                if (apiResponse != null && apiResponse.getData() != null) {
+                    Object data = apiResponse.getData();
+                    if (data instanceof Map<?, ?>) {
+                        // Type-safe conversion
+                        taskSummaryMap = ((Map<?, ?>) data).entrySet().stream()
+                                .filter(e -> e.getKey() instanceof String && e.getValue() instanceof TechnicianDto.TaskStats)
+                                .collect(Collectors.toMap(
+                                        e -> (String) e.getKey(),
+                                        e -> (TechnicianDto.TaskStats) e.getValue()
+                                ));
+                    } else {
+                        LOGGER.warn("Unexpected data type in response: {}", data.getClass());
+                    }
+                } else {
+                    LOGGER.warn("Empty ApiResponse body or data");
+                }
+            } else {
+                LOGGER.error("Failed to fetch technician task summary: {}",
+                        response != null ? response.getStatusCode() : "null response");
+            }
+
+        }
         List<TechnicianDto.list> responseList = new ArrayList<>();
         for (Technician technician : pagedResult.getContent()) {
             TechnicianDto.list dto = new TechnicianDto.list();
@@ -256,6 +289,11 @@ public class TechnicianServiceImpl implements TechnicianService {
             dto.setEmail(technician.getEmail());
             dto.setMobileNumber(technician.getMobileNumber());
             dto.setProfilePicture(technician.getProfilePicture());
+            if(taskSummaryMap.containsKey(technician.getUuid())) {
+                dto.setAssignedTasks(taskSummaryMap.get(technician.getUuid()).getAssignedTasks());
+                dto.setAllTasks(taskSummaryMap.get(technician.getUuid()).getAllTasks());
+                dto.setCompletedTasks(taskSummaryMap.get(technician.getUuid()).getCompletedTasks());
+            }
             //dto.setAddress(new AddressDTO(technician.getAddress().getStreet(), technician.getAddress().getCity(), technician.getAddress().getState(), technician.getAddress().getPostalCode(), technician.getAddress().getCountry()));
             dto.setAddress(technician.getAddress());
             dto.setIsActive(technician.getActive());
@@ -306,7 +344,7 @@ public class TechnicianServiceImpl implements TechnicianService {
 
         builder.with(technicianSpecificationFactory.isEqual("deleted", false));
 
-            builder.with(technicianSpecificationFactory.isEqual("tenantId", tenantId));
+        builder.with(technicianSpecificationFactory.isEqual("tenantId", tenantId));
 
         builder.with(technicianSpecificationFactory.isEqual("blocked", false));
         if (org.apache.commons.lang.StringUtils.isNotBlank(listRequest.getSearchText())) {
@@ -547,7 +585,7 @@ public class TechnicianServiceImpl implements TechnicianService {
 
     @Override
     public ResponseEntity<ApiResponse> getNotificationList(UserNotificationListDTO.ListRequest listRequest, Technician loggedIntechnician) throws CodeException {
-        if(TextUtils.isEmpty(listRequest.getSort()))
+        if (TextUtils.isEmpty(listRequest.getSort()))
             listRequest.setSort("createdAt");
         listRequest.setUserId(loggedIntechnician.getUuid());
         listRequest.setType("TECHNICIAN");
@@ -582,12 +620,13 @@ public class TechnicianServiceImpl implements TechnicianService {
             }
         }
     }
+
     @Override
-    public JobDashboardResponseDTO.Detail countTechnician(JobDashboardResponseDTO.Search search) throws CodeException{
+    public JobDashboardResponseDTO.Detail countTechnician(JobDashboardResponseDTO.Search search) throws CodeException {
         if (search.getStartDate() == null || search.getEndDate() == null) {
             throw new CodeException("Start date and end date are required", ErrorCode.COMMON);
         }
-        long count =  technicianRepository.countByAndCreatedAtBetween(search.getStartDate().atStartOfDay(), search.getEndDate().atTime(23, 59, 59));
+        long count = technicianRepository.countByAndCreatedAtBetween(search.getStartDate().atStartOfDay(), search.getEndDate().atTime(23, 59, 59));
         JobDashboardResponseDTO.Detail st = new JobDashboardResponseDTO.Detail();
         st.setTotalNoOfTechnician(count);
         return st;
@@ -595,7 +634,7 @@ public class TechnicianServiceImpl implements TechnicianService {
 
     @Override
     public ResponseEntity<ApiResponse> getFrontOfficeDevices(String id, Long tenantId) throws CodeException {
-       return  adminClient.getFrontOfficeDevices(id, tenantId);
+        return adminClient.getFrontOfficeDevices(id, tenantId);
     }
 
     @Override
