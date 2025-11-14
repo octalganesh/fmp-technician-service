@@ -12,17 +12,13 @@ import com.octal.fsm.entities.MultiUserDeviceDetails;
 import com.octal.fsm.entities.Technician;
 import com.octal.fsm.exceptions.CodeException;
 import com.octal.fsm.exceptions.ErrorCode;
-import com.octal.fsm.listeners.event.AddTechnicianUserInAuthEvent;
 import com.octal.fsm.listeners.event.SendMailAndPushEvent;
-import com.octal.fsm.listeners.event.SendMailToTechnicianEventListener;
 import com.octal.fsm.models.request.PageRequest;
 import com.octal.fsm.service.JobService;
 import com.octal.fsm.service.TechnicianService;
-import com.octal.fsm.utils.TextUtils;
 import feign.FeignException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -236,13 +232,17 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
-    public ResponseEntity<ApiResponse> saveHTMLForm(HTMLFormDTO.Add add, Long tenantId) throws CodeException {
+    public ResponseEntity<ApiResponse> saveHTMLForm(HTMLFormDTO.Add add, Long tenantId, boolean isSuperAdmin) throws CodeException {
+        if(isSuperAdmin)
+            tenantId = 1L;
         return jobClient.addHTMLForm(add, tenantId);
     }
 
     @Override
-    public ResponseEntity<ApiResponse> getHTMLForm(String taskId, Long tenantId) throws CodeException {
-        return jobClient.getHTMLForm(taskId, tenantId);
+    public ResponseEntity<ApiResponse> getHTMLForm(String taskId, Long tenantId, boolean isSuperAdmin) throws CodeException {
+        if(isSuperAdmin)
+            tenantId = 1L;
+        return jobClient.getHTMLForm(taskId, tenantId,isSuperAdmin);
     }
 
     @Override

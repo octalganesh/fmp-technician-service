@@ -9,7 +9,6 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
 import java.util.List;
@@ -69,11 +68,11 @@ public interface JobClient {
     @GetMapping("/jobs/forms-by-taskId/{taskId}")
     ResponseEntity<ApiResponse> getFormsDetailsForTechnician(@PathVariable("taskId") String taskId,@RequestHeader("tenantId") Long tenantId);
 
-    @PostMapping("/jobs/add-html-form")
+    @PostMapping("/jobs/forms/save-form")
     ResponseEntity<ApiResponse> addHTMLForm(@RequestBody HTMLFormDTO.Add add,@RequestHeader("tenantId") Long tenantId);
 
-    @GetMapping("/jobs/get-html-form-ById/{taskId}")
-    ResponseEntity<ApiResponse> getHTMLForm(@PathVariable("taskId") String taskId,@RequestHeader("tenantId") Long tenantId);
+    @GetMapping("/jobs/forms/by-task/{taskId}")
+    ResponseEntity<ApiResponse> getHTMLForm(@PathVariable("taskId") String taskId, @RequestHeader("tenantId") Long tenantId,@RequestHeader("isSuperAdmin") boolean isSuperAdmin);
 
     @PostMapping("/html-page/list")
     ResponseEntity<ApiResponse> HTMLFormList(@RequestBody PageRequest.List listRequest,@RequestHeader("tenantId") Long tenantId);

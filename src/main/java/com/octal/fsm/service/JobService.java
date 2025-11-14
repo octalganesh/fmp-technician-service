@@ -35,9 +35,9 @@ public interface JobService {
 
     ResponseEntity<ApiResponse> getFormByTaskId(String taskId,Long tenantId)throws CodeException;
 
-    ResponseEntity<ApiResponse> saveHTMLForm(HTMLFormDTO.Add add,Long tenantId)throws CodeException;
+    ResponseEntity<ApiResponse> saveHTMLForm(HTMLFormDTO.Add add, Long tenantId, boolean isSuperAdmin)throws CodeException;
 
-    ResponseEntity<ApiResponse> getHTMLForm(String taskId,Long tenantId)throws CodeException;
+    ResponseEntity<ApiResponse> getHTMLForm(String taskId, Long tenantId, boolean isSuperAdmin)throws CodeException;
 
     ResponseEntity<ApiResponse> getListOfHTMLForm(PageRequest.@Valid List listRequest,Long tenantId);
 

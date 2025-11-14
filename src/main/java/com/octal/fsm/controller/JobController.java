@@ -210,22 +210,24 @@ public class JobController extends BaseController {
         }
     }
 
-    @PostMapping("/save-html-form")
+    @PostMapping("/forms/save-form")
     public ResponseEntity<ApiResponse> saveHTMLFormData(@RequestBody HTMLFormDTO.Add add, HttpServletRequest request) {
         try {
             Long tenantId = getTenantId(request);
-            return jobService.saveHTMLForm(add, tenantId);
+            boolean isSuperAdmin=isSuperAdmin(request);
+            return jobService.saveHTMLForm(add, tenantId,isSuperAdmin);
         } catch (Exception e) {
             return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, e.getMessage(), null,
                     "500", HttpStatus.OK), HttpStatus.OK);
         }
     }
 
-    @GetMapping("/get-html-form-ById/{taskId}")
+    @GetMapping("/forms/by-task/{taskId}")  // todo for getting form list based on task id.
     public ResponseEntity<ApiResponse> getHTMLFormData(@PathVariable("taskId") String taskId,HttpServletRequest request) {
         try {
             Long tenantId = getTenantId(request);
-            return jobService.getHTMLForm(taskId, tenantId);
+            boolean isSuperAdmin=isSuperAdmin(request);
+            return jobService.getHTMLForm(taskId, tenantId,isSuperAdmin);
         } catch (Exception e) {
             return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, e.getMessage(), null,
                     "500", HttpStatus.OK), HttpStatus.OK);
@@ -243,7 +245,7 @@ public class JobController extends BaseController {
         }
     }
 
-    @GetMapping("/getFormById/{id}")
+    @GetMapping("/getFormById/{id}")// todo this api is required for getting the single form details by id.
     public ResponseEntity<ApiResponse> getHTMLFormDataBYId(@PathVariable("id") String id, HttpServletRequest request) {
         try {
             Long tenantId = getTenantId(request);

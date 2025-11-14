@@ -195,12 +195,72 @@ public class TechnicianServiceImpl implements TechnicianService {
             tenantId = 1l;
         }
         Optional<Technician> technicianRecord = technicianRepository.findByUuid(id);
+        Map<String, TechnicianDto.TaskStats> taskSummaryMap = new HashMap<>();
+        if (technicianRecord.isPresent()) {
+            ResponseEntity<ApiResponse> response = jobClient.getTechnicianTaskSummary(List.of(technicianRecord.get().getUuid()), tenantId, isSuperAdmin);
+            if (response != null && response.getStatusCode().is2xxSuccessful()) {
+                ApiResponse apiResponse = response.getBody();
+                if (apiResponse != null && apiResponse.getData() != null) {
+                    Object data = apiResponse.getData();
+                    if (data instanceof Map<?, ?>) {
+                        // Type-safe conversion
+                        taskSummaryMap = ((Map<?, ?>) data).entrySet().stream()
+                                .filter(e -> e.getKey() instanceof String && e.getValue() instanceof TechnicianDto.TaskStats)
+                                .collect(Collectors.toMap(
+                                        e -> (String) e.getKey(),
+                                        e -> (TechnicianDto.TaskStats) e.getValue()
+                                ));
+                    } else {
+                        LOGGER.warn("Unexpected data type in response: {}", data.getClass());
+                    }
+                } else {
+                    LOGGER.warn("Empty ApiResponse body or data");
+                }
+            } else {
+                LOGGER.error("Failed to fetch technician task summary: {}",
+                        response != null ? response.getStatusCode() : "null response");
+            }
+
+        }
+        Map<String, Double> ratingSummaryMap = new HashMap<>();
+        if (technicianRecord.isPresent()) {
+            ResponseEntity<ApiResponse> response = adminClient.getFeedbackSummary(List.of(technicianRecord.get().getUuid()), tenantId, isSuperAdmin);
+            if (response != null && response.getStatusCode().is2xxSuccessful()) {
+                ApiResponse apiResponse = response.getBody();
+                if (apiResponse != null && apiResponse.getData() != null) {
+                    Object data = apiResponse.getData();
+                    if (data instanceof Map<?, ?>) {
+                        // Type-safe conversion
+                        ratingSummaryMap = ((Map<?, ?>) data).entrySet().stream()
+                                .filter(e -> e.getKey() instanceof String && e.getValue() instanceof Double)
+                                .collect(Collectors.toMap(
+                                        e -> (String) e.getKey(),
+                                        e -> (Double) e.getValue()
+                                ));
+                    } else {
+                        LOGGER.warn("Unexpected data type in response for feedback summary: {}", data.getClass());
+                    }
+                } else {
+                    LOGGER.warn("Empty ApiResponse body or data for for feedback summary");
+                }
+            } else {
+                LOGGER.error("Failed to fetch technician feedback summary: {}",
+                        response != null ? response.getStatusCode() : "null response");
+            }
+
+        }
         if (technicianRecord.isPresent()) {
             TechnicianDto.list technician = new TechnicianDto.list();
             technician.setEmployeeId(technicianRecord.get().getEmployeeId());
             technician.setEmail(technicianRecord.get().getEmail());
             technician.setId(technicianRecord.get().getUuid());
             technician.setName(technicianRecord.get().getName());
+            technician.setRating(ratingSummaryMap.getOrDefault(technicianRecord.get().getUuid(), 0.0));
+            if(taskSummaryMap.containsKey(technicianRecord.get().getUuid())) {
+                technician.setAssignedTasks(taskSummaryMap.get(technicianRecord.get().getUuid()).getAssignedTasks());
+                technician.setAllTasks(taskSummaryMap.get(technicianRecord.get().getUuid()).getAllTasks());
+                technician.setCompletedTasks(taskSummaryMap.get(technicianRecord.get().getUuid()).getCompletedTasks());
+            }
             //technician.setAddress(new AddressDTO(technicianRecord.get().getAddress().getStreet(), technicianRecord.get().getAddress().getCity(), technicianRecord.get().getAddress().getState(), technicianRecord.get().getAddress().getPostalCode(), technicianRecord.get().getAddress().getCountry()));
             technician.setAddress(technicianRecord.get().getAddress());
             technician.setMobileNumber(technicianRecord.get().getMobileNumber());
@@ -210,7 +270,15 @@ public class TechnicianServiceImpl implements TechnicianService {
             technician.setCreatedAt(technicianRecord.get().getCreatedAt().toString());
             technician.setUpdatedAt(technicianRecord.get().getUpdatedAt().toString());
             technician.setGender(technicianRecord.get().getGender());
-            technician.setMultiUserDeviceDetails(technicianRecord.get().getMultiUserDeviceDetails());
+            if(technicianRecord.get().getMultiUserDeviceDetails()!=null){
+                MultiUserDeviceDetails multiUserDeviceDetails = technicianRecord.get().getMultiUserDeviceDetails();
+                MultiUserDeviceDetailsDTO.Response multiUserDeviceDetailsDTO= new MultiUserDeviceDetailsDTO.Response();
+                multiUserDeviceDetailsDTO.setDeviceToken(multiUserDeviceDetails.getDeviceToken());
+                multiUserDeviceDetailsDTO.setDeviceType(multiUserDeviceDetails.getDeviceType());
+                multiUserDeviceDetailsDTO.setAppVersion(multiUserDeviceDetails.getAppVersion());
+                technician.setMultiUserDeviceDetails(multiUserDeviceDetailsDTO);
+                technician.setMultiUserDeviceDetails(multiUserDeviceDetailsDTO);
+            }
             return technician;
         } else {
             throw new CodeException(CommonConstants.TECHNICIAN_NOT_FOUND + id, ErrorCode.COMMON);
@@ -281,6 +349,34 @@ public class TechnicianServiceImpl implements TechnicianService {
             }
 
         }
+        Map<String, Double> ratingSummaryMap = new HashMap<>();
+        if (!pagedResult.isEmpty()) {
+            ResponseEntity<ApiResponse> response = adminClient.getFeedbackSummary(pagedResult.get().map(Technician::getUuid).collect(Collectors.toList()), tenantId, isSuperAdmin);
+            if (response != null && response.getStatusCode().is2xxSuccessful()) {
+                ApiResponse apiResponse = response.getBody();
+                if (apiResponse != null && apiResponse.getData() != null) {
+                    Object data = apiResponse.getData();
+                    if (data instanceof Map<?, ?>) {
+                        // Type-safe conversion
+                        ratingSummaryMap = ((Map<?, ?>) data).entrySet().stream()
+                                .filter(e -> e.getKey() instanceof String && e.getValue() instanceof Double)
+                                .collect(Collectors.toMap(
+                                        e -> (String) e.getKey(),
+                                        e -> (Double) e.getValue()
+                                ));
+                    } else {
+                        LOGGER.warn("Unexpected data type in response for feedback summary: {}", data.getClass());
+                    }
+                } else {
+                    LOGGER.warn("Empty ApiResponse body or data for for feedback summary");
+                }
+            } else {
+                LOGGER.error("Failed to fetch technician feedback summary: {}",
+                        response != null ? response.getStatusCode() : "null response");
+            }
+
+        }
+
         List<TechnicianDto.list> responseList = new ArrayList<>();
         for (Technician technician : pagedResult.getContent()) {
             TechnicianDto.list dto = new TechnicianDto.list();
@@ -289,6 +385,7 @@ public class TechnicianServiceImpl implements TechnicianService {
             dto.setEmail(technician.getEmail());
             dto.setMobileNumber(technician.getMobileNumber());
             dto.setProfilePicture(technician.getProfilePicture());
+            dto.setRating(ratingSummaryMap.getOrDefault(technician.getUuid(), 0.0));
             if(taskSummaryMap.containsKey(technician.getUuid())) {
                 dto.setAssignedTasks(taskSummaryMap.get(technician.getUuid()).getAssignedTasks());
                 dto.setAllTasks(taskSummaryMap.get(technician.getUuid()).getAllTasks());

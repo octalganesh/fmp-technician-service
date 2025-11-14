@@ -46,10 +46,10 @@ public class TechnicianDto {
         private long assignedTasks;
         private long completedTasks;
         private long allTasks;
-        private Integer rating;
+        private Double rating;
         private Gender gender;
         private String joinedDate;
-        private MultiUserDeviceDetails multiUserDeviceDetails;
+        private MultiUserDeviceDetailsDTO.Response multiUserDeviceDetails;
 
     }
 

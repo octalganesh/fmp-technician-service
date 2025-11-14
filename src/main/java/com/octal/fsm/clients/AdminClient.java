@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+import java.util.List;
 
 @FeignClient(
         name = "admin-service", configuration = ClientHederFeignConfig.class
@@ -39,4 +40,8 @@ public interface AdminClient {
 
     @GetMapping("/front-office/getFrontOfficeDevices/{id}")
     ResponseEntity<ApiResponse> getFrontOfficeDevices(@PathVariable("id") String id,@RequestHeader("tenantId") Long tenantId);
+
+    @PostMapping("/customer-feedback/get-feedback-summary-for-technician")
+    ResponseEntity<ApiResponse> getFeedbackSummary(@RequestBody List<String> technicianUuids,
+                                                   @RequestHeader("tenantId") Long tenantId,@RequestHeader("isSuperAdmin") boolean isSuperAdmin);
 }
