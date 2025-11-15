@@ -25,5 +25,6 @@ public class TechnicianRegisterRequest {
     private String fullName;
     private LocalDateTime createdAt;
     private String role;
+    private Long tenantId;
 }
 
