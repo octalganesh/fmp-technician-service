@@ -50,7 +50,7 @@ public class PushNotificationRequest {
     }
 
     @Data
-    public static class SendBulkNotificationToUsers{
+    public static class SendBulkNotificationToUsers {
         public Set<MultiUserDeviceDetails> technicianFcmTokenList;
         public Set<MultiUserDeviceDetails> frontOfficeFcmTokenList;
         public PushNotificationType type;

@@ -16,8 +16,8 @@ public class InvalidPasswordException extends RuntimeException {
      */
     private static final long serialVersionUID = -1130372206847249109L;
 
-    public InvalidPasswordException(String message,String code) {
+    public InvalidPasswordException(String message, String code) {
         super(message);
-        this.code=code;
+        this.code = code;
     }
 }

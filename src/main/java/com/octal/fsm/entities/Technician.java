@@ -10,11 +10,11 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @Entity
- @Table(
+@Table(
         name = "technicians",
         uniqueConstraints = @UniqueConstraint(columnNames = {"tenant_id", "email"})
 )
-public class Technician extends AbstractPersistable{
+public class Technician extends AbstractPersistable {
     @Column(name = "name")
     private String name;
 
@@ -58,7 +58,7 @@ public class Technician extends AbstractPersistable{
     private boolean available;
 
     @JoinColumn(name = "device_details_id")
-    @OneToOne(cascade = CascadeType.ALL,orphanRemoval = true)
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     private MultiUserDeviceDetails multiUserDeviceDetails;
 
 

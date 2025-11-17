@@ -1,14 +1,9 @@
 package com.octal.fsm.controller;
 
 
-
 import com.octal.fsm.common.ApiResponse;
 import com.octal.fsm.common.CommonConstants;
-import com.octal.fsm.dto.AwsDTO;
-import com.octal.fsm.dto.TechnicianDto;
-import com.octal.fsm.dto.JobDashboardResponseDTO;
-import com.octal.fsm.dto.TechnicianNotificationRequest;
-import com.octal.fsm.dto.UserNotificationListDTO;
+import com.octal.fsm.dto.*;
 import com.octal.fsm.entities.Technician;
 import com.octal.fsm.exceptions.CodeException;
 import com.octal.fsm.models.request.PageRequest;
@@ -43,9 +38,9 @@ public class TechnicianController extends BaseController {
         String loginUserId = request.getHeader(CommonConstants.USER_NAME);
         try {
             Long tenantId = getTenantId(request);
-            boolean isSuperAdmin=isSuperAdmin(request);
+            boolean isSuperAdmin = isSuperAdmin(request);
             String messageResponse = TextUtils.isEmpty(technicianDto.getId()) ? "technician added Successfully!" : "technician updated Successfully!";
-            return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, messageResponse, technicianService.addTechnician(technicianDto,tenantId,isSuperAdmin), "200", HttpStatus.OK), HttpStatus.OK);
+            return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, messageResponse, technicianService.addTechnician(technicianDto, tenantId, isSuperAdmin), "200", HttpStatus.OK), HttpStatus.OK);
         } catch (Exception e) {
             return handleException(e);
         }
@@ -56,8 +51,8 @@ public class TechnicianController extends BaseController {
         logger.info("TechnicianController./list");
         try {
             Long tenantId = getTenantId(request);
-            boolean isSuperAdmin=isSuperAdmin(request);
-            return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, CommonConstants.DETAILS_FETCHED, technicianService.getAllTechnician(listRequest,tenantId,isSuperAdmin), "200", HttpStatus.OK), HttpStatus.OK);
+            boolean isSuperAdmin = isSuperAdmin(request);
+            return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, CommonConstants.DETAILS_FETCHED, technicianService.getAllTechnician(listRequest, tenantId, isSuperAdmin), "200", HttpStatus.OK), HttpStatus.OK);
         } catch (Exception e) {
             e.printStackTrace();
             return handleException(e);
@@ -69,8 +64,8 @@ public class TechnicianController extends BaseController {
         logger.info("TechnicianController./getListForAssignment");
         try {
             Long tenantId = getTenantId(request);
-            boolean isSuperAdmin=isSuperAdmin(request);
-            return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, CommonConstants.DETAILS_FETCHED, technicianService.getListForAssignment(listRequest,tenantId,isSuperAdmin), "200", HttpStatus.OK), HttpStatus.OK);
+            boolean isSuperAdmin = isSuperAdmin(request);
+            return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, CommonConstants.DETAILS_FETCHED, technicianService.getListForAssignment(listRequest, tenantId, isSuperAdmin), "200", HttpStatus.OK), HttpStatus.OK);
         } catch (Exception e) {
             e.printStackTrace();
             return handleException(e);
@@ -84,8 +79,8 @@ public class TechnicianController extends BaseController {
         String userName = request.getHeader(CommonConstants.USER_NAME);
         try {
             Long tenantId = getTenantId(request);
-            boolean isSuperAdmin=isSuperAdmin(request);
-            return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "technician deleted successfully", technicianService.deleteById(id,tenantId,isSuperAdmin), "200", HttpStatus.OK), HttpStatus.OK);
+            boolean isSuperAdmin = isSuperAdmin(request);
+            return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "technician deleted successfully", technicianService.deleteById(id, tenantId, isSuperAdmin), "200", HttpStatus.OK), HttpStatus.OK);
         } catch (Exception e) {
             return handleException(e);
         }
@@ -97,8 +92,8 @@ public class TechnicianController extends BaseController {
         String userName = request.getHeader(CommonConstants.USER_NAME);
         try {
             Long tenantId = getTenantId(request);
-            boolean isSuperAdmin=isSuperAdmin(request);
-            return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "fetched successfully!", technicianService.getTechnicianByUuid(id,tenantId,isSuperAdmin), "200", HttpStatus.OK), HttpStatus.OK);
+            boolean isSuperAdmin = isSuperAdmin(request);
+            return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "fetched successfully!", technicianService.getTechnicianByUuid(id, tenantId, isSuperAdmin), "200", HttpStatus.OK), HttpStatus.OK);
         } catch (Exception e) {
             return handleException(e);
         }
@@ -110,8 +105,8 @@ public class TechnicianController extends BaseController {
         String userName = request.getHeader(CommonConstants.USER_NAME);
         try {
             Long tenantId = getTenantId(request);
-            boolean isSuperAdmin=isSuperAdmin(request);
-            Boolean status = technicianService.changeStatus(id,tenantId,isSuperAdmin);
+            boolean isSuperAdmin = isSuperAdmin(request);
+            Boolean status = technicianService.changeStatus(id, tenantId, isSuperAdmin);
             String messageResponse = Boolean.TRUE.equals(status) ? "technician activated Successfully!" : "technician deactivated Successfully!";
             return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, messageResponse, null, "200", HttpStatus.OK), HttpStatus.OK);
         } catch (Exception e) {
@@ -126,11 +121,11 @@ public class TechnicianController extends BaseController {
         String username = request.getHeader("userName");
         try {
             Long tenantId = getTenantId(request);
-            boolean isSuperAdmin=isSuperAdmin(request);
+            boolean isSuperAdmin = isSuperAdmin(request);
             // User loggedInUser = adminService.getUserByEmailId(username);
             //if (loggedInUser != null) {
             //return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "Static Content successfully!", technicianService.getStatiContentBySlug(slug), "200", HttpStatus.OK), HttpStatus.OK);
-            return technicianService.getStaticContentBySlug(slug,tenantId,isSuperAdmin);
+            return technicianService.getStaticContentBySlug(slug, tenantId, isSuperAdmin);
             //} else {
             //  return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, messageHelper.getMessage(MessageConstants.USER_FOUND), null, "200", HttpStatus.OK), HttpStatus.OK);
             //}
@@ -172,10 +167,10 @@ public class TechnicianController extends BaseController {
         String technicianName = request.getHeader(CommonConstants.technician_NAME);
         try {
             Long tenantId = getTenantId(request);
-            boolean isSuperAdmin=isSuperAdmin(request);
+            boolean isSuperAdmin = isSuperAdmin(request);
             Technician loggedIntechnician = technicianService.getTechnicianByEmailId(technicianName);
             if (loggedIntechnician != null) {
-                return technicianService.getAnnouncements(listRequest,tenantId,isSuperAdmin);
+                return technicianService.getAnnouncements(listRequest, tenantId, isSuperAdmin);
             } else {
                 return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, "technician not found.",
                         null, "400", HttpStatus.OK), HttpStatus.OK);
@@ -185,8 +180,9 @@ public class TechnicianController extends BaseController {
             return handleException(e);
         }
     }
+
     @PostMapping("/get-technicians-notification-data")
-    public ResponseEntity<ApiResponse>getTechnicians(@RequestBody TechnicianNotificationRequest notificationRequest, HttpServletRequest request) {
+    public ResponseEntity<ApiResponse> getTechnicians(@RequestBody TechnicianNotificationRequest notificationRequest, HttpServletRequest request) {
         logger.info("TechnicianController.getTechnicians");
         try {
             return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "Technicians fetched successfully!", technicianService.getTechniciansNotificationsData(notificationRequest), "200", HttpStatus.OK), HttpStatus.OK);
@@ -194,8 +190,9 @@ public class TechnicianController extends BaseController {
             return handleException(e);
         }
     }
+
     @PostMapping("/get-notification-list")
-    public ResponseEntity<ApiResponse>getNotificationList(@RequestBody UserNotificationListDTO.ListRequest listRequest, HttpServletRequest request) {
+    public ResponseEntity<ApiResponse> getNotificationList(@RequestBody UserNotificationListDTO.ListRequest listRequest, HttpServletRequest request) {
         logger.info("TechnicianController.getNotificationList");
         String technicianName = request.getHeader(CommonConstants.technician_NAME);
         try {
@@ -203,7 +200,7 @@ public class TechnicianController extends BaseController {
             //boolean isSuperAdmin=isSuperAdmin(request);
             Technician loggedIntechnician = technicianService.getTechnicianByEmailId(technicianName);
             if (loggedIntechnician != null) {
-                return technicianService.getNotificationList(listRequest,loggedIntechnician);
+                return technicianService.getNotificationList(listRequest, loggedIntechnician);
             } else {
                 return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, "technician not found.",
                         null, "400", HttpStatus.OK), HttpStatus.OK);

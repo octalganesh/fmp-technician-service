@@ -23,7 +23,7 @@ public class BaseController {
 
 
     @Autowired
-    protected  TechnicianService technicianService;
+    protected TechnicianService technicianService;
 
 
     protected ResponseEntity<ApiResponse> handleException(Exception e) {
@@ -33,6 +33,7 @@ public class BaseController {
             return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, e.getMessage(), null, "101", HttpStatus.OK), HttpStatus.OK);
         }
     }
+
     public static Long getTenantId(HttpServletRequest request) {
         String tenantIdHeader = request.getHeader("tenantId");
         if (tenantIdHeader == null || tenantIdHeader.isEmpty()) {

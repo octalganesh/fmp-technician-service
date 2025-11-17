@@ -22,7 +22,6 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
@@ -63,7 +62,7 @@ public class TechnicianAuthController extends BaseController {
             AuthenticationResponse authenticationResponse = jwtTokenProvider.generateToken(technician);
             //save jwt token on the time of log in
             technician.setToken(authenticationResponse.getJwtToken());
-            MultiUserDeviceDetails multiUserDeviceDetails=new MultiUserDeviceDetails();
+            MultiUserDeviceDetails multiUserDeviceDetails = new MultiUserDeviceDetails();
             multiUserDeviceDetails.setDeviceId(request.getDeviceId());
             multiUserDeviceDetails.setDeviceType(request.getDeviceType());
             multiUserDeviceDetails.setDeviceToken(request.getFcmToken());
@@ -73,8 +72,8 @@ public class TechnicianAuthController extends BaseController {
             return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "User logged in successfully", authenticationResponse,
                     "200", HttpStatus.OK), HttpStatus.OK);
         } catch (Exception e) {
-            if(e instanceof InvalidPasswordException){
-                InvalidPasswordException invalidPasswordException= (InvalidPasswordException) e;
+            if (e instanceof InvalidPasswordException) {
+                InvalidPasswordException invalidPasswordException = (InvalidPasswordException) e;
                 return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, invalidPasswordException.getMessage(), null,
                         invalidPasswordException.getCode(), HttpStatus.OK), HttpStatus.OK);
             }
@@ -146,10 +145,10 @@ public class TechnicianAuthController extends BaseController {
         String technicianName = request.getHeader(CommonConstants.technician_NAME);
         try {
             Long tenantId = getTenantId(request);
-            boolean isSuperAdmin=isSuperAdmin(request);
+            boolean isSuperAdmin = isSuperAdmin(request);
             Technician loggedIntechnician = technicianService.getTechnicianByEmailId(technicianName);
             if (loggedIntechnician != null) {
-                return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "Profile Update Successfully", technicianService.updateProfile(loggedIntechnician,technicianDetailDTO,tenantId,isSuperAdmin),
+                return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "Profile Update Successfully", technicianService.updateProfile(loggedIntechnician, technicianDetailDTO, tenantId, isSuperAdmin),
                         "200", HttpStatus.OK), HttpStatus.OK);
             } else {
                 return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, "Invalid technician.", null,
@@ -172,10 +171,10 @@ public class TechnicianAuthController extends BaseController {
         String technicianName = request.getHeader(CommonConstants.technician_NAME);
         try {
             Long tenantId = getTenantId(request);
-            boolean isSuperAdmin=isSuperAdmin(request);
+            boolean isSuperAdmin = isSuperAdmin(request);
             Technician loggedIntechnician = technicianService.getTechnicianByEmailId(technicianName);
             if (loggedIntechnician != null) {
-                technicianService.updatePassword(changePassword, loggedIntechnician,tenantId,isSuperAdmin);
+                technicianService.updatePassword(changePassword, loggedIntechnician, tenantId, isSuperAdmin);
                 return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "Password Update Successfully", null,
                         "200", HttpStatus.OK), HttpStatus.OK);
             } else {
@@ -198,10 +197,10 @@ public class TechnicianAuthController extends BaseController {
 
         } catch (DisabledException e) {
             e.getMessage();
-            throw new InvalidPasswordException("Invalid User","500");
+            throw new InvalidPasswordException("Invalid User", "500");
         } catch (BadCredentialsException e) {
             e.getMessage();
-            throw new InvalidPasswordException("The password you entered is incorrect. Please verify your credentials and try again.","400");
+            throw new InvalidPasswordException("The password you entered is incorrect. Please verify your credentials and try again.", "400");
 
         } catch (Exception e) {
             throw e;
@@ -230,7 +229,7 @@ public class TechnicianAuthController extends BaseController {
     }
 
     @GetMapping("/verify/token")
-    public ResponseEntity<ApiResponse> verifyResetToken(@RequestParam("token") String token,@RequestParam("type") String userType) {
+    public ResponseEntity<ApiResponse> verifyResetToken(@RequestParam("token") String token, @RequestParam("type") String userType) {
         try {
             technicianService.verifyResetToken(token);
             return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "Token is valid", null,

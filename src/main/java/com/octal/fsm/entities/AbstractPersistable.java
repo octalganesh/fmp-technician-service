@@ -30,7 +30,6 @@ public class AbstractPersistable implements Serializable {
     private boolean deleted = false;
 
 
-
     @Column(name = "tenant_id")
     private Long tenantId;
 
@@ -41,6 +40,7 @@ public class AbstractPersistable implements Serializable {
     public void setTenantId(Long tenantId) {
         this.tenantId = tenantId;
     }
+
     public boolean isDeleted() {
         return deleted;
     }

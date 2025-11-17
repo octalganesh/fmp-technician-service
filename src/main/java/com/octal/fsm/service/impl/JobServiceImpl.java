@@ -23,7 +23,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import javax.validation.Valid;
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 @Service
 public class JobServiceImpl implements JobService {
@@ -42,7 +44,7 @@ public class JobServiceImpl implements JobService {
     private TechnicianService technicianService;
 
     @Override
-    public ResponseEntity<ApiResponse> getAllJobs(JobDTO.JobFilterRequest jobFilterRequestDTO, Technician loggedInTechnician,Long tenantId,boolean isSuperAdmin) throws CodeException {
+    public ResponseEntity<ApiResponse> getAllJobs(JobDTO.JobFilterRequest jobFilterRequestDTO, Technician loggedInTechnician, Long tenantId, boolean isSuperAdmin) throws CodeException {
 //        JobDTO.Response job1 = new JobDTO.Response(UUID.randomUUID().toString(),
 //                "3201", "Fence Installation", "New",
 //                "2025-09-20", "2025-09-23", "10:00 AM", "05:00 PM",
@@ -61,7 +63,7 @@ public class JobServiceImpl implements JobService {
 //        List<JobDTO.Response> todaysJobs = Arrays.asList(job1, job2, job3);
 
         try {
-            ResponseEntity<ApiResponse> response = jobClient.getJobTasksForTechnician(jobFilterRequestDTO, loggedInTechnician.getUuid(), null,tenantId,isSuperAdmin);// null passing in  the header need to manage later with auth client in admin-service
+            ResponseEntity<ApiResponse> response = jobClient.getJobTasksForTechnician(jobFilterRequestDTO, loggedInTechnician.getUuid(), null, tenantId, isSuperAdmin);// null passing in  the header need to manage later with auth client in admin-service
 
             return response;
 
@@ -73,7 +75,7 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
-    public ResponseEntity<ApiResponse> getJobById(String taskId, Technician loggedInTechnician,Long tenantId,boolean isSuperAdmin) throws CodeException {
+    public ResponseEntity<ApiResponse> getJobById(String taskId, Technician loggedInTechnician, Long tenantId, boolean isSuperAdmin) throws CodeException {
 //        // MockJobDetails
 //        JobDTO.Details mockJob = new JobDTO.Details();
 //        mockJob.setId(UUID.randomUUID().toString());
@@ -98,7 +100,7 @@ public class JobServiceImpl implements JobService {
 //
 //        return new ResponseEntity<>(new ApiResponse("Job detail", mockJob, "200", HttpStatus.OK), HttpStatus.OK);
         try {
-            ResponseEntity<ApiResponse> response = jobClient.getJobTaskDetailsForTechnician(loggedInTechnician.getUuid(), taskId, null,tenantId,isSuperAdmin);// null passing in  the header need to manage later with auth client in admin-service
+            ResponseEntity<ApiResponse> response = jobClient.getJobTaskDetailsForTechnician(loggedInTechnician.getUuid(), taskId, null, tenantId, isSuperAdmin);// null passing in  the header need to manage later with auth client in admin-service
 
             return response;
 
@@ -108,9 +110,9 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
-    public String addFeedback(CustomerFeedbackDTO.Add feedback, Technician loggedInTechnician,Long tenantId,boolean isSuperAdmin) throws CodeException {
+    public String addFeedback(CustomerFeedbackDTO.Add feedback, Technician loggedInTechnician, Long tenantId, boolean isSuperAdmin) throws CodeException {
         try {
-            ResponseEntity<ApiResponse> response = adminClient.addOrUpdateFeedback(feedback, loggedInTechnician.getEmail(),tenantId,isSuperAdmin);
+            ResponseEntity<ApiResponse> response = adminClient.addOrUpdateFeedback(feedback, loggedInTechnician.getEmail(), tenantId, isSuperAdmin);
             if (response.getBody() != null && Boolean.TRUE.equals(response.getBody().getSuccessful())) {
                 return "Feedback submitted successfully";
             } else {
@@ -123,9 +125,9 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
-    public ResponseEntity<ApiResponse> updateJobTaskStatus(String taskId, String status, String note,String signature, Technician loggedIntechnician,Long tenantId,boolean isSuperAdmin) throws CodeException {
+    public ResponseEntity<ApiResponse> updateJobTaskStatus(String taskId, String status, String note, String signature, Technician loggedIntechnician, Long tenantId, boolean isSuperAdmin) throws CodeException {
         try {
-            ResponseEntity<ApiResponse> response = jobClient.updateJobTaskStatus(loggedIntechnician.getUuid(), taskId, status, note,signature, loggedIntechnician.getEmail(),tenantId,isSuperAdmin);
+            ResponseEntity<ApiResponse> response = jobClient.updateJobTaskStatus(loggedIntechnician.getUuid(), taskId, status, note, signature, loggedIntechnician.getEmail(), tenantId, isSuperAdmin);
             return response;
         } catch (FeignException e) {
             throw new CodeException("Remote job-service failed: " + e.contentUTF8(), ErrorCode.COMMON);
@@ -133,9 +135,9 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
-    public ResponseEntity<ApiResponse> getAllJobTypes(PageRequest.List listRequest,Long tenantId,boolean isSuperAdmin) throws CodeException {
+    public ResponseEntity<ApiResponse> getAllJobTypes(PageRequest.List listRequest, Long tenantId, boolean isSuperAdmin) throws CodeException {
         try {
-            ResponseEntity<ApiResponse> response = jobClient.JobTypeList(listRequest,tenantId,isSuperAdmin);
+            ResponseEntity<ApiResponse> response = jobClient.JobTypeList(listRequest, tenantId, isSuperAdmin);
             return response;
         } catch (FeignException e) {
             throw new CodeException("Remote job-service failed: " + e.contentUTF8(), ErrorCode.COMMON);
@@ -154,9 +156,9 @@ public class JobServiceImpl implements JobService {
 
 
     @Override
-    public ResponseEntity<ApiResponse> getAllJobTags(PageRequest.@Valid List listRequest,Long tenantId,boolean isSuperAdmin) throws CodeException {
+    public ResponseEntity<ApiResponse> getAllJobTags(PageRequest.@Valid List listRequest, Long tenantId, boolean isSuperAdmin) throws CodeException {
         try {
-            ResponseEntity<ApiResponse> response = jobClient.JobTagList(listRequest,tenantId,isSuperAdmin);
+            ResponseEntity<ApiResponse> response = jobClient.JobTagList(listRequest, tenantId, isSuperAdmin);
             return response;
         } catch (FeignException e) {
             throw new CodeException("Remote job-service failed: " + e.contentUTF8(), ErrorCode.COMMON);
@@ -164,11 +166,11 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
-    public ResponseEntity<ApiResponse> uploadDocument(List<DocumentDTO.Add> uploadDocument, String loggedInUserEmail,Long tenantId,boolean isSuperAdmin) throws CodeException {
+    public ResponseEntity<ApiResponse> uploadDocument(List<DocumentDTO.Add> uploadDocument, String loggedInUserEmail, Long tenantId, boolean isSuperAdmin) throws CodeException {
         PushNotificationRequest.SendBulkNotificationToUsers sendBulkNotificationToFront = new PushNotificationRequest.SendBulkNotificationToUsers();
         ResponseEntity<ApiResponse> notificationSlugContent = notificationClient.getNotificationContent(PushNotificationType.TECHNICIAN_FILE_SUBMITTED.toString());
         ApiResponse body = notificationSlugContent.getBody();
-        if(body != null){
+        if (body != null) {
             NotificationContentDTO.Request content = objectMapper.convertValue(body.getData(), NotificationContentDTO.Request.class);
             sendBulkNotificationToFront.setTitle(content.getTitle());
             sendBulkNotificationToFront.setBody(content.getMessage());
@@ -177,10 +179,10 @@ public class JobServiceImpl implements JobService {
             DocumentDTO.Add firstDoc = uploadDocument.get(0);
             sendBulkNotificationToFront.setTypeId(firstDoc.getDocumentTypeId());
 
-            ResponseEntity<ApiResponse> frontOfficeDevices = technicianService.getFrontOfficeDevices(null,tenantId);
+            ResponseEntity<ApiResponse> frontOfficeDevices = technicianService.getFrontOfficeDevices(null, tenantId);
             ApiResponse fronBdy = frontOfficeDevices.getBody();
             Set<MultiUserDeviceDetails> frontOfficeDeviceDetails = new HashSet<>();
-            if(fronBdy != null) {
+            if (fronBdy != null) {
                 List<MultiUserDeviceDetails> frontOfficedeviceList = objectMapper.convertValue(
                         fronBdy.getData(),
                         new TypeReference<List<MultiUserDeviceDetails>>() {
@@ -201,19 +203,19 @@ public class JobServiceImpl implements JobService {
                 applicationEventPublisher.publishEvent(new SendMailAndPushEvent(null, null, null, sendBulkNotificationToFront));
             }
         }
-        return jobClient.uploadDocument(uploadDocument, loggedInUserEmail,tenantId,isSuperAdmin);
+        return jobClient.uploadDocument(uploadDocument, loggedInUserEmail, tenantId, isSuperAdmin);
     }
 
     @Override
-    public ResponseEntity<ApiResponse> getDocumentTypeList(Integer page, Integer size, String sortBy, Boolean order, String loggedInUserEmail,Long tenantId,boolean isSuperAdmin) {
-        PageRequest.List list=new PageRequest.List();
+    public ResponseEntity<ApiResponse> getDocumentTypeList(Integer page, Integer size, String sortBy, Boolean order, String loggedInUserEmail, Long tenantId, boolean isSuperAdmin) {
+        PageRequest.List list = new PageRequest.List();
         list.setAsc(order);
         list.setShortingField(sortBy);
         list.setPageSize(size);
         list.setPageNumber(page);
         list.setIsActive(true);
         list.setSearchText("");
-        return adminClient.documentList(list,loggedInUserEmail,tenantId,isSuperAdmin);
+        return adminClient.documentList(list, loggedInUserEmail, tenantId, isSuperAdmin);
     }
 
     @Override
@@ -233,30 +235,30 @@ public class JobServiceImpl implements JobService {
 
     @Override
     public ResponseEntity<ApiResponse> saveHTMLForm(HTMLFormDTO.Add add, Long tenantId, boolean isSuperAdmin) throws CodeException {
-        if(isSuperAdmin)
+        if (isSuperAdmin)
             tenantId = 1L;
         return jobClient.addHTMLForm(add, tenantId);
     }
 
     @Override
     public ResponseEntity<ApiResponse> getHTMLForm(String taskId, Long tenantId, boolean isSuperAdmin) throws CodeException {
-        if(isSuperAdmin)
+        if (isSuperAdmin)
             tenantId = 1L;
-        return jobClient.getHTMLForm(taskId, tenantId,isSuperAdmin);
+        return jobClient.getHTMLForm(taskId, tenantId, isSuperAdmin);
     }
 
     @Override
     public ResponseEntity<ApiResponse> getListOfHTMLForm(PageRequest.@Valid List listRequest, Long tenantId) {
-        return  jobClient.HTMLFormList(listRequest,tenantId);
+        return jobClient.HTMLFormList(listRequest, tenantId);
     }
 
     @Override
     public ResponseEntity<ApiResponse> getByIdHTMLForm(String id, Long tenantId) {
-        return  jobClient.getHTMLFormBYId(id,tenantId);
+        return jobClient.getHTMLFormBYId(id, tenantId);
     }
 
     @Override
     public ResponseEntity<ApiResponse> changeStatusHTMLForm(String id, Long tenantId) {
-        return  jobClient.changeStatusHTMLForm(id,tenantId);
+        return jobClient.changeStatusHTMLForm(id, tenantId);
     }
 }

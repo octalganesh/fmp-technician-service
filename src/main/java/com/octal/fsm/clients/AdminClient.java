@@ -9,7 +9,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.util.List;
 
@@ -19,29 +18,29 @@ import java.util.List;
 public interface AdminClient {
 
     @GetMapping("/contents/get/by/slug/{slug}")
-    ResponseEntity<ApiResponse> getBySlug(@PathVariable("slug") String slug,@RequestHeader("tenantId") Long tenantId,
+    ResponseEntity<ApiResponse> getBySlug(@PathVariable("slug") String slug, @RequestHeader("tenantId") Long tenantId,
                                           @RequestHeader("isSuperAdmin") boolean isSuperAdmin);
 
     @PostMapping("/customer-feedback/add")
-    ResponseEntity<ApiResponse> addOrUpdateFeedback(@RequestBody CustomerFeedbackDTO.Add feedbackRequest, @RequestHeader("userName") String userName,@RequestHeader("tenantId") Long tenantId,
+    ResponseEntity<ApiResponse> addOrUpdateFeedback(@RequestBody CustomerFeedbackDTO.Add feedbackRequest, @RequestHeader("userName") String userName, @RequestHeader("tenantId") Long tenantId,
                                                     @RequestHeader("isSuperAdmin") boolean isSuperAdmin);
 
     @PostMapping(value = "/mail/send", consumes = MediaType.APPLICATION_JSON_VALUE)
-    ApiResponse sendDynamicMail(@RequestBody SendMailRequestDTO request,@RequestHeader("tenantId") Long tenantId,
+    ApiResponse sendDynamicMail(@RequestBody SendMailRequestDTO request, @RequestHeader("tenantId") Long tenantId,
                                 @RequestHeader("isSuperAdmin") boolean isSuperAdmin);
 
     @PostMapping(value = "/announcement/list-for-technician")
-    ResponseEntity<ApiResponse> getAllAnnouncementsForTechnician(@RequestBody PageRequest.List listRequest,@RequestHeader("tenantId") Long tenantId,
+    ResponseEntity<ApiResponse> getAllAnnouncementsForTechnician(@RequestBody PageRequest.List listRequest, @RequestHeader("tenantId") Long tenantId,
                                                                  @RequestHeader("isSuperAdmin") boolean isSuperAdmin);
 
     @PostMapping("document-type/list-for-technician")
-    ResponseEntity<ApiResponse> documentList(@Valid @RequestBody PageRequest.List listRequest,@RequestHeader("userName") String userName,@RequestHeader("tenantId") Long tenantId,
+    ResponseEntity<ApiResponse> documentList(@Valid @RequestBody PageRequest.List listRequest, @RequestHeader("userName") String userName, @RequestHeader("tenantId") Long tenantId,
                                              @RequestHeader("isSuperAdmin") boolean isSuperAdmin);
 
     @GetMapping("/front-office/getFrontOfficeDevices/{id}")
-    ResponseEntity<ApiResponse> getFrontOfficeDevices(@PathVariable("id") String id,@RequestHeader("tenantId") Long tenantId);
+    ResponseEntity<ApiResponse> getFrontOfficeDevices(@PathVariable("id") String id, @RequestHeader("tenantId") Long tenantId);
 
     @PostMapping("/customer-feedback/get-feedback-summary-for-technician")
     ResponseEntity<ApiResponse> getFeedbackSummary(@RequestBody List<String> technicianUuids,
-                                                   @RequestHeader("tenantId") Long tenantId,@RequestHeader("isSuperAdmin") boolean isSuperAdmin);
+                                                   @RequestHeader("tenantId") Long tenantId, @RequestHeader("isSuperAdmin") boolean isSuperAdmin);
 }

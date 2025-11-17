@@ -12,5 +12,5 @@ import org.springframework.web.bind.annotation.RequestBody;
 )
 public interface AuthServiceClient {
     @PostMapping("/user/create")
-    ResponseEntity<ApiResponse>createUser(@RequestBody TechnicianRegisterRequest technicianRegisterRequest);
+    ResponseEntity<ApiResponse> createUser(@RequestBody TechnicianRegisterRequest technicianRegisterRequest);
 }

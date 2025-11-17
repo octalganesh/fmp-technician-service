@@ -1,7 +1,6 @@
 package com.octal.fsm.repositories;
 
 
-
 import com.octal.fsm.entities.Technician;
 import com.octal.fsm.entities.UserOtpVerification;
 import org.springframework.data.jpa.repository.JpaRepository;

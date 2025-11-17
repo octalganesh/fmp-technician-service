@@ -4,6 +4,7 @@ import com.octal.fsm.dto.enums.NotificationUserGroup;
 import lombok.Data;
 
 import java.util.List;
+
 @Data
 public class TechnicianNotificationRequest {
 

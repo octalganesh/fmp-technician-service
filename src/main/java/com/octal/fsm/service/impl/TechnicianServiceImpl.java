@@ -35,9 +35,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.security.SecureRandom;
-
 import javax.mail.MessagingException;
+import java.security.SecureRandom;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -257,7 +256,7 @@ public class TechnicianServiceImpl implements TechnicianService {
             technician.setId(technicianRecord.get().getUuid());
             technician.setName(technicianRecord.get().getName());
             technician.setRating(ratingSummaryMap.getOrDefault(technicianRecord.get().getUuid(), 0.0));
-            if(taskSummaryMap.containsKey(technicianRecord.get().getUuid())) {
+            if (taskSummaryMap.containsKey(technicianRecord.get().getUuid())) {
                 technician.setAssignedTasks(taskSummaryMap.get(technicianRecord.get().getUuid()).getAssignedTasks());
                 technician.setAllTasks(taskSummaryMap.get(technicianRecord.get().getUuid()).getAllTasks());
                 technician.setCompletedTasks(taskSummaryMap.get(technicianRecord.get().getUuid()).getCompletedTasks());
@@ -271,9 +270,9 @@ public class TechnicianServiceImpl implements TechnicianService {
             technician.setCreatedAt(technicianRecord.get().getCreatedAt().toString());
             technician.setUpdatedAt(technicianRecord.get().getUpdatedAt().toString());
             technician.setGender(technicianRecord.get().getGender());
-            if(technicianRecord.get().getMultiUserDeviceDetails()!=null){
+            if (technicianRecord.get().getMultiUserDeviceDetails() != null) {
                 MultiUserDeviceDetails multiUserDeviceDetails = technicianRecord.get().getMultiUserDeviceDetails();
-                MultiUserDeviceDetailsDTO.Response multiUserDeviceDetailsDTO= new MultiUserDeviceDetailsDTO.Response();
+                MultiUserDeviceDetailsDTO.Response multiUserDeviceDetailsDTO = new MultiUserDeviceDetailsDTO.Response();
                 multiUserDeviceDetailsDTO.setDeviceToken(multiUserDeviceDetails.getDeviceToken());
                 multiUserDeviceDetailsDTO.setDeviceType(multiUserDeviceDetails.getDeviceType());
                 multiUserDeviceDetailsDTO.setAppVersion(multiUserDeviceDetails.getAppVersion());
@@ -387,7 +386,7 @@ public class TechnicianServiceImpl implements TechnicianService {
             dto.setMobileNumber(technician.getMobileNumber());
             dto.setProfilePicture(technician.getProfilePicture());
             dto.setRating(ratingSummaryMap.getOrDefault(technician.getUuid(), 0.0));
-            if(taskSummaryMap.containsKey(technician.getUuid())) {
+            if (taskSummaryMap.containsKey(technician.getUuid())) {
                 dto.setAssignedTasks(taskSummaryMap.get(technician.getUuid()).getAssignedTasks());
                 dto.setAllTasks(taskSummaryMap.get(technician.getUuid()).getAllTasks());
                 dto.setCompletedTasks(taskSummaryMap.get(technician.getUuid()).getCompletedTasks());

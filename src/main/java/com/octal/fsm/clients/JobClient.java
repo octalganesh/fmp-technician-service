@@ -10,7 +10,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-
 import java.util.List;
 
 import static com.octal.fsm.common.CommonConstants.USER_NAME;
@@ -66,21 +65,21 @@ public interface JobClient {
                                                          @RequestHeader("isSuperAdmin") boolean isSuperAdmin);
 
     @GetMapping("/jobs/forms-by-taskId/{taskId}")
-    ResponseEntity<ApiResponse> getFormsDetailsForTechnician(@PathVariable("taskId") String taskId,@RequestHeader("tenantId") Long tenantId);
+    ResponseEntity<ApiResponse> getFormsDetailsForTechnician(@PathVariable("taskId") String taskId, @RequestHeader("tenantId") Long tenantId);
 
     @PostMapping("/jobs/forms/save-form")
-    ResponseEntity<ApiResponse> addHTMLForm(@RequestBody HTMLFormDTO.Add add,@RequestHeader("tenantId") Long tenantId);
+    ResponseEntity<ApiResponse> addHTMLForm(@RequestBody HTMLFormDTO.Add add, @RequestHeader("tenantId") Long tenantId);
 
     @GetMapping("/jobs/forms/by-task/{taskId}")
-    ResponseEntity<ApiResponse> getHTMLForm(@PathVariable("taskId") String taskId, @RequestHeader("tenantId") Long tenantId,@RequestHeader("isSuperAdmin") boolean isSuperAdmin);
+    ResponseEntity<ApiResponse> getHTMLForm(@PathVariable("taskId") String taskId, @RequestHeader("tenantId") Long tenantId, @RequestHeader("isSuperAdmin") boolean isSuperAdmin);
 
     @PostMapping("/html-page/list")
-    ResponseEntity<ApiResponse> HTMLFormList(@RequestBody PageRequest.List listRequest,@RequestHeader("tenantId") Long tenantId);
+    ResponseEntity<ApiResponse> HTMLFormList(@RequestBody PageRequest.List listRequest, @RequestHeader("tenantId") Long tenantId);
 
     @GetMapping("/html-page/get/by/{id}")
-    ResponseEntity<ApiResponse> getHTMLFormBYId(@PathVariable("id") String id,@RequestHeader("tenantId") Long tenantId);
+    ResponseEntity<ApiResponse> getHTMLFormBYId(@PathVariable("id") String id, @RequestHeader("tenantId") Long tenantId);
 
     @PutMapping("/html-page/change/status/{id}")
-    ResponseEntity<ApiResponse> changeStatusHTMLForm(@PathVariable("id") String id,@RequestHeader("tenantId") Long tenantId);
+    ResponseEntity<ApiResponse> changeStatusHTMLForm(@PathVariable("id") String id, @RequestHeader("tenantId") Long tenantId);
 
 }
