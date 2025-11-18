@@ -2,15 +2,14 @@ package com.octal.fsm.clients;
 
 import com.octal.fsm.common.ApiResponse;
 import com.octal.fsm.dto.DocumentDTO;
+import com.octal.fsm.dto.HTMLFormDTO;
 import com.octal.fsm.dto.JobDTO;
 import com.octal.fsm.models.request.PageRequest;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
-
 import java.util.List;
 
 import static com.octal.fsm.common.CommonConstants.USER_NAME;
@@ -21,11 +20,11 @@ import static com.octal.fsm.common.CommonConstants.USER_NAME;
 public interface JobClient {
 
     @PostMapping("/jobs/tasks-for-technician/{technicianId}")
-    ResponseEntity<ApiResponse> getJobTasksForTechnician(@RequestBody JobDTO.JobFilterRequest filterRequest, @PathVariable("technicianId") String technicianId, @RequestHeader("userName") String userName,@RequestHeader("tenantId") Long tenantId,
+    ResponseEntity<ApiResponse> getJobTasksForTechnician(@RequestBody JobDTO.JobFilterRequest filterRequest, @PathVariable("technicianId") String technicianId, @RequestHeader("userName") String userName, @RequestHeader("tenantId") Long tenantId,
                                                          @RequestHeader("isSuperAdmin") boolean isSuperAdmin);
 
     @GetMapping("/jobs/task-for-technician/{technicianId}/{taskId}")
-    ResponseEntity<ApiResponse> getJobTaskDetailsForTechnician(@PathVariable("technicianId") String technicianId, @PathVariable("taskId") String taskId, @RequestHeader("userName") String userName,@RequestHeader("tenantId") Long tenantId,
+    ResponseEntity<ApiResponse> getJobTaskDetailsForTechnician(@PathVariable("technicianId") String technicianId, @PathVariable("taskId") String taskId, @RequestHeader("userName") String userName, @RequestHeader("tenantId") Long tenantId,
                                                                @RequestHeader("isSuperAdmin") boolean isSuperAdmin);
 
     @PutMapping("/jobs/update-job-task-status/{technicianId}/{taskId}")
@@ -34,7 +33,7 @@ public interface JobClient {
                                                     @RequestParam("status") String status,
                                                     @RequestParam("note") String note,
                                                     @RequestParam("signature") String signature,
-                                                    @RequestHeader("userName") String userName,@RequestHeader("tenantId") Long tenantId,
+                                                    @RequestHeader("userName") String userName, @RequestHeader("tenantId") Long tenantId,
                                                     @RequestHeader("isSuperAdmin") boolean isSuperAdmin);
 
     @PutMapping("/jobs/update-job-task/{technicianId}/{taskId}")
@@ -44,21 +43,43 @@ public interface JobClient {
                                               @RequestHeader("userName") String userName);
 
     @PostMapping("/job-type/list-for-technician")
-    ResponseEntity<ApiResponse> JobTypeList(@Valid @RequestBody PageRequest.List listRequest,@RequestHeader("tenantId") Long tenantId,
+    ResponseEntity<ApiResponse> JobTypeList(@Valid @RequestBody PageRequest.List listRequest, @RequestHeader("tenantId") Long tenantId,
                                             @RequestHeader("isSuperAdmin") boolean isSuperAdmin);
 
     @PostMapping("/job-tags/list")
-    ResponseEntity<ApiResponse> JobTagList(@Valid @RequestBody PageRequest.List listRequest,@RequestHeader("tenantId") Long tenantId,
+    ResponseEntity<ApiResponse> JobTagList(@Valid @RequestBody PageRequest.List listRequest, @RequestHeader("tenantId") Long tenantId,
                                            @RequestHeader("isSuperAdmin") boolean isSuperAdmin);
 
     @PostMapping("/documents/upload-multiple")
-    ResponseEntity<ApiResponse> uploadDocument(@RequestBody List<DocumentDTO.Add> addJobDTO, @RequestHeader(USER_NAME) String userName,@RequestHeader("tenantId") Long tenantId,
+    ResponseEntity<ApiResponse> uploadDocument(@RequestBody List<DocumentDTO.Add> addJobDTO, @RequestHeader(USER_NAME) String userName, @RequestHeader("tenantId") Long tenantId,
                                                @RequestHeader("isSuperAdmin") boolean isSuperAdmin);
 
     @PostMapping("/jobs/add-drawing-to-job-task/{technicianId}/{taskId}")
-    ResponseEntity<ApiResponse>addDrawingToJobTask(@PathVariable("technicianId") String technicianId,
-                                                          @PathVariable("taskId") String taskId,
-                                                          @RequestBody JobDTO.TaskDrawingRequest taskDrawingRequest,
-                                                          @RequestHeader("userName") String userName);
+    ResponseEntity<ApiResponse> addDrawingToJobTask(@PathVariable("technicianId") String technicianId,
+                                                    @PathVariable("taskId") String taskId,
+                                                    @RequestBody JobDTO.TaskDrawingRequest taskDrawingRequest,
+                                                    @RequestHeader("userName") String userName);
+
+    @PostMapping("/jobs/get-technician-task-summary")
+    ResponseEntity<ApiResponse> getTechnicianTaskSummary(@RequestBody List<String> technicianUuids, @RequestHeader("tenantId") Long tenantId,
+                                                         @RequestHeader("isSuperAdmin") boolean isSuperAdmin);
+
+    @GetMapping("/jobs/forms-by-taskId/{taskId}")
+    ResponseEntity<ApiResponse> getFormsDetailsForTechnician(@PathVariable("taskId") String taskId, @RequestHeader("tenantId") Long tenantId);
+
+    @PostMapping("/jobs/forms/save-form")
+    ResponseEntity<ApiResponse> addHTMLForm(@RequestBody HTMLFormDTO.Add add, @RequestHeader("tenantId") Long tenantId);
+
+    @GetMapping("/jobs/forms/by-task/{taskId}")
+    ResponseEntity<ApiResponse> getHTMLForm(@PathVariable("taskId") String taskId, @RequestHeader("tenantId") Long tenantId, @RequestHeader("isSuperAdmin") boolean isSuperAdmin);
+
+    @PostMapping("/html-page/list")
+    ResponseEntity<ApiResponse> HTMLFormList(@RequestBody PageRequest.List listRequest, @RequestHeader("tenantId") Long tenantId);
+
+    @GetMapping("/html-page/get/by/{id}")
+    ResponseEntity<ApiResponse> getHTMLFormBYId(@PathVariable("id") String id, @RequestHeader("tenantId") Long tenantId);
+
+    @PutMapping("/html-page/change/status/{id}")
+    ResponseEntity<ApiResponse> changeStatusHTMLForm(@PathVariable("id") String id, @RequestHeader("tenantId") Long tenantId);
 
 }

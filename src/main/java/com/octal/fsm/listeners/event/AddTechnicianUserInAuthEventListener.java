@@ -1,23 +1,15 @@
 package com.octal.fsm.listeners.event;
 
-import com.google.gson.Gson;
-import com.netflix.discovery.converters.Auto;
 import com.octal.fsm.clients.AdminClient;
 import com.octal.fsm.clients.AuthServiceClient;
 import com.octal.fsm.clients.NotificationClient;
-import com.octal.fsm.common.ApiResponse;
-import com.octal.fsm.dto.PushNotificationRequest;
 import com.octal.fsm.dto.SendMailRequestDTO;
-import com.octal.fsm.dto.UserDetailsDTO;
-import com.octal.fsm.dto.enums.PushNotificationType;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
-
-import java.util.Set;
 
 
 @Component
@@ -79,7 +71,7 @@ public class AddTechnicianUserInAuthEventListener implements ApplicationListener
             request.setObjectData(event.getTechnician());
             request.setTemplateName("TECHNICIAN_WELCOME");
             request.setObjectName("Technician");
-            adminClient.sendDynamicMail(request,event.getTenantId(),event.isSuperAdmin());
+            adminClient.sendDynamicMail(request, event.getTenantId(), event.isSuperAdmin());
         } catch (Exception e) {
             e.printStackTrace();
         }

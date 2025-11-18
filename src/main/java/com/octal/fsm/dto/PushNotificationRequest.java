@@ -50,8 +50,9 @@ public class PushNotificationRequest {
     }
 
     @Data
-    public static class SendBulkNotificationToUsers{
-        public Set<String> customerId;
+    public static class SendBulkNotificationToUsers {
+        public Set<MultiUserDeviceDetails> technicianFcmTokenList;
+        public Set<MultiUserDeviceDetails> frontOfficeFcmTokenList;
         public PushNotificationType type;
         private String fromDisplayName;
         public String title;

@@ -43,7 +43,7 @@ public class UserVerificationServiceImpl implements UserVerificationService {
     private String forgetPasswordOtpAttemptsCounts;
 
     @Value("${user.forget.password.link}")
-    private String  forgetPasswordLink;
+    private String forgetPasswordLink;
 
     @Override
     @Transactional(propagation = Propagation.REQUIRED)
@@ -112,14 +112,14 @@ public class UserVerificationServiceImpl implements UserVerificationService {
         mail.setSubject("[fsm] Forget password");
         mail.setTemplateName("FORGOT_PASSWORD");
         Map<String, Object> model = new HashMap<>();
-       // model.put("name", user.getFirstName() + " " + user.getLastName());
+        // model.put("name", user.getFirstName() + " " + user.getLastName());
         model.put("location", "India");
         model.put("sign", "FSM Team");
         model.put("link", forgetPasswordLink.replace("<token>", token));
         model.put("otp", otp);
-        model.put("#USER",user.getName());
-        model.put("#LINK",forgetPasswordLink.replace("<token>", token));
-        model.put("SUPPORT_EMAIL","support@fsm.com");
+        model.put("#USER", user.getName());
+        model.put("#LINK", forgetPasswordLink.replace("<token>", token));
+        model.put("SUPPORT_EMAIL", "support@fsm.com");
         mail.setProps(model);
         emailService.sendMail(mail);
         // todo: send email to user for forget password code needs to be implemented

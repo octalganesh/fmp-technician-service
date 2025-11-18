@@ -1,9 +1,7 @@
 package com.octal.fsm.jwt;
 
 import com.octal.fsm.entities.Technician;
-
 import com.octal.fsm.repositories.TechnicianRepository;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -13,11 +11,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * CustomUserDetailsService implements UserDetailsService and overrides its method
@@ -35,7 +30,7 @@ public class CustomUserDetailsService implements UserDetailsService {
         Technician technician = technicianRepository.findByEmail(username)
                 .orElseThrow(() -> new UsernameNotFoundException("Technician not found with username: " + username));
 
-         List<GrantedAuthority> authorities = Collections.singletonList(
+        List<GrantedAuthority> authorities = Collections.singletonList(
                 new SimpleGrantedAuthority("ROLE_TECHNICIAN")
         );
 

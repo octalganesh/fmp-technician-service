@@ -3,6 +3,7 @@ package com.octal.fsm.dto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
 import java.util.List;
 
 @Data
@@ -79,7 +80,6 @@ public class JobDTO {
         private String drawingJson;
         private String drawingFileUrl;
     }
-
 
 
 }

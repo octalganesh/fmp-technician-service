@@ -49,6 +49,7 @@ public class UserNotificationListDTO {
         private String sort;
         private boolean order;
         private String userId;
+        private String type;
     }
 
     @Data
