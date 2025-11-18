@@ -62,5 +62,7 @@ public interface TechnicianService {
     ResponseEntity<ApiResponse> getFrontOfficeDevices(String id, Long tenantId) throws CodeException;
 
     List<MultiUserDeviceDetails> getAllTechnicianDevices(Long tenantId) throws CodeException;
+
+    List<TechnicianDto.list> getAllTechByIds(List<String> ids)throws CodeException;
 }
 
