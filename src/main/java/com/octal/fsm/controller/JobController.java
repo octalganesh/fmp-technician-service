@@ -209,11 +209,12 @@ public class JobController extends BaseController {
         }
     }
 
-    @PostMapping("/forms/save-form")
-    public ResponseEntity<ApiResponse> saveHTMLFormData(@RequestBody HTMLFormDTO.Add add, HttpServletRequest request) {
+    @PostMapping("/forms/save-form/{taskId}")
+    public ResponseEntity<ApiResponse> saveHTMLFormData(@PathVariable("taskId") String taskId, @RequestBody HTMLFormDTO.Add add, HttpServletRequest request) {
         try {
             Long tenantId = getTenantId(request);
             boolean isSuperAdmin = isSuperAdmin(request);
+            add.setTaskId(taskId);
             return jobService.saveHTMLForm(add, tenantId, isSuperAdmin);
         } catch (Exception e) {
             return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, e.getMessage(), null,
