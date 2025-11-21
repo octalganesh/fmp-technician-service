@@ -65,6 +65,6 @@ public interface TechnicianService {
 
     List<TechnicianDto.list> getAllTechByIds(List<String> ids)throws CodeException;
 
-    List<TechnicianDto.list> getAllTech(Long tenantId,boolean isSuperAdmin)throws CodeException;
+    PageItem<TechnicianDto.list> getAllTech(PageRequest.List listRequest,Long tenantId,boolean isSuperAdmin)throws CodeException;
 }
 

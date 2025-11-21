@@ -465,6 +465,14 @@ public class TechnicianServiceImpl implements TechnicianService {
 
     }
 
+    private void prepareTechnicianSearchFilterForAll(PageRequest.List listRequest, GenericSpecificationsBuilder<Technician> builder, Long tenantId, boolean isSuperAdmin) {
+
+        builder.with(technicianSpecificationFactory.isEqual("deleted", false));
+
+        builder.with(technicianSpecificationFactory.isEqual("tenantId", tenantId));
+
+    }
+
     public String generateEmployeeId() {
         LocalDate now = LocalDate.now();
         String datePart = now.format(DateTimeFormatter.ofPattern("yyyyMM"));
@@ -770,10 +778,19 @@ public class TechnicianServiceImpl implements TechnicianService {
     }
 
     @Override
-    public List<TechnicianDto.list> getAllTech(Long tenantId, boolean isSuperAdmin) throws CodeException {
-        List<Technician> byUuid = technicianRepository.findAllByTenantId(tenantId);
-        List<TechnicianDto.list> result = new ArrayList<>();
-        for (Technician t : byUuid) {
+    public PageItem<TechnicianDto.list> getAllTech(PageRequest.List listRequest, Long tenantId, boolean isSuperAdmin) throws CodeException {
+        GenericSpecificationsBuilder<Technician> builder = new GenericSpecificationsBuilder<>();
+        Pageable pageable = null;
+        if (Boolean.TRUE.equals(listRequest.getAsc())) {
+            pageable = org.springframework.data.domain.PageRequest.of(listRequest.getPageNumber(), listRequest.getPageSize(), Sort.by(listRequest.getShortingField()).ascending());
+        } else {
+            pageable = org.springframework.data.domain.PageRequest.of(listRequest.getPageNumber(), listRequest.getPageSize(), Sort.by(listRequest.getShortingField()).descending());
+        }
+//        prepareTechnicianSearchFilterForAll(listRequest, builder, tenantId, isSuperAdmin);
+        Page<Technician> pagedResult = technicianRepository.findAll(builder.build(), pageable);
+
+        List<TechnicianDto.list> responseList = new ArrayList<>();
+        for (Technician t : pagedResult.getContent()) {
             TechnicianDto.list dto = new TechnicianDto.list();
             dto.setId(t.getUuid());
             dto.setName(t.getName());
@@ -783,9 +800,10 @@ public class TechnicianServiceImpl implements TechnicianService {
             dto.setProfilePicture(t.getProfilePicture());
             dto.setIsActive(t.getActive());
             dto.setJoinedDate(t.getJoinDate() != null ? t.getJoinDate().toString() : null);
-            result.add(dto);
+            responseList.add(dto);
         }
-        return result;
+        return new PageItem<>(pagedResult.getTotalPages(), pagedResult.getTotalElements(), responseList, listRequest.getPageNumber(),
+                listRequest.getPageSize());
     }
 
 }
