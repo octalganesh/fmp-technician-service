@@ -179,30 +179,30 @@ public class JobServiceImpl implements JobService {
             DocumentDTO.Add firstDoc = uploadDocument.get(0);
             sendBulkNotificationToFront.setTypeId(firstDoc.getDocumentTypeId());
 
-            ResponseEntity<ApiResponse> frontOfficeDevices = technicianService.getFrontOfficeDevices(null, tenantId);
-            ApiResponse fronBdy = frontOfficeDevices.getBody();
-            Set<MultiUserDeviceDetails> frontOfficeDeviceDetails = new HashSet<>();
-            if (fronBdy != null) {
-                List<MultiUserDeviceDetails> frontOfficedeviceList = objectMapper.convertValue(
-                        fronBdy.getData(),
-                        new TypeReference<List<MultiUserDeviceDetails>>() {
-                        }
-                );
-                if (frontOfficedeviceList != null && !frontOfficedeviceList.isEmpty()) {
-                    for (MultiUserDeviceDetails multiUserDeviceDetails : frontOfficedeviceList) {
-                        MultiUserDeviceDetails dto = new MultiUserDeviceDetails();
-                        dto.setDeviceToken(multiUserDeviceDetails.getDeviceToken());
-                        dto.setDeviceType(multiUserDeviceDetails.getDeviceType());
-                        dto.setAppVersion(multiUserDeviceDetails.getAppVersion());
-                        dto.setDeviceId(multiUserDeviceDetails.getDeviceId());
-                        frontOfficeDeviceDetails.add(dto);
-                    }
+           // ResponseEntity<ApiResponse> frontOfficeDevices = technicianService.getFrontOfficeDevices(null, tenantId);
+            //ApiResponse fronBdy = frontOfficeDevices.getBody();
+            //Set<MultiUserDeviceDetails> frontOfficeDeviceDetails = new HashSet<>();
+            //if (fronBdy != null) {
+               // List<MultiUserDeviceDetails> frontOfficedeviceList = objectMapper.convertValue(
+                 //       fronBdy.getData(),
+                     //   new TypeReference<List<MultiUserDeviceDetails>>() {
+                     //   }
+               // );
+               // if (frontOfficedeviceList != null && !frontOfficedeviceList.isEmpty()) {
+                   // for (MultiUserDeviceDetails multiUserDeviceDetails : frontOfficedeviceList) {
+                    //    MultiUserDeviceDetails dto = new MultiUserDeviceDetails();
+                      //  dto.setDeviceToken(multiUserDeviceDetails.getDeviceToken());
+                       // dto.setDeviceType(multiUserDeviceDetails.getDeviceType());
+                       // dto.setAppVersion(multiUserDeviceDetails.getAppVersion());
+                       // dto.setDeviceId(multiUserDeviceDetails.getDeviceId());
+                       // frontOfficeDeviceDetails.add(dto);
+                   // }
                 }
                 sendBulkNotificationToFront.setTechnicianFcmTokenList(new HashSet<>());
-                sendBulkNotificationToFront.setFrontOfficeFcmTokenList(frontOfficeDeviceDetails);
+                //sendBulkNotificationToFront.setFrontOfficeFcmTokenList(frontOfficeDeviceDetails);
                 applicationEventPublisher.publishEvent(new SendMailAndPushEvent(null, null, null, sendBulkNotificationToFront));
-            }
-        }
+
+        //}
         return jobClient.uploadDocument(uploadDocument, loggedInUserEmail, tenantId, isSuperAdmin);
     }
 
