@@ -246,5 +246,30 @@ public class TechnicianController extends BaseController {
         }
     }
 
+    @GetMapping("/get-all")
+    public ResponseEntity<ApiResponse> getAllByTenantId(HttpServletRequest request) {
+        logger.info("StaticContentController.getAllByTenantId");
+        String username = request.getHeader("userName");
+        try {
+            Long tenantId = getTenantId(request);
+            boolean isSuperAdmin = isSuperAdmin(request);
+            return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "Data fetch successfully!", technicianService.getAllTech(tenantId,isSuperAdmin), "200", HttpStatus.OK), HttpStatus.OK);
+        } catch (Exception e) {
+            return handleException(e);
+        }
+    }
+
+    @GetMapping("/get-by-uuid/{id}")
+    public ResponseEntity<ApiResponse> getByUuid(@PathVariable("id") String id, HttpServletRequest request) {
+        logger.info("StaticContentController.getByUuid");
+        try {
+            Long tenantId = getTenantId(request);
+            boolean isSuperAdmin = isSuperAdmin(request);
+            return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "Data fetch successfully!", technicianService.getProfileDetails(id), "200", HttpStatus.OK), HttpStatus.OK);
+        } catch (Exception e) {
+            return handleException(e);
+        }
+    }
+
 }
 

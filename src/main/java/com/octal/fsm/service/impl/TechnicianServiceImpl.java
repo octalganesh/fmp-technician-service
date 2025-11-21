@@ -769,4 +769,23 @@ public class TechnicianServiceImpl implements TechnicianService {
         return result;
     }
 
+    @Override
+    public List<TechnicianDto.list> getAllTech(Long tenantId, boolean isSuperAdmin) throws CodeException {
+        List<Technician> byUuid = technicianRepository.findAllByTenantId(tenantId);
+        List<TechnicianDto.list> result = new ArrayList<>();
+        for (Technician t : byUuid) {
+            TechnicianDto.list dto = new TechnicianDto.list();
+            dto.setId(t.getUuid());
+            dto.setName(t.getName());
+            dto.setEmail(t.getEmail());
+            dto.setMobileNumber(t.getMobileNumber());
+            dto.setEmployeeId(t.getEmployeeId());
+            dto.setProfilePicture(t.getProfilePicture());
+            dto.setIsActive(t.getActive());
+            dto.setJoinedDate(t.getJoinDate() != null ? t.getJoinDate().toString() : null);
+            result.add(dto);
+        }
+        return result;
+    }
+
 }

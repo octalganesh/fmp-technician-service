@@ -39,6 +39,8 @@ public interface TechnicianRepository extends JpaRepository<Technician, Long>, J
 
     Optional<Technician> findByUuid(String id);
 
+    List<Technician> findAllByTenantId(Long tenantId);
+
     // For ALL_USER
     @Query("SELECT t.multiUserDeviceDetails FROM Technician t " +
             "WHERE t.multiUserDeviceDetails.deviceToken IS NOT NULL " +

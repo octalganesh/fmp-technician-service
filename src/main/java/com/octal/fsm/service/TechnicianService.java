@@ -64,5 +64,7 @@ public interface TechnicianService {
     List<MultiUserDeviceDetails> getAllTechnicianDevices(Long tenantId) throws CodeException;
 
     List<TechnicianDto.list> getAllTechByIds(List<String> ids)throws CodeException;
+
+    List<TechnicianDto.list> getAllTech(Long tenantId,boolean isSuperAdmin)throws CodeException;
 }
 
