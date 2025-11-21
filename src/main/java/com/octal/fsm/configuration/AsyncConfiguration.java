@@ -18,6 +18,11 @@ public class AsyncConfiguration {
         return new ThreadPoolTaskExecutor();
     }
 
+    @Bean(name = "SendMailToTechnicianEvent")
+    public Executor SendMailToTechnicianEvent() {
+        return new ThreadPoolTaskExecutor();
+    }
+
 }
 
 
