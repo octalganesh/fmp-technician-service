@@ -62,11 +62,18 @@ public class TechnicianAuthController extends BaseController {
             AuthenticationResponse authenticationResponse = jwtTokenProvider.generateToken(technician);
             //save jwt token on the time of log in
             technician.setToken(authenticationResponse.getJwtToken());
-            MultiUserDeviceDetails multiUserDeviceDetails = new MultiUserDeviceDetails();
-            multiUserDeviceDetails.setDeviceId(request.getDeviceId());
-            multiUserDeviceDetails.setDeviceType(request.getDeviceType());
-            multiUserDeviceDetails.setDeviceToken(request.getFcmToken());
-            technician.setMultiUserDeviceDetails(multiUserDeviceDetails);
+            if(technician.getMultiUserDeviceDetails()!=null) {
+                technician.getMultiUserDeviceDetails().setDeviceId(request.getDeviceId());
+                technician.getMultiUserDeviceDetails().setDeviceType(request.getDeviceType());
+                technician.getMultiUserDeviceDetails().setDeviceToken(request.getFcmToken());
+            }
+            else{
+                MultiUserDeviceDetails multiUserDeviceDetails = new MultiUserDeviceDetails();
+                multiUserDeviceDetails.setDeviceId(request.getDeviceId());
+                multiUserDeviceDetails.setDeviceType(request.getDeviceType());
+                multiUserDeviceDetails.setDeviceToken(request.getFcmToken());
+                technician.setMultiUserDeviceDetails(multiUserDeviceDetails);
+            }
             technicianRepository.save(technician);
             authenticationResponse.setId(technician.getUuid());
             return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "User logged in successfully", authenticationResponse,

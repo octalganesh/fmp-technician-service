@@ -9,7 +9,7 @@ public class TechnicianDetailDTO {
     private String fullName;
     private String email;
     private String contactNumber;
-    private Boolean notificationEnable;
+    private Boolean pushEnabled;
     private String profileImage;
     private String technicianId;
 

@@ -599,7 +599,10 @@ public class TechnicianServiceImpl implements TechnicianService {
         response.setFullName(technician.getName());
         response.setEmail(technician.getEmail());
         response.setContactNumber(technician.getMobileNumber());
-        response.setNotificationEnable(true);
+        response.setPushEnabled(Optional.ofNullable(technician)
+                .map(Technician::getMultiUserDeviceDetails)
+                .map(MultiUserDeviceDetails::getPushEnabled)
+                .orElse(false));
         response.setProfileImage(technician.getProfilePicture());
         return response;
     }
@@ -615,7 +618,10 @@ public class TechnicianServiceImpl implements TechnicianService {
         response.setFullName(user.get().getName());
         response.setEmail(user.get().getEmail());
         response.setContactNumber(user.get().getMobileNumber());
-        response.setNotificationEnable(true);
+        response.setPushEnabled(Optional.ofNullable(user.get())
+                .map(Technician::getMultiUserDeviceDetails)
+                .map(MultiUserDeviceDetails::getPushEnabled)
+                .orElse(false));
         response.setProfileImage(user.get().getProfilePicture());
         return response;
     }
@@ -804,6 +810,22 @@ public class TechnicianServiceImpl implements TechnicianService {
         }
         return new PageItem<>(pagedResult.getTotalPages(), pagedResult.getTotalElements(), responseList, listRequest.getPageNumber(),
                 listRequest.getPageSize());
+    }
+
+    @Override
+    public Boolean notificationToggle(Technician loggedIntechnician, Long tenantId, boolean isSuperAdmin) {
+        MultiUserDeviceDetails multiUserDeviceDetails = loggedIntechnician.getMultiUserDeviceDetails();
+        if (multiUserDeviceDetails != null) {
+            Boolean pushEnabled = multiUserDeviceDetails.getPushEnabled();
+            if (pushEnabled != null && pushEnabled) {
+                multiUserDeviceDetails.setPushEnabled(false);
+            } else {
+                multiUserDeviceDetails.setPushEnabled(true);
+            }
+            technicianRepository.save(loggedIntechnician);
+            return multiUserDeviceDetails.getPushEnabled();
+        }
+        return false;
     }
 
 }
