@@ -168,42 +168,7 @@ public class JobServiceImpl implements JobService {
     @Override
     public ResponseEntity<ApiResponse> uploadDocument(List<DocumentDTO.Add> uploadDocument, String loggedInUserEmail, Long tenantId, boolean isSuperAdmin) throws CodeException {
         try{
-            PushNotificationRequest.SendBulkNotificationToUsers sendBulkNotificationToFront = new PushNotificationRequest.SendBulkNotificationToUsers();
-            ResponseEntity<ApiResponse> notificationSlugContent = notificationClient.getNotificationContent(PushNotificationType.TECHNICIAN_FILE_SUBMITTED.toString());
-            ApiResponse body = notificationSlugContent.getBody();
-            if (body != null) {
-                NotificationContentDTO.Request content = objectMapper.convertValue(body.getData(), NotificationContentDTO.Request.class);
-                sendBulkNotificationToFront.setTitle(content.getTitle());
-                sendBulkNotificationToFront.setBody(content.getMessage());
-                sendBulkNotificationToFront.setType(PushNotificationType.TECHNICIAN_FILE_SUBMITTED);
-
-                DocumentDTO.Add firstDoc = uploadDocument.get(0);
-                sendBulkNotificationToFront.setTypeId(firstDoc.getDocumentTypeId());
-
-                ResponseEntity<ApiResponse> frontOfficeDevices = technicianService.getFrontOfficeDevices(null, tenantId);
-                ApiResponse fronBdy = frontOfficeDevices.getBody();
-                Set<MultiUserDeviceDetails> frontOfficeDeviceDetails = new HashSet<>();
-                if (fronBdy != null) {
-                    List<MultiUserDeviceDetails> frontOfficedeviceList = objectMapper.convertValue(
-                            fronBdy.getData(),
-                            new TypeReference<List<MultiUserDeviceDetails>>() {
-                            }
-                    );
-                    if (frontOfficedeviceList != null && !frontOfficedeviceList.isEmpty()) {
-                        for (MultiUserDeviceDetails multiUserDeviceDetails : frontOfficedeviceList) {
-                            MultiUserDeviceDetails dto = new MultiUserDeviceDetails();
-                            dto.setDeviceToken(multiUserDeviceDetails.getDeviceToken());
-                            dto.setDeviceType(multiUserDeviceDetails.getDeviceType());
-                            dto.setAppVersion(multiUserDeviceDetails.getAppVersion());
-                            dto.setDeviceId(multiUserDeviceDetails.getDeviceId());
-                            frontOfficeDeviceDetails.add(dto);
-                        }
-                    }
-                    sendBulkNotificationToFront.setTechnicianFcmTokenList(new HashSet<>());
-                    sendBulkNotificationToFront.setFrontOfficeFcmTokenList(frontOfficeDeviceDetails);
-                    applicationEventPublisher.publishEvent(new SendMailAndPushEvent(null, null, null, sendBulkNotificationToFront));
-                }
-            }
+            applicationEventPublisher.publishEvent(new SendMailAndPushEvent(loggedInUserEmail,tenantId, uploadDocument.get(0)));
         }catch (Exception exception){
             exception.printStackTrace();
         }

@@ -1,37 +1,32 @@
 package com.octal.fsm.listeners.event;
 
+import com.octal.fsm.dto.DocumentDTO;
 import com.octal.fsm.dto.PushNotificationRequest;
 import com.octal.fsm.dto.TechnicianRegisterRequest;
 import com.octal.fsm.entities.Technician;
 import org.springframework.context.ApplicationEvent;
 
 public class SendMailAndPushEvent extends ApplicationEvent {
-    private final Technician technicianDTO;
-    private final TechnicianRegisterRequest technicianRegisterRequest;
     private final String loggedInuser;
-    private final PushNotificationRequest.SendBulkNotificationToUsers sendBulkNotificationToUsers;
+    private final Long tenantId;
+    private final DocumentDTO.Add uploadDocument;
 
-    public SendMailAndPushEvent(Technician technicianDTO, TechnicianRegisterRequest technicianRegisterRequest, String loggedInuser, PushNotificationRequest.SendBulkNotificationToUsers sendBulkNotificationToUsers) {
-        super(technicianDTO);
-        this.technicianDTO = technicianDTO;
-        this.technicianRegisterRequest = technicianRegisterRequest;
+    public SendMailAndPushEvent(String loggedInuser, Long tenantId, DocumentDTO.Add uploadDocument) {
+        super(loggedInuser);
         this.loggedInuser = loggedInuser;
-        this.sendBulkNotificationToUsers = sendBulkNotificationToUsers;
-    }
-
-    public Technician getTechnicianDTO() {
-        return technicianDTO;
-    }
-
-    public TechnicianRegisterRequest getTechnicianRegisterRequest() {
-        return technicianRegisterRequest;
+        this.tenantId = tenantId;
+        this.uploadDocument = uploadDocument;
     }
 
     public String getLoggedInuser() {
         return loggedInuser;
     }
 
-    public PushNotificationRequest.SendBulkNotificationToUsers getSendBulkNotificationToUsers() {
-        return sendBulkNotificationToUsers;
+    public Long getTenantId() {
+        return tenantId;
+    }
+
+    public DocumentDTO.Add getUploadDocument() {
+        return uploadDocument;
     }
 }
