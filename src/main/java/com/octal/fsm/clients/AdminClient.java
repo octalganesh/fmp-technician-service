@@ -37,8 +37,8 @@ public interface AdminClient {
     ResponseEntity<ApiResponse> documentList(@Valid @RequestBody PageRequest.List listRequest, @RequestHeader("userName") String userName, @RequestHeader("tenantId") Long tenantId,
                                              @RequestHeader("isSuperAdmin") boolean isSuperAdmin);
 
-    @GetMapping("/front-office/getFrontOfficeDevices/{id}")
-    ResponseEntity<ApiResponse> getFrontOfficeDevices(@PathVariable("id") String id, @RequestHeader("tenantId") Long tenantId);
+    @GetMapping("/front-office/getFrontOfficeDevices")
+    ResponseEntity<ApiResponse> getFrontOfficeDevices(@RequestParam("id") String id, @RequestHeader("tenantId") Long tenantId);
 
     @PostMapping("/customer-feedback/get-feedback-summary-for-technician")
     ResponseEntity<ApiResponse> getFeedbackSummary(@RequestBody List<String> technicianUuids,

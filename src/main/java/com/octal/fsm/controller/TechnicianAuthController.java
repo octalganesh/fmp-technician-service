@@ -118,6 +118,7 @@ public class TechnicianAuthController extends BaseController {
 
                 TechnicianRegisterRequest authRegisterRequest = new TechnicianRegisterRequest();
                 authRegisterRequest.setActive(loggedIntechnician.getActive());
+                authRegisterRequest.setRole("technician");
                 authRegisterRequest.setEmail(loggedIntechnician.getEmail());
                 authRegisterRequest.setFullName(loggedIntechnician.getName());
                 authRegisterRequest.setToken(null);
