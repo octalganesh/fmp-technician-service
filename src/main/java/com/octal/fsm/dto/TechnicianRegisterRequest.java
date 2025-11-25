@@ -22,5 +22,6 @@ public class TechnicianRegisterRequest {
     private LocalDateTime createdAt;
     private String role;
     private String tenantId;
+    private String token;
 }
 
