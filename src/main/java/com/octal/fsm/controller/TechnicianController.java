@@ -270,6 +270,27 @@ public class TechnicianController extends BaseController {
             return handleException(e);
         }
     }
+    @PutMapping("/notification-toggle")
+    public ResponseEntity<ApiResponse> notificationToggle(HttpServletRequest request) {
+        logger.info("TechnicianController.notificationToggle");
+        String technicianName = request.getHeader(CommonConstants.technician_NAME);
+        try {
+            Long tenantId = getTenantId(request);
+            boolean isSuperAdmin = isSuperAdmin(request);
+            Technician loggedIntechnician = technicianService.getTechnicianByEmailId(technicianName);
+            if (loggedIntechnician != null) {
+                Boolean status = technicianService.notificationToggle(loggedIntechnician, tenantId, isSuperAdmin);
+                String messageResponse = Boolean.TRUE.equals(status) ? "Notifications enabled Successfully!" : "Notifications disabled Successfully!";
+                return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, messageResponse, null, "200", HttpStatus.OK), HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, "technician not found.",
+                        null, "400", HttpStatus.OK), HttpStatus.OK);
+            }
+        } catch (Exception e) {
+            return handleException(e);
+        }
+
+    }
 
 }
 
