@@ -31,7 +31,7 @@ public interface NotificationClient {
     @PostMapping(value = "/notification/send-bulk-notification-users")
     ResponseEntity<ApiResponse> sendBulkPushNotification(PushNotificationRequest.SendBulkNotificationToUsers pushNotificationRequest);
 
-    @GetMapping(value = "/notification-content/get/by/slug")
+    @GetMapping(value = "/notification-content/get-by-slug")
     ResponseEntity<ApiResponse> getNotificationContent(@RequestParam("slug") String slug);
 
 

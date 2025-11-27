@@ -465,6 +465,14 @@ public class TechnicianServiceImpl implements TechnicianService {
 
     }
 
+    private void prepareTechnicianSearchFilterForAll(PageRequest.List listRequest, GenericSpecificationsBuilder<Technician> builder, Long tenantId, boolean isSuperAdmin) {
+
+        builder.with(technicianSpecificationFactory.isEqual("deleted", false));
+
+        builder.with(technicianSpecificationFactory.isEqual("tenantId", tenantId));
+
+    }
+
     public String generateEmployeeId() {
         LocalDate now = LocalDate.now();
         String datePart = now.format(DateTimeFormatter.ofPattern("yyyyMM"));
@@ -591,7 +599,10 @@ public class TechnicianServiceImpl implements TechnicianService {
         response.setFullName(technician.getName());
         response.setEmail(technician.getEmail());
         response.setContactNumber(technician.getMobileNumber());
-        response.setNotificationEnable(true);
+        response.setPushEnabled(Optional.ofNullable(technician)
+                .map(Technician::getMultiUserDeviceDetails)
+                .map(MultiUserDeviceDetails::getPushEnabled)
+                .orElse(false));
         response.setProfileImage(technician.getProfilePicture());
         return response;
     }
@@ -607,7 +618,10 @@ public class TechnicianServiceImpl implements TechnicianService {
         response.setFullName(user.get().getName());
         response.setEmail(user.get().getEmail());
         response.setContactNumber(user.get().getMobileNumber());
-        response.setNotificationEnable(true);
+        response.setPushEnabled(Optional.ofNullable(user.get())
+                .map(Technician::getMultiUserDeviceDetails)
+                .map(MultiUserDeviceDetails::getPushEnabled)
+                .orElse(false));
         response.setProfileImage(user.get().getProfilePicture());
         return response;
     }
@@ -748,6 +762,70 @@ public class TechnicianServiceImpl implements TechnicianService {
                 .filter(device -> device.getDeviceType() != null && !device.getDeviceType().isEmpty())
                 .collect(Collectors.toList());
 
+    }
+
+    @Override
+    public List<TechnicianDto.list> getAllTechByIds(List<String> ids) throws CodeException {
+        List<Technician> byUuid = technicianRepository.findByUuid(ids);
+        List<TechnicianDto.list> result = new ArrayList<>();
+        for (Technician t : byUuid) {
+            TechnicianDto.list dto = new TechnicianDto.list();
+            dto.setId(t.getUuid());
+            dto.setName(t.getName());
+            dto.setEmail(t.getEmail());
+            dto.setMobileNumber(t.getMobileNumber());
+            dto.setEmployeeId(t.getEmployeeId());
+            dto.setProfilePicture(t.getProfilePicture());
+            dto.setIsActive(t.getActive());
+            dto.setJoinedDate(t.getJoinDate() != null ? t.getJoinDate().toString() : null);
+            result.add(dto);
+        }
+        return result;
+    }
+
+    @Override
+    public PageItem<TechnicianDto.list> getAllTech(PageRequest.List listRequest, Long tenantId, boolean isSuperAdmin) throws CodeException {
+        GenericSpecificationsBuilder<Technician> builder = new GenericSpecificationsBuilder<>();
+        Pageable pageable = null;
+        if (Boolean.TRUE.equals(listRequest.getAsc())) {
+            pageable = org.springframework.data.domain.PageRequest.of(listRequest.getPageNumber(), listRequest.getPageSize(), Sort.by(listRequest.getShortingField()).ascending());
+        } else {
+            pageable = org.springframework.data.domain.PageRequest.of(listRequest.getPageNumber(), listRequest.getPageSize(), Sort.by(listRequest.getShortingField()).descending());
+        }
+//        prepareTechnicianSearchFilterForAll(listRequest, builder, tenantId, isSuperAdmin);
+        Page<Technician> pagedResult = technicianRepository.findAll(builder.build(), pageable);
+
+        List<TechnicianDto.list> responseList = new ArrayList<>();
+        for (Technician t : pagedResult.getContent()) {
+            TechnicianDto.list dto = new TechnicianDto.list();
+            dto.setId(t.getUuid());
+            dto.setName(t.getName());
+            dto.setEmail(t.getEmail());
+            dto.setMobileNumber(t.getMobileNumber());
+            dto.setEmployeeId(t.getEmployeeId());
+            dto.setProfilePicture(t.getProfilePicture());
+            dto.setIsActive(t.getActive());
+            dto.setJoinedDate(t.getJoinDate() != null ? t.getJoinDate().toString() : null);
+            responseList.add(dto);
+        }
+        return new PageItem<>(pagedResult.getTotalPages(), pagedResult.getTotalElements(), responseList, listRequest.getPageNumber(),
+                listRequest.getPageSize());
+    }
+
+    @Override
+    public Boolean notificationToggle(Technician loggedIntechnician, Long tenantId, boolean isSuperAdmin) {
+        MultiUserDeviceDetails multiUserDeviceDetails = loggedIntechnician.getMultiUserDeviceDetails();
+        if (multiUserDeviceDetails != null) {
+            Boolean pushEnabled = multiUserDeviceDetails.getPushEnabled();
+            if (pushEnabled != null && pushEnabled) {
+                multiUserDeviceDetails.setPushEnabled(false);
+            } else {
+                multiUserDeviceDetails.setPushEnabled(true);
+            }
+            technicianRepository.save(loggedIntechnician);
+            return multiUserDeviceDetails.getPushEnabled();
+        }
+        return false;
     }
 
 }

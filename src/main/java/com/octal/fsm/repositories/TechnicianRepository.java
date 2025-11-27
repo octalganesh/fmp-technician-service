@@ -1,5 +1,6 @@
 package com.octal.fsm.repositories;
 
+import com.octal.fsm.dto.TechnicianDto;
 import com.octal.fsm.entities.MultiUserDeviceDetails;
 import com.octal.fsm.entities.Technician;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -38,6 +39,8 @@ public interface TechnicianRepository extends JpaRepository<Technician, Long>, J
 
     Optional<Technician> findByUuid(String id);
 
+    List<Technician> findAllByTenantId(Long tenantId);
+
     // For ALL_USER
     @Query("SELECT t.multiUserDeviceDetails FROM Technician t " +
             "WHERE t.multiUserDeviceDetails.deviceToken IS NOT NULL " +
@@ -59,5 +62,8 @@ public interface TechnicianRepository extends JpaRepository<Technician, Long>, J
     List<MultiUserDeviceDetails> findByUserIdIn(@Param("userIds") List<String> userIds);
 
     long countByAndCreatedAtBetween(LocalDateTime startDate, LocalDateTime endDate);
+
+    @Query("SELECT t FROM Technician t WHERE t.uuid IN :ids")
+    List<Technician> findByUuid(@Param("ids") List<String> ids);
 }
 

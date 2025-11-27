@@ -9,12 +9,14 @@ import com.octal.fsm.entities.Technician;
 import com.octal.fsm.exceptions.CodeException;
 import com.octal.fsm.exceptions.InvalidPasswordException;
 import com.octal.fsm.jwt.JwtTokenProvider;
+import com.octal.fsm.listeners.event.AddTechnicianUserInAuthEvent;
 import com.octal.fsm.repositories.TechnicianRepository;
 import com.octal.fsm.service.TechnicianService;
 import com.octal.fsm.utils.TextUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -42,6 +44,9 @@ public class TechnicianAuthController extends BaseController {
     @Autowired
     private AuthenticationManager authenticationManager;
 
+    @Autowired
+    private ApplicationEventPublisher eventPublisher;
+
 
     @GetMapping(value = "/auth/details/by/email/{email}")
     public ResponseEntity<AuthTechnicianDTO> getTechnicianByTechnicianName(@PathVariable("email") String email) {
@@ -62,12 +67,29 @@ public class TechnicianAuthController extends BaseController {
             AuthenticationResponse authenticationResponse = jwtTokenProvider.generateToken(technician);
             //save jwt token on the time of log in
             technician.setToken(authenticationResponse.getJwtToken());
-            MultiUserDeviceDetails multiUserDeviceDetails = new MultiUserDeviceDetails();
-            multiUserDeviceDetails.setDeviceId(request.getDeviceId());
-            multiUserDeviceDetails.setDeviceType(request.getDeviceType());
-            multiUserDeviceDetails.setDeviceToken(request.getFcmToken());
-            technician.setMultiUserDeviceDetails(multiUserDeviceDetails);
-            technicianRepository.save(technician);
+            if(technician.getMultiUserDeviceDetails()!=null) {
+                technician.getMultiUserDeviceDetails().setDeviceId(request.getDeviceId());
+                technician.getMultiUserDeviceDetails().setDeviceType(request.getDeviceType());
+                technician.getMultiUserDeviceDetails().setDeviceToken(request.getFcmToken());
+            }
+            else{
+                MultiUserDeviceDetails multiUserDeviceDetails = new MultiUserDeviceDetails();
+                multiUserDeviceDetails.setDeviceId(request.getDeviceId());
+                multiUserDeviceDetails.setDeviceType(request.getDeviceType());
+                multiUserDeviceDetails.setDeviceToken(request.getFcmToken());
+                technician.setMultiUserDeviceDetails(multiUserDeviceDetails);
+            }
+            Technician save = technicianRepository.save(technician);
+
+            TechnicianRegisterRequest authRegisterRequest = new TechnicianRegisterRequest();
+            authRegisterRequest.setActive(save.getActive());
+            authRegisterRequest.setEmail(save.getEmail());
+            authRegisterRequest.setRole("technician");
+            authRegisterRequest.setCreatedAt(save.getCreatedAt());
+            authRegisterRequest.setFullName(save.getName());
+            authRegisterRequest.setToken(save.getToken());
+            eventPublisher.publishEvent(new AddTechnicianUserInAuthEvent(authRegisterRequest, save, null, false));
+
             authenticationResponse.setId(technician.getUuid());
             return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "User logged in successfully", authenticationResponse,
                     "200", HttpStatus.OK), HttpStatus.OK);
@@ -93,6 +115,15 @@ public class TechnicianAuthController extends BaseController {
                 //remove jwt token on the time of log out
                 loggedIntechnician.setToken(null);
                 technicianRepository.save(loggedIntechnician);
+
+                TechnicianRegisterRequest authRegisterRequest = new TechnicianRegisterRequest();
+                authRegisterRequest.setActive(loggedIntechnician.getActive());
+                authRegisterRequest.setRole("technician");
+                authRegisterRequest.setEmail(loggedIntechnician.getEmail());
+                authRegisterRequest.setFullName(loggedIntechnician.getName());
+                authRegisterRequest.setToken(null);
+                eventPublisher.publishEvent(new AddTechnicianUserInAuthEvent(authRegisterRequest, loggedIntechnician, getTenantId(request), false));
+
                 return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "Technician logout successfully", null,
                         "200", HttpStatus.OK), HttpStatus.OK);
             } else {

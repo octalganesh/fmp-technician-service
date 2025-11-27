@@ -62,5 +62,11 @@ public interface TechnicianService {
     ResponseEntity<ApiResponse> getFrontOfficeDevices(String id, Long tenantId) throws CodeException;
 
     List<MultiUserDeviceDetails> getAllTechnicianDevices(Long tenantId) throws CodeException;
+
+    List<TechnicianDto.list> getAllTechByIds(List<String> ids)throws CodeException;
+
+    PageItem<TechnicianDto.list> getAllTech(PageRequest.List listRequest,Long tenantId,boolean isSuperAdmin)throws CodeException;
+
+    Boolean notificationToggle(Technician loggedIntechnician, Long tenantId, boolean isSuperAdmin);
 }
 
