@@ -60,8 +60,8 @@ jwt:
 
 forgot.password.time.in.second: 60
 forgot.password.otp.resend.count: 3
-user.activation.link.url: http://12.com:7070/?token=<token>
-user.forget.password.link: https://development.d1ig8p7rfwgvkb.amplifyapp.com/change-password?token=<token>&type=technician
+user.activation.link.url: ${USER_ACTIVATION_LINK_URL}
+user.forget.password.link: ${USER_FORGET_PASSWORD_LINK_URL}
 
 feign:
   client:
