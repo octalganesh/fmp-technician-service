@@ -15,7 +15,7 @@ public class DashboardDTO {
     private List<ActivityDTO> recentActivity;
 
     @Data
-    public static  class SummaryCardsDTO {
+    public static class SummaryCardsDTO {
         private int totalTechnicians;
         private int frontOfficeStaff;
         private int totalCustomers;
@@ -31,6 +31,7 @@ public class DashboardDTO {
         private String month; // "Jan", "Feb" etc.
         private double value; // revenue value
     }
+
     @Data
     @AllArgsConstructor
     public class JobTypeSummaryDTO {
@@ -78,7 +79,7 @@ public class DashboardDTO {
         dto.setSummaryCards(summaryCards);
 
         // Revenue Overview mock
-        List<RevenueOverviewPointDTO> revenueOverview =List.of(
+        List<RevenueOverviewPointDTO> revenueOverview = List.of(
                 new RevenueOverviewPointDTO("Jan", 3800),
                 new RevenueOverviewPointDTO("Feb", 4200),
                 new RevenueOverviewPointDTO("Mar", 6100),

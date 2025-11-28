@@ -71,10 +71,10 @@ feign:
         readTimeout: 30000        # 30 seconds
 
 
-randomPassword : Octal@123
+randomPassword: Octal@123
 springdoc:
-  api-docs.path : /api-docs
-  swagger-ui.path : /swagger-ui.html
+  api-docs.path: /api-docs
+  swagger-ui.path: /swagger-ui.html
 
 
 aws:

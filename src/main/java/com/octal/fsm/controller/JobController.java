@@ -4,12 +4,12 @@ import com.octal.fsm.common.ApiResponse;
 import com.octal.fsm.common.CommonConstants;
 import com.octal.fsm.dto.CustomerFeedbackDTO;
 import com.octal.fsm.dto.DocumentDTO;
+import com.octal.fsm.dto.HTMLFormDTO;
 import com.octal.fsm.dto.JobDTO;
 import com.octal.fsm.entities.Technician;
 import com.octal.fsm.exceptions.CodeException;
 import com.octal.fsm.models.request.PageRequest;
 import com.octal.fsm.service.JobService;
-import com.octal.fsm.utils.TextUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,9 +34,11 @@ public class JobController extends BaseController {
         logger.info("JobController.getJobs");
         String technicianName = request.getHeader(CommonConstants.technician_NAME);
         try {
+            Long tenantId = getTenantId(request);
+            boolean isSuperAdmin = isSuperAdmin(request);
             Technician loggedIntechnician = technicianService.getTechnicianByEmailId(technicianName);
             if (loggedIntechnician != null) {
-                return jobService.getAllJobs(jobFilterRequestDTO, loggedIntechnician);
+                return jobService.getAllJobs(jobFilterRequestDTO, loggedIntechnician, tenantId, isSuperAdmin);
             } else {
                 return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, "technician not found.",
                         null, "400", HttpStatus.OK), HttpStatus.OK);
@@ -52,9 +54,11 @@ public class JobController extends BaseController {
         logger.info("JobController.getJobById");
         String technicianName = request.getHeader(CommonConstants.technician_NAME);
         try {
+            Long tenantId = getTenantId(request);
+            boolean isSuperAdmin = isSuperAdmin(request);
             Technician loggedIntechnician = technicianService.getTechnicianByEmailId(technicianName);
             if (loggedIntechnician != null) {
-                return jobService.getJobById(taskId, loggedIntechnician);
+                return jobService.getJobById(taskId, loggedIntechnician, tenantId, isSuperAdmin);
             } else {
                 return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, "technician not found.",
                         null, "400", HttpStatus.OK), HttpStatus.OK);
@@ -70,9 +74,11 @@ public class JobController extends BaseController {
         logger.info("JobController.addFeedback");
         String loggedInUserName = request.getHeader(CommonConstants.USER_NAME);
         try {
+            Long tenantId = getTenantId(request);
+            boolean isSuperAdmin = isSuperAdmin(request);
             Technician loggedIntechnician = technicianService.getTechnicianByEmailId(loggedInUserName);
             if (loggedIntechnician != null) {
-                String messageResponse = jobService.addFeedback(feedback, loggedIntechnician);
+                String messageResponse = jobService.addFeedback(feedback, loggedIntechnician, tenantId, isSuperAdmin);
                 return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, messageResponse, null, "200", HttpStatus.OK), HttpStatus.OK);
             } else {
                 return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, "Invalid technician.", null,
@@ -92,9 +98,11 @@ public class JobController extends BaseController {
         logger.info("JobController.updateJobTaskStatus");
         String loggedInUserName = request.getHeader(CommonConstants.USER_NAME);
         try {
+            Long tenantId = getTenantId(request);
+            boolean isSuperAdmin = isSuperAdmin(request);
             Technician loggedIntechnician = technicianService.getTechnicianByEmailId(loggedInUserName);
             if (loggedIntechnician != null) {
-                return jobService.updateJobTaskStatus(taskId, status, note, signature, loggedIntechnician);
+                return jobService.updateJobTaskStatus(taskId, status, note, signature, loggedIntechnician, tenantId, isSuperAdmin);
             } else {
                 return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, "Invalid technician.", null,
                         "400", HttpStatus.OK), HttpStatus.OK);
@@ -128,6 +136,8 @@ public class JobController extends BaseController {
     public ResponseEntity<ApiResponse> documentUpload(@RequestBody List<DocumentDTO.Add> uploadDocument, HttpServletRequest request) {
         String userName = request.getHeader(CommonConstants.USER_NAME);
         try {
+            Long tenantId = getTenantId(request);
+            boolean isSuperAdmin = isSuperAdmin(request);
             Technician loggedIntechnician = technicianService.getTechnicianByEmailId(userName);
             if (loggedIntechnician != null) {
                 uploadDocument.forEach(obj -> {
@@ -136,7 +146,7 @@ public class JobController extends BaseController {
                             obj.setUploadByUserName(loggedIntechnician.getName());
                         }
                 );
-                return jobService.uploadDocument(uploadDocument, userName);
+                return jobService.uploadDocument(uploadDocument, userName, tenantId, isSuperAdmin);
             } else {
                 return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, "Invalid technician.", null,
                         "400", HttpStatus.OK), HttpStatus.OK);
@@ -154,9 +164,11 @@ public class JobController extends BaseController {
                                                     @RequestParam(defaultValue = "true") Boolean order, HttpServletRequest request) {
         String userName = request.getHeader(CommonConstants.USER_NAME);
         try {
+            Long tenantId = getTenantId(request);
+            boolean isSuperAdmin = isSuperAdmin(request);
             Technician loggedIntechnician = technicianService.getTechnicianByEmailId(userName);
             if (loggedIntechnician != null) {
-                return jobService.getDocumentTypeList(page, size, sortBy, order, loggedIntechnician.getEmail());
+                return jobService.getDocumentTypeList(page, size, sortBy, order, loggedIntechnician.getEmail(), tenantId, isSuperAdmin);
             } else {
                 return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, "Invalid technician.", null,
                         "400", HttpStatus.OK), HttpStatus.OK);
@@ -164,6 +176,93 @@ public class JobController extends BaseController {
         } catch (Exception e) {
             logger.error("Error getting document type list: {}", e.getMessage(), e);
             return handleException(e);
+        }
+    }
+
+    @PostMapping("/add-drawing-in-task/{taskId}")
+    public ResponseEntity<ApiResponse> updateDrawing(@PathVariable("taskId") String taskId,
+                                                     @RequestBody JobDTO.TaskDrawingRequest taskDrawingRequest,
+                                                     HttpServletRequest request) {
+        logger.info("JobController.updateDrawing");
+        String loggedInUserName = request.getHeader(CommonConstants.USER_NAME);
+        try {
+            Technician loggedIntechnician = technicianService.getTechnicianByEmailId(loggedInUserName);
+            if (loggedIntechnician != null) {
+                return jobService.addDrawingInTask(taskId, taskDrawingRequest, loggedIntechnician);
+            } else {
+                return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, "Invalid technician.", null,
+                        "400", HttpStatus.OK), HttpStatus.OK);
+            }
+        } catch (Exception e) {
+            return handleException(e);
+        }
+    }
+
+    @GetMapping("/get-form-list/{taskId}")
+    public ResponseEntity<ApiResponse> getFormData(@PathVariable("taskId") String taskId, HttpServletRequest request) {
+        try {
+            Long tenantId = getTenantId(request);
+            return jobService.getFormByTaskId(taskId, tenantId);
+        } catch (Exception e) {
+            return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, e.getMessage(), null,
+                    "500", HttpStatus.OK), HttpStatus.OK);
+        }
+    }
+
+    @PostMapping("/forms/save-form")
+    public ResponseEntity<ApiResponse> saveHTMLFormData(@RequestBody HTMLFormDTO.Add add, HttpServletRequest request) {
+        try {
+            Long tenantId = getTenantId(request);
+            boolean isSuperAdmin = isSuperAdmin(request);
+            return jobService.saveHTMLForm(add, tenantId, isSuperAdmin);
+        } catch (Exception e) {
+            return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, e.getMessage(), null,
+                    "500", HttpStatus.OK), HttpStatus.OK);
+        }
+    }
+
+    @GetMapping("/forms/by-task/{taskId}")  // todo for getting form list based on task id.
+    public ResponseEntity<ApiResponse> getHTMLFormData(@PathVariable("taskId") String taskId, HttpServletRequest request) {
+        try {
+            Long tenantId = getTenantId(request);
+            boolean isSuperAdmin = isSuperAdmin(request);
+            return jobService.getHTMLForm(taskId, tenantId, isSuperAdmin);
+        } catch (Exception e) {
+            return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, e.getMessage(), null,
+                    "500", HttpStatus.OK), HttpStatus.OK);
+        }
+    }
+
+    @PostMapping("/get-html-form-list")
+    public ResponseEntity<ApiResponse> getListHTMLFormData(@Valid @RequestBody PageRequest.List listRequest, HttpServletRequest request) {
+        try {
+            Long tenantId = getTenantId(request);
+            return jobService.getListOfHTMLForm(listRequest, tenantId);
+        } catch (Exception e) {
+            return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, e.getMessage(), null,
+                    "500", HttpStatus.OK), HttpStatus.OK);
+        }
+    }
+
+    @GetMapping("/getFormById/{id}")// todo this api is required for getting the single form details by id.
+    public ResponseEntity<ApiResponse> getHTMLFormDataBYId(@PathVariable("id") String id, HttpServletRequest request) {
+        try {
+            Long tenantId = getTenantId(request);
+            return jobService.getByIdHTMLForm(id, tenantId);
+        } catch (Exception e) {
+            return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, e.getMessage(), null,
+                    "500", HttpStatus.OK), HttpStatus.OK);
+        }
+    }
+
+    @PutMapping("/change-status/{id}")
+    public ResponseEntity<ApiResponse> changeStatusHTMLFormDataBYId(@PathVariable("id") String id, HttpServletRequest request) {
+        try {
+            Long tenantId = getTenantId(request);
+            return jobService.changeStatusHTMLForm(id, tenantId);
+        } catch (Exception e) {
+            return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, e.getMessage(), null,
+                    "500", HttpStatus.OK), HttpStatus.OK);
         }
     }
 

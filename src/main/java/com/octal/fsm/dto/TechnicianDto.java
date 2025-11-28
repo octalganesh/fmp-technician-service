@@ -4,6 +4,7 @@ import com.octal.fsm.entities.enums.Gender;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDate;
@@ -42,11 +43,14 @@ public class TechnicianDto {
         private String createdAt;
         private String updatedAt;
         private Boolean isActive;
-        private Integer assignedLeads;
-        private Integer completedJobs;
-        private Integer rating;
+        private long assignedTasks;
+        private long completedTasks;
+        private long allTasks;
+        private Double rating;
         private Gender gender;
         private String joinedDate;
+        private MultiUserDeviceDetailsDTO.Response multiUserDeviceDetails;
+
     }
 
     @Data
@@ -61,10 +65,14 @@ public class TechnicianDto {
         private String profilePicture;
     }
 
-
-
-
-
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class TaskStats {
+        private long assignedTasks;
+        private long completedTasks;
+        private long allTasks;
+    }
 
 
 }

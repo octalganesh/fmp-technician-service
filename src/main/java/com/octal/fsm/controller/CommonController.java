@@ -29,13 +29,15 @@ public class CommonController extends BaseController {
         logger.info("CommonController./job-type/list");
         String loggedInUserName = request.getHeader(CommonConstants.USER_NAME);
         try {
+            Long tenantId = getTenantId(request);
+            boolean isSuperAdmin = isSuperAdmin(request);
             Technician loggedIntechnician = technicianService.getTechnicianByEmailId(loggedInUserName);
             if (loggedIntechnician != null) {
                 listRequest.setSearchText("");
                 listRequest.setAsc(false);
                 listRequest.setShortingField("createdAt");
                 listRequest.setIsActive(true);
-                return jobService.getAllJobTypes(listRequest);
+                return jobService.getAllJobTypes(listRequest, tenantId, isSuperAdmin);
             } else {
                 return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, "Invalid technician.", null,
                         "400", HttpStatus.OK), HttpStatus.OK);
@@ -50,13 +52,15 @@ public class CommonController extends BaseController {
         logger.info("CommonController./job-tags/list");
         String loggedInUserName = request.getHeader(CommonConstants.USER_NAME);
         try {
+            Long tenantId = getTenantId(request);
+            boolean isSuperAdmin = isSuperAdmin(request);
             Technician loggedIntechnician = technicianService.getTechnicianByEmailId(loggedInUserName);
             if (loggedIntechnician != null) {
                 listRequest.setSearchText("");
                 listRequest.setAsc(false);
                 listRequest.setShortingField("createdAt");
                 listRequest.setIsActive(true);
-                return jobService.getAllJobTags(listRequest);
+                return jobService.getAllJobTags(listRequest, tenantId, isSuperAdmin);
             } else {
                 return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, "Invalid technician.", null,
                         "400", HttpStatus.OK), HttpStatus.OK);

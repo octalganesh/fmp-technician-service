@@ -56,7 +56,7 @@ public class JwtTokenProvider {
 //        if (technician.getRole() != null) {
 //            roles.add(technician.getRole().getName());
 //        } else {
-            roles.add("ROLE_TECHNICIAN");
+        roles.add("ROLE_TECHNICIAN");
 //        }
 
         claims.put("id", technician.getUuid());
@@ -66,7 +66,7 @@ public class JwtTokenProvider {
         claims.put("role", roles.get(0));
         claims.put("profileImage", technician.getProfilePicture());
         claims.put("permission", "");
-        claims.put("serviceRole","technician");
+        claims.put("serviceRole", "technician");
         return Jwts.builder()
                 .setClaims(claims)
                 .setIssuer(technician.getEmail())

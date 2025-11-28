@@ -3,8 +3,8 @@ package com.octal.fsm.service;
 import com.octal.fsm.common.ApiResponse;
 import com.octal.fsm.dto.CustomerFeedbackDTO;
 import com.octal.fsm.dto.DocumentDTO;
+import com.octal.fsm.dto.HTMLFormDTO;
 import com.octal.fsm.dto.JobDTO;
-import com.octal.fsm.dto.PageItem;
 import com.octal.fsm.entities.Technician;
 import com.octal.fsm.exceptions.CodeException;
 import com.octal.fsm.models.request.PageRequest;
@@ -17,21 +17,36 @@ import java.util.List;
 @Component
 public interface JobService {
 
-    ResponseEntity<ApiResponse> getAllJobs(JobDTO.JobFilterRequest jobFilterRequestDTO, Technician loggedInTechnician) throws CodeException;
+    ResponseEntity<ApiResponse> getAllJobs(JobDTO.JobFilterRequest jobFilterRequestDTO, Technician loggedInTechnician, Long tenantId, boolean isSuperAdmin) throws CodeException;
 
-    ResponseEntity<ApiResponse> getJobById(String taskId, Technician loggedInTechnician) throws CodeException;
+    ResponseEntity<ApiResponse> getJobById(String taskId, Technician loggedInTechnician, Long tenantId, boolean isSuperAdmin) throws CodeException;
 
-    String addFeedback(CustomerFeedbackDTO.Add feedback, Technician loggedInTechnician) throws CodeException;
+    String addFeedback(CustomerFeedbackDTO.Add feedback, Technician loggedInTechnician, Long tenantId, boolean isSuperAdmin) throws CodeException;
 
-    ResponseEntity<ApiResponse> updateJobTaskStatus(String taskId, String status, String note, String signature, Technician loggedIntechnician) throws CodeException;
+    ResponseEntity<ApiResponse> updateJobTaskStatus(String taskId, String status, String note, String signature, Technician loggedIntechnician, Long tenantId, boolean isSuperAdmin) throws CodeException;
+
+    ResponseEntity<ApiResponse> getAllJobTypes(PageRequest.List listRequest, Long tenantId, boolean isSuperAdmin) throws CodeException;
 
     ResponseEntity<ApiResponse> updateJobTask(String taskId, String note, Technician loggedIntechnician) throws CodeException;
 
-    ResponseEntity<ApiResponse> getAllJobTypes(PageRequest.List listRequest) throws CodeException;
+    ResponseEntity<ApiResponse> getAllJobTags(PageRequest.@Valid List listRequest, Long tenantId, boolean isSuperAdmin) throws CodeException;
 
-    ResponseEntity<ApiResponse> getAllJobTags(PageRequest.@Valid List listRequest) throws CodeException;
+    ResponseEntity<ApiResponse> uploadDocument(List<DocumentDTO.Add> uploadDocument, String loggedInUserEmail, Long tenantId, boolean isSuperAdmin) throws CodeException;
 
-    ResponseEntity<ApiResponse> uploadDocument(List<DocumentDTO.Add> uploadDocument, String loggedInUserEmail) throws CodeException;
+    ResponseEntity<ApiResponse> getDocumentTypeList(Integer page, Integer size, String sortBy, Boolean order, String loggedInUserEmail, Long tenantId, boolean isSuperAdmin);
 
-    ResponseEntity<ApiResponse> getDocumentTypeList(Integer page, Integer size, String sortBy, Boolean order, String loggedInUserEmail);
+    ResponseEntity<ApiResponse> addDrawingInTask(String taskId, JobDTO.TaskDrawingRequest taskDrawingRequest, Technician loggedIntechnician) throws CodeException;
+
+    ResponseEntity<ApiResponse> getFormByTaskId(String taskId, Long tenantId) throws CodeException;
+
+    ResponseEntity<ApiResponse> saveHTMLForm(HTMLFormDTO.Add add, Long tenantId, boolean isSuperAdmin) throws CodeException;
+
+    ResponseEntity<ApiResponse> getHTMLForm(String taskId, Long tenantId, boolean isSuperAdmin) throws CodeException;
+
+    ResponseEntity<ApiResponse> getListOfHTMLForm(PageRequest.@Valid List listRequest, Long tenantId);
+
+    ResponseEntity<ApiResponse> getByIdHTMLForm(String id, Long tenantId);
+
+    ResponseEntity<ApiResponse> changeStatusHTMLForm(String id, Long tenantId);
+
 }

@@ -1,9 +1,13 @@
 package com.octal.fsm.service.impl;
 
 import com.octal.fsm.clients.AdminClient;
+import com.octal.fsm.clients.JobClient;
+import com.octal.fsm.clients.NotificationClient;
 import com.octal.fsm.common.ApiResponse;
 import com.octal.fsm.common.CommonConstants;
 import com.octal.fsm.dto.*;
+import com.octal.fsm.dto.enums.NotificationUserGroup;
+import com.octal.fsm.entities.MultiUserDeviceDetails;
 import com.octal.fsm.entities.Technician;
 import com.octal.fsm.entities.UserOtpVerification;
 import com.octal.fsm.exceptions.CodeException;
@@ -19,6 +23,7 @@ import com.octal.fsm.specification.SpecificationFactory;
 import com.octal.fsm.utils.TechnicianTransformer;
 import com.octal.fsm.utils.TextUtils;
 import feign.FeignException;
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
@@ -29,24 +34,22 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
-
-import java.security.SecureRandom;
 
 import javax.mail.MessagingException;
+import java.security.SecureRandom;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Service
 public class TechnicianServiceImpl implements TechnicianService {
+    private static final Logger LOGGER = org.slf4j.LoggerFactory.getLogger(TechnicianServiceImpl.class);
 
     private static final AtomicInteger sequence = new AtomicInteger(1);
     @Autowired
@@ -66,6 +69,12 @@ public class TechnicianServiceImpl implements TechnicianService {
 
     @Autowired
     private ApplicationEventPublisher eventPublisher;
+
+    @Autowired
+    private NotificationClient notificationClient;
+
+    @Autowired
+    private JobClient jobClient;
 
     @Value("${aws.base-url}")
     private String awsS3BaseUrl;
@@ -91,7 +100,10 @@ public class TechnicianServiceImpl implements TechnicianService {
     }
 
     @Override
-    public String addTechnician(TechnicianDto.Add add) throws CodeException {
+    public String addTechnician(TechnicianDto.Add add, Long tenantId, boolean isSuperAdmin) throws CodeException {
+        if (isSuperAdmin) {
+            tenantId = 1l;
+        }
         String randomPassword = generateRandomPassword();
         if (TextUtils.isEmpty(add.getName()))
             throw new CodeException("name is required", ErrorCode.COMMON);
@@ -103,15 +115,15 @@ public class TechnicianServiceImpl implements TechnicianService {
             throw new CodeException("address is required", ErrorCode.COMMON);
         if (add.getGender() == null)
             throw new CodeException("gender is required", ErrorCode.COMMON);
-        Optional<Technician> optionalTechnician = technicianRepository.findByUuid(add.getId());
+        Optional<Technician> optionalTechnician = technicianRepository.findByUuidAndTenantId(add.getId(), tenantId);
         if (optionalTechnician.isPresent() && !optionalTechnician.get().getUuid().equals(add.getId())) {
             throw new CodeException("technician name is already present!", ErrorCode.RECORD_NOT_FOUND);
         }
         Technician newtechnicianRecord = null;
         if (TextUtils.isEmpty(add.getId())) {
-            if (technicianRepository.existsByMobileNumber(add.getMobileNumber()))
+            if (technicianRepository.existsByMobileNumberAndTenantId(add.getMobileNumber(), tenantId))
                 throw new CodeException("Technician with mobile number " + add.getMobileNumber() + " already exists", ErrorCode.RECORD_NOT_FOUND);
-            if (technicianRepository.existsByEmail(add.getEmail()))
+            if (technicianRepository.existsByEmailAndTenantId(add.getEmail(), tenantId))
                 throw new CodeException("Technician with email " + add.getEmail() + " already exists", ErrorCode.RECORD_NOT_FOUND);
             newtechnicianRecord = new Technician();
             newtechnicianRecord.setCreatedAt(LocalDateTime.now());
@@ -121,8 +133,8 @@ public class TechnicianServiceImpl implements TechnicianService {
             newtechnicianRecord.setPassword(passwordEncoder.encode(randomPassword));
             newtechnicianRecord.setActive(true);
         } else {
-            Optional<Technician> technician = technicianRepository.findByUuid(add.getId());
-            Optional<Technician> optional = technicianRepository.findByMobileNumber(add.getMobileNumber());
+            Optional<Technician> technician = technicianRepository.findByUuidAndTenantId(add.getId(), tenantId);
+            Optional<Technician> optional = technicianRepository.findByMobileNumberAndTenantId(add.getMobileNumber(), tenantId);
             Optional<Technician> optionalTechnician1 = technicianRepository.findByEmail(add.getEmail());
             if (optionalTechnician1.isPresent() && !optionalTechnician1.get().getUuid().equals(add.getId()))
                 throw new CodeException("Technician with email " + add.getEmail() + " already exists", ErrorCode.RECORD_NOT_FOUND);
@@ -143,8 +155,10 @@ public class TechnicianServiceImpl implements TechnicianService {
         //newtechnicianRecord.setAddress(new Address(add.getAddress().getStreet(), add.getAddress().getCity(), add.getAddress().getState(), add.getAddress().getPostalCode(), add.getAddress().getCountry()));
         newtechnicianRecord.setAddress(add.getAddress());
         newtechnicianRecord.setGender(add.getGender());
-        newtechnicianRecord.setProfilePicture(awsS3BaseUrl + add.getProfilePicture());
+        if (!TextUtils.isEmpty(add.getProfilePicture()))
+            newtechnicianRecord.setProfilePicture(awsS3BaseUrl + add.getProfilePicture());
         newtechnicianRecord.setJoinDate(add.getJoinedDate().atStartOfDay());
+        newtechnicianRecord.setTenantId(tenantId);
         Technician technician = technicianRepository.save(newtechnicianRecord);
         TechnicianRegisterRequest technicianRegisterRequest = new TechnicianRegisterRequest();
         technicianRegisterRequest.setActive(newtechnicianRecord.getActive());
@@ -153,15 +167,19 @@ public class TechnicianServiceImpl implements TechnicianService {
         technicianRegisterRequest.setPassword("Technician@123");
         technicianRegisterRequest.setCreatedAt(newtechnicianRecord.getCreatedAt());
         technicianRegisterRequest.setFullName(technician.getName());
+        technicianRegisterRequest.setTenantId(String.valueOf(tenantId));
         technician.setPassword(randomPassword);
-        eventPublisher.publishEvent(new AddTechnicianUserInAuthEvent(technicianRegisterRequest, technician));
+        eventPublisher.publishEvent(new AddTechnicianUserInAuthEvent(technicianRegisterRequest, technician, tenantId, isSuperAdmin));
         return technician.getUuid();
     }
 
 
     @Override
-    public Boolean deleteById(String id) throws CodeException {
-        Optional<Technician> technicianRecord = technicianRepository.findByUuid(id);
+    public Boolean deleteById(String id, Long tenantId, boolean isSuperAdmin) throws CodeException {
+        if (isSuperAdmin) {
+            tenantId = 1l;
+        }
+        Optional<Technician> technicianRecord = technicianRepository.findByUuidAndTenantId(id, tenantId);
         if (technicianRecord.isPresent()) {
             technicianRecord.get().setDeleted(true);
             technicianRepository.save(technicianRecord.get());
@@ -172,14 +190,77 @@ public class TechnicianServiceImpl implements TechnicianService {
     }
 
     @Override
-    public TechnicianDto.list getTechnicianByUuid(String id) throws CodeException {
+    public TechnicianDto.list getTechnicianByUuid(String id, Long tenantId, boolean isSuperAdmin) throws CodeException {
+        if (isSuperAdmin) {
+            tenantId = 1l;
+        }
         Optional<Technician> technicianRecord = technicianRepository.findByUuid(id);
+        Map<String, TechnicianDto.TaskStats> taskSummaryMap = new HashMap<>();
+        if (technicianRecord.isPresent()) {
+            ResponseEntity<ApiResponse> response = jobClient.getTechnicianTaskSummary(List.of(technicianRecord.get().getUuid()), tenantId, isSuperAdmin);
+            if (response != null && response.getStatusCode().is2xxSuccessful()) {
+                ApiResponse apiResponse = response.getBody();
+                if (apiResponse != null && apiResponse.getData() != null) {
+                    Object data = apiResponse.getData();
+                    if (data instanceof Map<?, ?>) {
+                        // Type-safe conversion
+                        taskSummaryMap = ((Map<?, ?>) data).entrySet().stream()
+                                .filter(e -> e.getKey() instanceof String && e.getValue() instanceof TechnicianDto.TaskStats)
+                                .collect(Collectors.toMap(
+                                        e -> (String) e.getKey(),
+                                        e -> (TechnicianDto.TaskStats) e.getValue()
+                                ));
+                    } else {
+                        LOGGER.warn("Unexpected data type in response: {}", data.getClass());
+                    }
+                } else {
+                    LOGGER.warn("Empty ApiResponse body or data");
+                }
+            } else {
+                LOGGER.error("Failed to fetch technician task summary: {}",
+                        response != null ? response.getStatusCode() : "null response");
+            }
+
+        }
+        Map<String, Double> ratingSummaryMap = new HashMap<>();
+        if (technicianRecord.isPresent()) {
+            ResponseEntity<ApiResponse> response = adminClient.getFeedbackSummary(List.of(technicianRecord.get().getUuid()), tenantId, isSuperAdmin);
+            if (response != null && response.getStatusCode().is2xxSuccessful()) {
+                ApiResponse apiResponse = response.getBody();
+                if (apiResponse != null && apiResponse.getData() != null) {
+                    Object data = apiResponse.getData();
+                    if (data instanceof Map<?, ?>) {
+                        // Type-safe conversion
+                        ratingSummaryMap = ((Map<?, ?>) data).entrySet().stream()
+                                .filter(e -> e.getKey() instanceof String && e.getValue() instanceof Double)
+                                .collect(Collectors.toMap(
+                                        e -> (String) e.getKey(),
+                                        e -> (Double) e.getValue()
+                                ));
+                    } else {
+                        LOGGER.warn("Unexpected data type in response for feedback summary: {}", data.getClass());
+                    }
+                } else {
+                    LOGGER.warn("Empty ApiResponse body or data for for feedback summary");
+                }
+            } else {
+                LOGGER.error("Failed to fetch technician feedback summary: {}",
+                        response != null ? response.getStatusCode() : "null response");
+            }
+
+        }
         if (technicianRecord.isPresent()) {
             TechnicianDto.list technician = new TechnicianDto.list();
             technician.setEmployeeId(technicianRecord.get().getEmployeeId());
             technician.setEmail(technicianRecord.get().getEmail());
             technician.setId(technicianRecord.get().getUuid());
             technician.setName(technicianRecord.get().getName());
+            technician.setRating(ratingSummaryMap.getOrDefault(technicianRecord.get().getUuid(), 0.0));
+            if (taskSummaryMap.containsKey(technicianRecord.get().getUuid())) {
+                technician.setAssignedTasks(taskSummaryMap.get(technicianRecord.get().getUuid()).getAssignedTasks());
+                technician.setAllTasks(taskSummaryMap.get(technicianRecord.get().getUuid()).getAllTasks());
+                technician.setCompletedTasks(taskSummaryMap.get(technicianRecord.get().getUuid()).getCompletedTasks());
+            }
             //technician.setAddress(new AddressDTO(technicianRecord.get().getAddress().getStreet(), technicianRecord.get().getAddress().getCity(), technicianRecord.get().getAddress().getState(), technicianRecord.get().getAddress().getPostalCode(), technicianRecord.get().getAddress().getCountry()));
             technician.setAddress(technicianRecord.get().getAddress());
             technician.setMobileNumber(technicianRecord.get().getMobileNumber());
@@ -189,6 +270,15 @@ public class TechnicianServiceImpl implements TechnicianService {
             technician.setCreatedAt(technicianRecord.get().getCreatedAt().toString());
             technician.setUpdatedAt(technicianRecord.get().getUpdatedAt().toString());
             technician.setGender(technicianRecord.get().getGender());
+            if (technicianRecord.get().getMultiUserDeviceDetails() != null) {
+                MultiUserDeviceDetails multiUserDeviceDetails = technicianRecord.get().getMultiUserDeviceDetails();
+                MultiUserDeviceDetailsDTO.Response multiUserDeviceDetailsDTO = new MultiUserDeviceDetailsDTO.Response();
+                multiUserDeviceDetailsDTO.setDeviceToken(multiUserDeviceDetails.getDeviceToken());
+                multiUserDeviceDetailsDTO.setDeviceType(multiUserDeviceDetails.getDeviceType());
+                multiUserDeviceDetailsDTO.setAppVersion(multiUserDeviceDetails.getAppVersion());
+                technician.setMultiUserDeviceDetails(multiUserDeviceDetailsDTO);
+                technician.setMultiUserDeviceDetails(multiUserDeviceDetailsDTO);
+            }
             return technician;
         } else {
             throw new CodeException(CommonConstants.TECHNICIAN_NOT_FOUND + id, ErrorCode.COMMON);
@@ -196,8 +286,11 @@ public class TechnicianServiceImpl implements TechnicianService {
     }
 
     @Override
-    public Boolean changeStatus(String id) throws CodeException {
-        Optional<Technician> technicianRecord = technicianRepository.findByUuid(id);
+    public Boolean changeStatus(String id, Long tenantId, boolean isSuperAdmin) throws CodeException {
+        if (isSuperAdmin) {
+            tenantId = 1l;
+        }
+        Optional<Technician> technicianRecord = technicianRepository.findByUuidAndTenantId(id, tenantId);
         if (technicianRecord.isPresent()) {
             if (Boolean.TRUE.equals(technicianRecord.get().getActive())) {
                 technicianRecord.get().setActive(false);
@@ -214,7 +307,10 @@ public class TechnicianServiceImpl implements TechnicianService {
     }
 
     @Override
-    public PageItem<TechnicianDto.list> getAllTechnician(PageRequest.List listRequest) {
+    public PageItem<TechnicianDto.list> getAllTechnician(PageRequest.List listRequest, Long tenantId, boolean isSuperAdmin) {
+        if (isSuperAdmin) {
+            tenantId = 1l;
+        }
         String trimmedText = listRequest.getSearchText().trim();
         listRequest.setSearchText(trimmedText);
         GenericSpecificationsBuilder<Technician> builder = new GenericSpecificationsBuilder<>();
@@ -224,8 +320,63 @@ public class TechnicianServiceImpl implements TechnicianService {
         } else {
             pageable = org.springframework.data.domain.PageRequest.of(listRequest.getPageNumber(), listRequest.getPageSize(), Sort.by(listRequest.getShortingField()).descending());
         }
-        prepareTechnicianSearchFilter(listRequest, builder);
+        prepareTechnicianSearchFilter(listRequest, builder, tenantId, isSuperAdmin);
         Page<Technician> pagedResult = technicianRepository.findAll(builder.build(), pageable);
+        Map<String, TechnicianDto.TaskStats> taskSummaryMap = new HashMap<>();
+        if (!pagedResult.isEmpty()) {
+            ResponseEntity<ApiResponse> response = jobClient.getTechnicianTaskSummary(pagedResult.get().map(Technician::getUuid).collect(Collectors.toList()), tenantId, isSuperAdmin);
+            if (response != null && response.getStatusCode().is2xxSuccessful()) {
+                ApiResponse apiResponse = response.getBody();
+                if (apiResponse != null && apiResponse.getData() != null) {
+                    Object data = apiResponse.getData();
+                    if (data instanceof Map<?, ?>) {
+                        // Type-safe conversion
+                        taskSummaryMap = ((Map<?, ?>) data).entrySet().stream()
+                                .filter(e -> e.getKey() instanceof String && e.getValue() instanceof TechnicianDto.TaskStats)
+                                .collect(Collectors.toMap(
+                                        e -> (String) e.getKey(),
+                                        e -> (TechnicianDto.TaskStats) e.getValue()
+                                ));
+                    } else {
+                        LOGGER.warn("Unexpected data type in response: {}", data.getClass());
+                    }
+                } else {
+                    LOGGER.warn("Empty ApiResponse body or data");
+                }
+            } else {
+                LOGGER.error("Failed to fetch technician task summary: {}",
+                        response != null ? response.getStatusCode() : "null response");
+            }
+
+        }
+        Map<String, Double> ratingSummaryMap = new HashMap<>();
+        if (!pagedResult.isEmpty()) {
+            ResponseEntity<ApiResponse> response = adminClient.getFeedbackSummary(pagedResult.get().map(Technician::getUuid).collect(Collectors.toList()), tenantId, isSuperAdmin);
+            if (response != null && response.getStatusCode().is2xxSuccessful()) {
+                ApiResponse apiResponse = response.getBody();
+                if (apiResponse != null && apiResponse.getData() != null) {
+                    Object data = apiResponse.getData();
+                    if (data instanceof Map<?, ?>) {
+                        // Type-safe conversion
+                        ratingSummaryMap = ((Map<?, ?>) data).entrySet().stream()
+                                .filter(e -> e.getKey() instanceof String && e.getValue() instanceof Double)
+                                .collect(Collectors.toMap(
+                                        e -> (String) e.getKey(),
+                                        e -> (Double) e.getValue()
+                                ));
+                    } else {
+                        LOGGER.warn("Unexpected data type in response for feedback summary: {}", data.getClass());
+                    }
+                } else {
+                    LOGGER.warn("Empty ApiResponse body or data for for feedback summary");
+                }
+            } else {
+                LOGGER.error("Failed to fetch technician feedback summary: {}",
+                        response != null ? response.getStatusCode() : "null response");
+            }
+
+        }
+
         List<TechnicianDto.list> responseList = new ArrayList<>();
         for (Technician technician : pagedResult.getContent()) {
             TechnicianDto.list dto = new TechnicianDto.list();
@@ -234,6 +385,12 @@ public class TechnicianServiceImpl implements TechnicianService {
             dto.setEmail(technician.getEmail());
             dto.setMobileNumber(technician.getMobileNumber());
             dto.setProfilePicture(technician.getProfilePicture());
+            dto.setRating(ratingSummaryMap.getOrDefault(technician.getUuid(), 0.0));
+            if (taskSummaryMap.containsKey(technician.getUuid())) {
+                dto.setAssignedTasks(taskSummaryMap.get(technician.getUuid()).getAssignedTasks());
+                dto.setAllTasks(taskSummaryMap.get(technician.getUuid()).getAllTasks());
+                dto.setCompletedTasks(taskSummaryMap.get(technician.getUuid()).getCompletedTasks());
+            }
             //dto.setAddress(new AddressDTO(technician.getAddress().getStreet(), technician.getAddress().getCity(), technician.getAddress().getState(), technician.getAddress().getPostalCode(), technician.getAddress().getCountry()));
             dto.setAddress(technician.getAddress());
             dto.setIsActive(technician.getActive());
@@ -250,7 +407,10 @@ public class TechnicianServiceImpl implements TechnicianService {
     }
 
     @Override
-    public PageItem<TechnicianDto.ListForAssignment> getListForAssignment(PageRequest.List listRequest) {
+    public PageItem<TechnicianDto.ListForAssignment> getListForAssignment(PageRequest.List listRequest, Long tenantId, boolean isSuperAdmin) {
+        if (isSuperAdmin) {
+            tenantId = 1l;
+        }
         String trimmedText = listRequest.getSearchText().trim();
         listRequest.setSearchText(trimmedText);
         GenericSpecificationsBuilder<Technician> builder = new GenericSpecificationsBuilder<>();
@@ -260,7 +420,7 @@ public class TechnicianServiceImpl implements TechnicianService {
         } else {
             pageable = org.springframework.data.domain.PageRequest.of(listRequest.getPageNumber(), listRequest.getPageSize(), Sort.by(listRequest.getShortingField()).descending());
         }
-        prepareTechnicianSearchFilter(listRequest, builder);
+        prepareTechnicianSearchFilter(listRequest, builder, tenantId, isSuperAdmin);
         builder.with(technicianSpecificationFactory.isEqual("available", true));
         Page<Technician> pagedResult = technicianRepository.findAll(builder.build(), pageable);
         List<TechnicianDto.ListForAssignment> responseList = new ArrayList<>();
@@ -277,9 +437,12 @@ public class TechnicianServiceImpl implements TechnicianService {
                 listRequest.getPageSize());
     }
 
-    private void prepareTechnicianSearchFilter(PageRequest.List listRequest, GenericSpecificationsBuilder<Technician> builder) {
+    private void prepareTechnicianSearchFilter(PageRequest.List listRequest, GenericSpecificationsBuilder<Technician> builder, Long tenantId, boolean isSuperAdmin) {
 
         builder.with(technicianSpecificationFactory.isEqual("deleted", false));
+
+        builder.with(technicianSpecificationFactory.isEqual("tenantId", tenantId));
+
         builder.with(technicianSpecificationFactory.isEqual("blocked", false));
         if (org.apache.commons.lang.StringUtils.isNotBlank(listRequest.getSearchText())) {
             builder.with(technicianSpecificationFactory.like("name", listRequest.getSearchText()).or(technicianSpecificationFactory.like("employeeId", listRequest.getSearchText())).or(technicianSpecificationFactory.like("mobileNumber", listRequest.getSearchText()))
@@ -299,6 +462,14 @@ public class TechnicianServiceImpl implements TechnicianService {
         if (listRequest.getEndDate() != null) {
             builder.with(technicianSpecificationFactory.isLessThanOrEquals("joinDate", listRequest.getEndDate().atTime(23, 59, 59)));
         }
+
+    }
+
+    private void prepareTechnicianSearchFilterForAll(PageRequest.List listRequest, GenericSpecificationsBuilder<Technician> builder, Long tenantId, boolean isSuperAdmin) {
+
+        builder.with(technicianSpecificationFactory.isEqual("deleted", false));
+
+        builder.with(technicianSpecificationFactory.isEqual("tenantId", tenantId));
 
     }
 
@@ -325,7 +496,7 @@ public class TechnicianServiceImpl implements TechnicianService {
 
 
     @Override
-    public AuthTechnicianDTO fetchAuthenticatedUserDetailsByEmail(String email) {
+    public AuthTechnicianDTO fetchAuthenticatedUserDetailsByEmail(String email, Long tenantId, boolean isSuperAdmin) {
         Optional<Technician> user = technicianRepository.findByEmail(email);
         return user.map(TechnicianTransformer.userToAuthDto::apply).orElse(null);
     }
@@ -391,7 +562,7 @@ public class TechnicianServiceImpl implements TechnicianService {
     }
 
     @Override
-    public void updatePassword(TechnicianDetailDTO.ChangePassword changePassword, Technician loggedIntechnician) throws CodeException {
+    public void updatePassword(TechnicianDetailDTO.ChangePassword changePassword, Technician loggedIntechnician, Long tenantId, boolean isSuperAdmin) throws CodeException {
         if (isPasswordValid(changePassword.getNewPassword())) {
             // new password and confirm password should be same
             if (changePassword.getNewPassword().equals(changePassword.getConfirmPassword())) {
@@ -414,10 +585,13 @@ public class TechnicianServiceImpl implements TechnicianService {
     }
 
     @Override
-    public TechnicianDetailDTO updateProfile(Technician technician, TechnicianDetailDTO technicianDetailDTO) throws CodeException {
+    public TechnicianDetailDTO updateProfile(Technician technician, TechnicianDetailDTO technicianDetailDTO, Long tenantId, boolean isSuperAdmin) throws CodeException {
+        if (isSuperAdmin) {
+            tenantId = 1l;
+        }
         if (TextUtils.isEmpty(technicianDetailDTO.getProfileImage()))
             throw new CodeException("profile image is required", ErrorCode.BAD_REQUEST);
-        technician.setProfilePicture(awsS3BaseUrl+technicianDetailDTO.getProfileImage());
+        technician.setProfilePicture(awsS3BaseUrl + technicianDetailDTO.getProfileImage());
         technicianRepository.save(technician);
         TechnicianDetailDTO response = new TechnicianDetailDTO();
         response.setId(technician.getUuid());
@@ -425,7 +599,10 @@ public class TechnicianServiceImpl implements TechnicianService {
         response.setFullName(technician.getName());
         response.setEmail(technician.getEmail());
         response.setContactNumber(technician.getMobileNumber());
-        response.setNotificationEnable(true);
+        response.setPushEnabled(Optional.ofNullable(technician)
+                .map(Technician::getMultiUserDeviceDetails)
+                .map(MultiUserDeviceDetails::getPushEnabled)
+                .orElse(false));
         response.setProfileImage(technician.getProfilePicture());
         return response;
     }
@@ -441,15 +618,18 @@ public class TechnicianServiceImpl implements TechnicianService {
         response.setFullName(user.get().getName());
         response.setEmail(user.get().getEmail());
         response.setContactNumber(user.get().getMobileNumber());
-        response.setNotificationEnable(true);
+        response.setPushEnabled(Optional.ofNullable(user.get())
+                .map(Technician::getMultiUserDeviceDetails)
+                .map(MultiUserDeviceDetails::getPushEnabled)
+                .orElse(false));
         response.setProfileImage(user.get().getProfilePicture());
         return response;
     }
 
     @Override
-    public ResponseEntity<ApiResponse> getStaticContentBySlug(String slug) throws CodeException {
+    public ResponseEntity<ApiResponse> getStaticContentBySlug(String slug, Long tenantId, boolean isSuperAdmin) throws CodeException {
         try {
-            ResponseEntity<ApiResponse> response = adminClient.getBySlug(slug);
+            ResponseEntity<ApiResponse> response = adminClient.getBySlug(slug, tenantId, isSuperAdmin);
 
             return response;
 
@@ -471,9 +651,10 @@ public class TechnicianServiceImpl implements TechnicianService {
     }
 
     @Override
-    public ResponseEntity<ApiResponse> getAnnouncements(PageRequest.List listRequest) throws CodeException {
+    public ResponseEntity<ApiResponse> getAnnouncements(PageRequest.List listRequest, Long tenantId, boolean isSuperAdmin) throws CodeException {
+        listRequest.setIsActive(true);
         try {
-            ResponseEntity<ApiResponse> response = adminClient.getAllAnnouncementsForTechnician(listRequest);
+            ResponseEntity<ApiResponse> response = adminClient.getAllAnnouncementsForTechnician(listRequest, tenantId, isSuperAdmin);
 
             return response;
 
@@ -481,6 +662,54 @@ public class TechnicianServiceImpl implements TechnicianService {
             throw new CodeException("Remote admin-service failed: " + e.contentUTF8(), ErrorCode.COMMON);
         }
     }
+
+    @Override
+    public Set<MultiUserDeviceDetailsDTO.Response> getTechniciansNotificationsData(TechnicianNotificationRequest notificationRequest) throws CodeException {
+        List<MultiUserDeviceDetails> multiUserDeviceDetails = new ArrayList<>();
+        if (notificationRequest.getUserGroup().equals(NotificationUserGroup.ALL_USER)) {
+            multiUserDeviceDetails = technicianRepository.findByDeviceTokenNotNullAndDeviceTypeNotNullAndDeviceTokenNot("");
+        } else if (notificationRequest.getUserGroup().equals(NotificationUserGroup.ALL_ANDROID_USER)) {
+            multiUserDeviceDetails = technicianRepository.findByDeviceTypeIgnoreCaseAndDeviceTokenIsNotNullAndDeviceTokenNot("android", "");
+
+        } else if (notificationRequest.getUserGroup().equals(NotificationUserGroup.ALL_IOS_USER)) {
+            multiUserDeviceDetails = technicianRepository.findByDeviceTypeIgnoreCaseAndDeviceTokenIsNotNullAndDeviceTokenNot("iOS", "");
+
+        } else if (notificationRequest.getUserGroup().equals(NotificationUserGroup.PARTICULAR_USER)) {
+
+            multiUserDeviceDetails = technicianRepository.findByUserIdIn(notificationRequest.getUserIds());
+
+        }
+        if (multiUserDeviceDetails.isEmpty()) {
+            throw new CodeException("No Active users found to send notification", ErrorCode.COMMON);
+        }
+        Set<MultiUserDeviceDetailsDTO.Response> deviceDetailsDTOS = new HashSet<>();
+        for (MultiUserDeviceDetails userDeviceDetails : multiUserDeviceDetails) {
+            MultiUserDeviceDetailsDTO.Response dto = new MultiUserDeviceDetailsDTO.Response();
+            dto.setDeviceType(userDeviceDetails.getDeviceType());
+            dto.setDeviceToken(userDeviceDetails.getDeviceToken());
+            dto.setAppVersion(userDeviceDetails.getAppVersion());
+            dto.setDeviceId(userDeviceDetails.getDeviceId());
+            deviceDetailsDTOS.add(dto);
+        }
+        return deviceDetailsDTOS;
+    }
+
+    @Override
+    public ResponseEntity<ApiResponse> getNotificationList(UserNotificationListDTO.ListRequest listRequest, Technician loggedIntechnician) throws CodeException {
+        if (TextUtils.isEmpty(listRequest.getSort()))
+            listRequest.setSort("createdAt");
+        listRequest.setUserId(loggedIntechnician.getUuid());
+        listRequest.setType("TECHNICIAN");
+        try {
+            ResponseEntity<ApiResponse> response = notificationClient.getUserNotificationList(listRequest);
+
+            return response;
+
+        } catch (FeignException e) {
+            throw new CodeException("Remote notification-service failed: " + e.contentUTF8(), ErrorCode.COMMON);
+        }
+    }
+
 
     private void updateUserVerificationStatus(Optional<UserOtpVerification> userVerificationToken, Technician user) throws CodeException {
 
@@ -503,5 +732,100 @@ public class TechnicianServiceImpl implements TechnicianService {
         }
     }
 
+    @Override
+    public JobDashboardResponseDTO.Detail countTechnician(JobDashboardResponseDTO.Search search) throws CodeException {
+        if (search.getStartDate() == null || search.getEndDate() == null) {
+            throw new CodeException("Start date and end date are required", ErrorCode.COMMON);
+        }
+        long count = technicianRepository.countByAndCreatedAtBetween(search.getStartDate().atStartOfDay(), search.getEndDate().atTime(23, 59, 59));
+        JobDashboardResponseDTO.Detail st = new JobDashboardResponseDTO.Detail();
+        st.setTotalNoOfTechnician(count);
+        return st;
+    }
+
+    @Override
+    public ResponseEntity<ApiResponse> getFrontOfficeDevices(String id, Long tenantId) throws CodeException {
+        return adminClient.getFrontOfficeDevices(id, tenantId);
+    }
+
+    @Override
+    public List<MultiUserDeviceDetails> getAllTechnicianDevices(Long tenantId) {
+        GenericSpecificationsBuilder<Technician> builder = new GenericSpecificationsBuilder<>();
+        builder.with(technicianSpecificationFactory.isEqual("tenantId", tenantId));
+        builder.with(technicianSpecificationFactory.isEqual("deleted", false));
+        List<Technician> technicianList = technicianRepository.findAll(builder.build());
+
+        return technicianList.stream()
+                .map(Technician::getMultiUserDeviceDetails)
+                .filter(Objects::nonNull)
+                .filter(device -> device.getDeviceToken() != null && !device.getDeviceToken().isEmpty())
+                .filter(device -> device.getDeviceType() != null && !device.getDeviceType().isEmpty())
+                .collect(Collectors.toList());
+
+    }
+
+    @Override
+    public List<TechnicianDto.list> getAllTechByIds(List<String> ids) throws CodeException {
+        List<Technician> byUuid = technicianRepository.findByUuid(ids);
+        List<TechnicianDto.list> result = new ArrayList<>();
+        for (Technician t : byUuid) {
+            TechnicianDto.list dto = new TechnicianDto.list();
+            dto.setId(t.getUuid());
+            dto.setName(t.getName());
+            dto.setEmail(t.getEmail());
+            dto.setMobileNumber(t.getMobileNumber());
+            dto.setEmployeeId(t.getEmployeeId());
+            dto.setProfilePicture(t.getProfilePicture());
+            dto.setIsActive(t.getActive());
+            dto.setJoinedDate(t.getJoinDate() != null ? t.getJoinDate().toString() : null);
+            result.add(dto);
+        }
+        return result;
+    }
+
+    @Override
+    public PageItem<TechnicianDto.list> getAllTech(PageRequest.List listRequest, Long tenantId, boolean isSuperAdmin) throws CodeException {
+        GenericSpecificationsBuilder<Technician> builder = new GenericSpecificationsBuilder<>();
+        Pageable pageable = null;
+        if (Boolean.TRUE.equals(listRequest.getAsc())) {
+            pageable = org.springframework.data.domain.PageRequest.of(listRequest.getPageNumber(), listRequest.getPageSize(), Sort.by(listRequest.getShortingField()).ascending());
+        } else {
+            pageable = org.springframework.data.domain.PageRequest.of(listRequest.getPageNumber(), listRequest.getPageSize(), Sort.by(listRequest.getShortingField()).descending());
+        }
+//        prepareTechnicianSearchFilterForAll(listRequest, builder, tenantId, isSuperAdmin);
+        Page<Technician> pagedResult = technicianRepository.findAll(builder.build(), pageable);
+
+        List<TechnicianDto.list> responseList = new ArrayList<>();
+        for (Technician t : pagedResult.getContent()) {
+            TechnicianDto.list dto = new TechnicianDto.list();
+            dto.setId(t.getUuid());
+            dto.setName(t.getName());
+            dto.setEmail(t.getEmail());
+            dto.setMobileNumber(t.getMobileNumber());
+            dto.setEmployeeId(t.getEmployeeId());
+            dto.setProfilePicture(t.getProfilePicture());
+            dto.setIsActive(t.getActive());
+            dto.setJoinedDate(t.getJoinDate() != null ? t.getJoinDate().toString() : null);
+            responseList.add(dto);
+        }
+        return new PageItem<>(pagedResult.getTotalPages(), pagedResult.getTotalElements(), responseList, listRequest.getPageNumber(),
+                listRequest.getPageSize());
+    }
+
+    @Override
+    public Boolean notificationToggle(Technician loggedIntechnician, Long tenantId, boolean isSuperAdmin) {
+        MultiUserDeviceDetails multiUserDeviceDetails = loggedIntechnician.getMultiUserDeviceDetails();
+        if (multiUserDeviceDetails != null) {
+            Boolean pushEnabled = multiUserDeviceDetails.getPushEnabled();
+            if (pushEnabled != null && pushEnabled) {
+                multiUserDeviceDetails.setPushEnabled(false);
+            } else {
+                multiUserDeviceDetails.setPushEnabled(true);
+            }
+            technicianRepository.save(loggedIntechnician);
+            return multiUserDeviceDetails.getPushEnabled();
+        }
+        return false;
+    }
 
 }
