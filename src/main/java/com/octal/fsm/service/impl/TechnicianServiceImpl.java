@@ -1,5 +1,6 @@
 package com.octal.fsm.service.impl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.octal.fsm.clients.AdminClient;
 import com.octal.fsm.clients.JobClient;
 import com.octal.fsm.clients.NotificationClient;
@@ -328,15 +329,20 @@ public class TechnicianServiceImpl implements TechnicianService {
             if (response != null && response.getStatusCode().is2xxSuccessful()) {
                 ApiResponse apiResponse = response.getBody();
                 if (apiResponse != null && apiResponse.getData() != null) {
+                    ObjectMapper mapper = new ObjectMapper();
                     Object data = apiResponse.getData();
                     if (data instanceof Map<?, ?>) {
-                        // Type-safe conversion
-                        taskSummaryMap = ((Map<?, ?>) data).entrySet().stream()
-                                .filter(e -> e.getKey() instanceof String && e.getValue() instanceof TechnicianDto.TaskStats)
-                                .collect(Collectors.toMap(
-                                        e -> (String) e.getKey(),
-                                        e -> (TechnicianDto.TaskStats) e.getValue()
-                                ));
+                        Map<?, ?> mapData = (Map<?, ?>) data;
+                        for (Map.Entry<?, ?> entry : mapData.entrySet()) {
+
+                            String key = entry.getKey().toString();
+
+                            // Convert each value to TaskStats object
+                            TechnicianDto.TaskStats stats =
+                                    mapper.convertValue(entry.getValue(), TechnicianDto.TaskStats.class);
+
+                            taskSummaryMap.put(key, stats);
+                        }
                     } else {
                         LOGGER.warn("Unexpected data type in response: {}", data.getClass());
                     }
