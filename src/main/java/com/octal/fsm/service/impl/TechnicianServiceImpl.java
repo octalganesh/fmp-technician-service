@@ -799,6 +799,8 @@ public class TechnicianServiceImpl implements TechnicianService {
             pageable = org.springframework.data.domain.PageRequest.of(listRequest.getPageNumber(), listRequest.getPageSize(), Sort.by(listRequest.getShortingField()).descending());
         }
 //        prepareTechnicianSearchFilterForAll(listRequest, builder, tenantId, isSuperAdmin);
+        if(listRequest.getIsActive()!=null)
+            builder.with(technicianSpecificationFactory.isEqual("isActive", listRequest.getIsActive()));
         Page<Technician> pagedResult = technicianRepository.findAll(builder.build(), pageable);
 
         List<TechnicianDto.list> responseList = new ArrayList<>();
