@@ -118,7 +118,7 @@ public class TechnicianAuthController extends BaseController {
             if (loggedIntechnician != null) {
                 //remove jwt token on the time of log out
                 loggedIntechnician.setToken(null);
-                loggedIntechnician.getMultiUserDeviceDetails().setDeviceToken("");
+                //loggedIntechnician.getMultiUserDeviceDetails().setDeviceToken("");
                 technicianRepository.save(loggedIntechnician);
 
                 TechnicianRegisterRequest authRegisterRequest = new TechnicianRegisterRequest();
