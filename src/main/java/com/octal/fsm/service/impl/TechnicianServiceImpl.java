@@ -103,7 +103,7 @@ public class TechnicianServiceImpl implements TechnicianService {
     @Override
     public String addTechnician(TechnicianDto.Add add, Long tenantId, boolean isSuperAdmin) throws CodeException {
         if (isSuperAdmin) {
-            tenantId = 1L;
+            tenantId = 1l;
         }
         String randomPassword = generateRandomPassword();
         if (TextUtils.isEmpty(add.getName()))
@@ -193,39 +193,12 @@ public class TechnicianServiceImpl implements TechnicianService {
     @Override
     public TechnicianDto.list getTechnicianByUuid(String id, Long tenantId, boolean isSuperAdmin) throws CodeException {
         if (isSuperAdmin) {
-            tenantId = 1L;
+            tenantId = 1l;
         }
         Optional<Technician> technicianRecord = technicianRepository.findByUuid(id);
         Map<String, TechnicianDto.TaskStats> taskSummaryMap = new HashMap<>();
         if (technicianRecord.isPresent()) {
             ResponseEntity<ApiResponse> response = jobClient.getTechnicianTaskSummary(List.of(technicianRecord.get().getUuid()), tenantId, isSuperAdmin);
-            if (response != null && response.getStatusCode().is2xxSuccessful()) {
-                ApiResponse apiResponse = response.getBody();
-                if (apiResponse != null && apiResponse.getData() != null) {
-                    Object data = apiResponse.getData();
-                    if (data instanceof Map<?, ?>) {
-                        // Type-safe conversion
-                        taskSummaryMap = ((Map<?, ?>) data).entrySet().stream()
-                                .filter(e -> e.getKey() instanceof String && e.getValue() instanceof TechnicianDto.TaskStats)
-                                .collect(Collectors.toMap(
-                                        e -> (String) e.getKey(),
-                                        e -> (TechnicianDto.TaskStats) e.getValue()
-                                ));
-                    } else {
-                        LOGGER.warn("Unexpected data type in response: {}", data.getClass());
-                    }
-                } else {
-                    LOGGER.warn("Empty ApiResponse body or data");
-                }
-            } else {
-                LOGGER.error("Failed to fetch technician task summary: {}",
-                        response != null ? response.getStatusCode() : "null response");
-            }
-
-        }
-        Map<String, Double> ratingSummaryMap = new HashMap<>();
-        if (technicianRecord.isPresent()) {
-            ResponseEntity<ApiResponse> response = adminClient.getFeedbackSummary(List.of(technicianRecord.get().getUuid()), tenantId, isSuperAdmin);
             if (response != null && response.getStatusCode().is2xxSuccessful()) {
                 ApiResponse apiResponse = response.getBody();
                 if (apiResponse != null && apiResponse.getData() != null) {
@@ -245,6 +218,33 @@ public class TechnicianServiceImpl implements TechnicianService {
                         }
                     } else {
                         LOGGER.warn("Unexpected data type in response: {}", data.getClass());
+                    }
+                } else {
+                    LOGGER.warn("Empty ApiResponse body or data");
+                }
+            } else {
+                LOGGER.error("Failed to fetch technician task summary: {}",
+                        response != null ? response.getStatusCode() : "null response");
+            }
+
+        }
+        Map<String, Double> ratingSummaryMap = new HashMap<>();
+        if (technicianRecord.isPresent()) {
+            ResponseEntity<ApiResponse> response = adminClient.getFeedbackSummary(List.of(technicianRecord.get().getUuid()), tenantId, isSuperAdmin);
+            if (response != null && response.getStatusCode().is2xxSuccessful()) {
+                ApiResponse apiResponse = response.getBody();
+                if (apiResponse != null && apiResponse.getData() != null) {
+                    Object data = apiResponse.getData();
+                    if (data instanceof Map<?, ?>) {
+                        // Type-safe conversion
+                        ratingSummaryMap = ((Map<?, ?>) data).entrySet().stream()
+                                .filter(e -> e.getKey() instanceof String && e.getValue() instanceof Double)
+                                .collect(Collectors.toMap(
+                                        e -> (String) e.getKey(),
+                                        e -> (Double) e.getValue()
+                                ));
+                    } else {
+                        LOGGER.warn("Unexpected data type in response for feedback summary: {}", data.getClass());
                     }
                 } else {
                     LOGGER.warn("Empty ApiResponse body or data for for feedback summary");
@@ -804,7 +804,7 @@ public class TechnicianServiceImpl implements TechnicianService {
             pageable = org.springframework.data.domain.PageRequest.of(listRequest.getPageNumber(), listRequest.getPageSize(), Sort.by(listRequest.getShortingField()).descending());
         }
 //        prepareTechnicianSearchFilterForAll(listRequest, builder, tenantId, isSuperAdmin);
-        if(listRequest.getIsActive()!=null)
+        if (listRequest.getIsActive() != null)
             builder.with(technicianSpecificationFactory.isEqual("isActive", listRequest.getIsActive()));
         Page<Technician> pagedResult = technicianRepository.findAll(builder.build(), pageable);
 
