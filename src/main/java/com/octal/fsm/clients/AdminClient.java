@@ -33,7 +33,7 @@ public interface AdminClient {
     ResponseEntity<ApiResponse> getAllAnnouncementsForTechnician(@RequestBody PageRequest.List listRequest, @RequestHeader("tenantId") Long tenantId,
                                                                  @RequestHeader("isSuperAdmin") boolean isSuperAdmin);
 
-    @PostMapping("document-type/list-for-technician")
+    @PostMapping("/document-type/list-for-technician")
     ResponseEntity<ApiResponse> documentList(@Valid @RequestBody PageRequest.List listRequest, @RequestHeader("userName") String userName, @RequestHeader("tenantId") Long tenantId,
                                              @RequestHeader("isSuperAdmin") boolean isSuperAdmin);
 

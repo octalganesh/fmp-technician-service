@@ -40,7 +40,7 @@ public class TechnicianController extends BaseController {
         try {
             Long tenantId = getTenantId(request);
             boolean isSuperAdmin = isSuperAdmin(request);
-            String messageResponse = TextUtils.isEmpty(technicianDto.getId()) ? "technician added Successfully!" : "technician updated Successfully!";
+            String messageResponse = TextUtils.isEmpty(technicianDto.getId()) ? "Technician added Successfully!" : "Technician updated Successfully!";
             return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, messageResponse, technicianService.addTechnician(technicianDto, tenantId, isSuperAdmin), "200", HttpStatus.OK), HttpStatus.OK);
         } catch (Exception e) {
             return handleException(e);

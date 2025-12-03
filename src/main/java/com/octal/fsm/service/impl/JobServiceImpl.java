@@ -184,7 +184,7 @@ public class JobServiceImpl implements JobService {
         list.setPageNumber(page);
         list.setIsActive(true);
         list.setSearchText("");
-        return adminClient.documentList(list, loggedInUserEmail, tenantId, isSuperAdmin);
+        return adminClient.documentList(list, null, tenantId, isSuperAdmin);
     }
 
     @Override

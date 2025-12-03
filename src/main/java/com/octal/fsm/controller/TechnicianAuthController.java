@@ -63,6 +63,9 @@ public class TechnicianAuthController extends BaseController {
                 return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "Invalid email address provided. Please enter a registered and valid email.", null,
                         "400", HttpStatus.OK), HttpStatus.OK);
             }
+            if(!technician.getActive())
+                return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "User account is inactive. Please contact support.", null,
+                        "400", HttpStatus.OK), HttpStatus.OK);
             authenticate(request.getEmail(), request.getPassword());
             AuthenticationResponse authenticationResponse = jwtTokenProvider.generateToken(technician);
             //save jwt token on the time of log in
@@ -114,6 +117,7 @@ public class TechnicianAuthController extends BaseController {
             if (loggedIntechnician != null) {
                 //remove jwt token on the time of log out
                 loggedIntechnician.setToken(null);
+                loggedIntechnician.getMultiUserDeviceDetails().setDeviceToken("");
                 technicianRepository.save(loggedIntechnician);
 
                 TechnicianRegisterRequest authRegisterRequest = new TechnicianRegisterRequest();
