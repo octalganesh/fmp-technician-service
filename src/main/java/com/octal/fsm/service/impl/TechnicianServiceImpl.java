@@ -193,7 +193,7 @@ public class TechnicianServiceImpl implements TechnicianService {
     @Override
     public TechnicianDto.list getTechnicianByUuid(String id, Long tenantId, boolean isSuperAdmin) throws CodeException {
         if (isSuperAdmin) {
-            tenantId = 1l;
+            tenantId = 1L;
         }
         Optional<Technician> technicianRecord = technicianRepository.findByUuid(id);
         Map<String, TechnicianDto.TaskStats> taskSummaryMap = new HashMap<>();
@@ -234,14 +234,17 @@ public class TechnicianServiceImpl implements TechnicianService {
                     if (data instanceof Map<?, ?>) {
                         Map<?, ?> mapData = (Map<?, ?>) data;
                         for (Map.Entry<?, ?> entry : mapData.entrySet()) {
+
                             String key = entry.getKey().toString();
+
                             // Convert each value to TaskStats object
                             TechnicianDto.TaskStats stats =
                                     mapper.convertValue(entry.getValue(), TechnicianDto.TaskStats.class);
+
                             taskSummaryMap.put(key, stats);
                         }
                     } else {
-                        LOGGER.warn("Unexpected data type in response for feedback summary: {}", data.getClass());
+                        LOGGER.warn("Unexpected data type in response: {}", data.getClass());
                     }
                 } else {
                     LOGGER.warn("Empty ApiResponse body or data for for feedback summary");
