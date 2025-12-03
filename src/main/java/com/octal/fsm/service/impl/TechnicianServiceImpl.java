@@ -103,7 +103,7 @@ public class TechnicianServiceImpl implements TechnicianService {
     @Override
     public String addTechnician(TechnicianDto.Add add, Long tenantId, boolean isSuperAdmin) throws CodeException {
         if (isSuperAdmin) {
-            tenantId = 1l;
+            tenantId = 1L;
         }
         String randomPassword = generateRandomPassword();
         if (TextUtils.isEmpty(add.getName()))
@@ -229,15 +229,17 @@ public class TechnicianServiceImpl implements TechnicianService {
             if (response != null && response.getStatusCode().is2xxSuccessful()) {
                 ApiResponse apiResponse = response.getBody();
                 if (apiResponse != null && apiResponse.getData() != null) {
+                    ObjectMapper mapper = new ObjectMapper();
                     Object data = apiResponse.getData();
                     if (data instanceof Map<?, ?>) {
-                        // Type-safe conversion
-                        ratingSummaryMap = ((Map<?, ?>) data).entrySet().stream()
-                                .filter(e -> e.getKey() instanceof String && e.getValue() instanceof Double)
-                                .collect(Collectors.toMap(
-                                        e -> (String) e.getKey(),
-                                        e -> (Double) e.getValue()
-                                ));
+                        Map<?, ?> mapData = (Map<?, ?>) data;
+                        for (Map.Entry<?, ?> entry : mapData.entrySet()) {
+                            String key = entry.getKey().toString();
+                            // Convert each value to TaskStats object
+                            TechnicianDto.TaskStats stats =
+                                    mapper.convertValue(entry.getValue(), TechnicianDto.TaskStats.class);
+                            taskSummaryMap.put(key, stats);
+                        }
                     } else {
                         LOGGER.warn("Unexpected data type in response for feedback summary: {}", data.getClass());
                     }
