@@ -193,7 +193,7 @@ public class TechnicianServiceImpl implements TechnicianService {
     @Override
     public TechnicianDto.list getTechnicianByUuid(String id, Long tenantId, boolean isSuperAdmin) throws CodeException {
         if (isSuperAdmin) {
-            tenantId = 1l;
+            tenantId = 1L;
         }
         Optional<Technician> technicianRecord = technicianRepository.findByUuid(id);
         Map<String, TechnicianDto.TaskStats> taskSummaryMap = new HashMap<>();
@@ -442,6 +442,7 @@ public class TechnicianServiceImpl implements TechnicianService {
             dto.setEmail(technician.getEmail());
             dto.setMobileNumber(technician.getMobileNumber());
             dto.setEmployeeId(technician.getEmployeeId());
+            dto.setIsActive(technician.getActive());
             responseList.add(dto);
         }
         return new PageItem<>(pagedResult.getTotalPages(), pagedResult.getTotalElements(), responseList, listRequest.getPageNumber(),

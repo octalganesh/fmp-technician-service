@@ -63,6 +63,7 @@ public class TechnicianDto {
         private String mobileNumber;
         private String employeeId;
         private String profilePicture;
+        private Boolean isActive;
     }
 
     @Data
