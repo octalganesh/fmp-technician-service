@@ -193,7 +193,7 @@ public class TechnicianServiceImpl implements TechnicianService {
     @Override
     public TechnicianDto.list getTechnicianByUuid(String id, Long tenantId, boolean isSuperAdmin) throws CodeException {
         if (isSuperAdmin) {
-            tenantId = 1l;
+            tenantId = 1L;
         }
         Optional<Technician> technicianRecord = technicianRepository.findByUuid(id);
         Map<String, TechnicianDto.TaskStats> taskSummaryMap = new HashMap<>();
@@ -202,15 +202,20 @@ public class TechnicianServiceImpl implements TechnicianService {
             if (response != null && response.getStatusCode().is2xxSuccessful()) {
                 ApiResponse apiResponse = response.getBody();
                 if (apiResponse != null && apiResponse.getData() != null) {
+                    ObjectMapper mapper = new ObjectMapper();
                     Object data = apiResponse.getData();
                     if (data instanceof Map<?, ?>) {
-                        // Type-safe conversion
-                        taskSummaryMap = ((Map<?, ?>) data).entrySet().stream()
-                                .filter(e -> e.getKey() instanceof String && e.getValue() instanceof TechnicianDto.TaskStats)
-                                .collect(Collectors.toMap(
-                                        e -> (String) e.getKey(),
-                                        e -> (TechnicianDto.TaskStats) e.getValue()
-                                ));
+                        Map<?, ?> mapData = (Map<?, ?>) data;
+                        for (Map.Entry<?, ?> entry : mapData.entrySet()) {
+
+                            String key = entry.getKey().toString();
+
+                            // Convert each value to TaskStats object
+                            TechnicianDto.TaskStats stats =
+                                    mapper.convertValue(entry.getValue(), TechnicianDto.TaskStats.class);
+
+                            taskSummaryMap.put(key, stats);
+                        }
                     } else {
                         LOGGER.warn("Unexpected data type in response: {}", data.getClass());
                     }
@@ -437,6 +442,7 @@ public class TechnicianServiceImpl implements TechnicianService {
             dto.setEmail(technician.getEmail());
             dto.setMobileNumber(technician.getMobileNumber());
             dto.setEmployeeId(technician.getEmployeeId());
+            dto.setIsActive(technician.getActive());
             responseList.add(dto);
         }
         return new PageItem<>(pagedResult.getTotalPages(), pagedResult.getTotalElements(), responseList, listRequest.getPageNumber(),
@@ -799,7 +805,7 @@ public class TechnicianServiceImpl implements TechnicianService {
             pageable = org.springframework.data.domain.PageRequest.of(listRequest.getPageNumber(), listRequest.getPageSize(), Sort.by(listRequest.getShortingField()).descending());
         }
 //        prepareTechnicianSearchFilterForAll(listRequest, builder, tenantId, isSuperAdmin);
-        if(listRequest.getIsActive()!=null)
+        if (listRequest.getIsActive() != null)
             builder.with(technicianSpecificationFactory.isEqual("isActive", listRequest.getIsActive()));
         Page<Technician> pagedResult = technicianRepository.findAll(builder.build(), pageable);
 
