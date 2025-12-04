@@ -270,6 +270,7 @@ public class TechnicianServiceImpl implements TechnicianService {
             //technician.setAddress(new AddressDTO(technicianRecord.get().getAddress().getStreet(), technicianRecord.get().getAddress().getCity(), technicianRecord.get().getAddress().getState(), technicianRecord.get().getAddress().getPostalCode(), technicianRecord.get().getAddress().getCountry()));
             technician.setAddress(technicianRecord.get().getAddress());
             technician.setMobileNumber(technicianRecord.get().getMobileNumber());
+            technician.setCountryCode(technicianRecord.get().getMobileNumber().split(" ")[0]);
             technician.setProfilePicture(technicianRecord.get().getProfilePicture());
             technician.setIsActive(technicianRecord.get().getActive());
             technician.setJoinedDate(technicianRecord.get().getJoinDate() != null ? technicianRecord.get().getJoinDate().toString() : LocalDateTime.now().toString());
