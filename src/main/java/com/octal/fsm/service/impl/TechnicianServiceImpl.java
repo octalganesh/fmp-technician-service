@@ -9,12 +9,14 @@ import com.octal.fsm.common.CommonConstants;
 import com.octal.fsm.dto.*;
 import com.octal.fsm.dto.enums.NotificationUserGroup;
 import com.octal.fsm.entities.MultiUserDeviceDetails;
+import com.octal.fsm.entities.Role;
 import com.octal.fsm.entities.Technician;
 import com.octal.fsm.entities.UserOtpVerification;
 import com.octal.fsm.exceptions.CodeException;
 import com.octal.fsm.exceptions.ErrorCode;
 import com.octal.fsm.listeners.event.AddTechnicianUserInAuthEvent;
 import com.octal.fsm.models.request.PageRequest;
+import com.octal.fsm.repositories.RoleRepository;
 import com.octal.fsm.repositories.TechnicianRepository;
 import com.octal.fsm.repositories.UserVerificationRepository;
 import com.octal.fsm.service.TechnicianService;
@@ -77,6 +79,9 @@ public class TechnicianServiceImpl implements TechnicianService {
     @Autowired
     private JobClient jobClient;
 
+    @Autowired
+    private RoleRepository roleRepository;
+
     @Value("${aws.base-url}")
     private String awsS3BaseUrl;
 
@@ -103,7 +108,7 @@ public class TechnicianServiceImpl implements TechnicianService {
     @Override
     public String addTechnician(TechnicianDto.Add add, Long tenantId, boolean isSuperAdmin) throws CodeException {
         if (isSuperAdmin) {
-            tenantId = 1l;
+            tenantId = 1L;
         }
         String randomPassword = generateRandomPassword();
         if (TextUtils.isEmpty(add.getName()))
@@ -146,7 +151,7 @@ public class TechnicianServiceImpl implements TechnicianService {
                 newtechnicianRecord.setUpdatedAt(LocalDateTime.now());
                 newtechnicianRecord.setActive(add.getIsActive());
             } else {
-                throw new CodeException("technician not Found!", ErrorCode.COMMON);
+                throw new CodeException("Technician not Found!", ErrorCode.COMMON);
             }
         }
         newtechnicianRecord.setDeleted(false);
@@ -411,6 +416,7 @@ public class TechnicianServiceImpl implements TechnicianService {
             dto.setUpdatedAt(technician.getUpdatedAt().toString());
             dto.setJoinedDate(technician.getJoinDate() != null ? technician.getJoinDate().toString() : LocalDateTime.now().toString());
             dto.setGender(technician.getGender());
+            dto.setRoleName(technician.getRole().getName());
             responseList.add(dto);
         }
 
@@ -791,6 +797,7 @@ public class TechnicianServiceImpl implements TechnicianService {
             dto.setProfilePicture(t.getProfilePicture());
             dto.setIsActive(t.getActive());
             dto.setJoinedDate(t.getJoinDate() != null ? t.getJoinDate().toString() : null);
+            dto.setRoleName(t.getRole().getName());
             result.add(dto);
         }
         return result;
@@ -821,6 +828,7 @@ public class TechnicianServiceImpl implements TechnicianService {
             dto.setProfilePicture(t.getProfilePicture());
             dto.setIsActive(t.getActive());
             dto.setJoinedDate(t.getJoinDate() != null ? t.getJoinDate().toString() : null);
+            dto.setRoleName(t.getRole().getName());
             responseList.add(dto);
         }
         return new PageItem<>(pagedResult.getTotalPages(), pagedResult.getTotalElements(), responseList, listRequest.getPageNumber(),
@@ -841,6 +849,19 @@ public class TechnicianServiceImpl implements TechnicianService {
             return multiUserDeviceDetails.getPushEnabled();
         }
         return false;
+    }
+
+    @Override
+    public List<RoleDTO> getRoleList(Long tenantId, boolean isSuperAdmin) {
+        List<Role>roleList= roleRepository.findAll();
+        List<RoleDTO> responseList=new ArrayList<>();
+        for(Role role:roleList) {
+            RoleDTO roleDTO = new RoleDTO();
+            roleDTO.setId(role.getUuid());
+            roleDTO.setName(role.getName());
+            responseList.add(roleDTO);
+        }
+        return responseList;
     }
 
 }

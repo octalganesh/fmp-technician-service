@@ -61,6 +61,10 @@ public class Technician extends AbstractPersistable {
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     private MultiUserDeviceDetails multiUserDeviceDetails;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "role_id")
+    private Role role;
+
 
 }
 

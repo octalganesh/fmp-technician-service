@@ -292,5 +292,17 @@ public class TechnicianController extends BaseController {
 
     }
 
+    @GetMapping("/role-list")
+    public ResponseEntity<ApiResponse>RoleList(HttpServletRequest request) {
+        logger.info("TechnicianController.RoleList");
+        try {
+            Long tenantId = getTenantId(request);
+            boolean isSuperAdmin = isSuperAdmin(request);
+            return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "Role list fetched successfully!", technicianService.getRoleList(tenantId, isSuperAdmin), "200", HttpStatus.OK), HttpStatus.OK);
+        } catch (Exception e) {
+            return handleException(e);
+        }
+    }
+
 }
 
