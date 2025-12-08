@@ -8,6 +8,7 @@ import com.octal.fsm.dto.HTMLFormDTO;
 import com.octal.fsm.dto.JobDTO;
 import com.octal.fsm.entities.Technician;
 import com.octal.fsm.exceptions.CodeException;
+import com.octal.fsm.jwt.JwtTokenProvider;
 import com.octal.fsm.models.request.PageRequest;
 import com.octal.fsm.service.JobService;
 import org.apache.logging.log4j.LogManager;
@@ -19,6 +20,8 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @RequestMapping("/jobs")
@@ -28,6 +31,9 @@ public class JobController extends BaseController {
 
     @Autowired
     private JobService jobService;
+
+    @Autowired
+    private JwtTokenProvider jwtTokenProvider;
 
     @PostMapping("/list")
     public ResponseEntity<ApiResponse> getJobs(@RequestBody JobDTO.JobFilterRequest jobFilterRequestDTO, HttpServletRequest request) throws CodeException {
@@ -263,6 +269,26 @@ public class JobController extends BaseController {
         } catch (Exception e) {
             return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, e.getMessage(), null,
                     "500", HttpStatus.OK), HttpStatus.OK);
+        }
+    }
+
+    @PostMapping("/list/by-technician-id")
+    public ResponseEntity<ApiResponse> listAllAppointmentsByTechnicianId(@RequestBody PageRequest.List list, HttpServletRequest request) {
+        String userName = request.getHeader(CommonConstants.USER_NAME);
+        try {
+            Long tenantId = getTenantId(request);
+            if (tenantId == null)
+                tenantId = 1L;
+            String technicianId = jwtTokenProvider.getUserIdFromToken(request);
+            if (technicianId != null) {
+                list.setTechnicianId(Collections.singletonList(technicianId));
+            } else {
+                list.setTechnicianId(new ArrayList<>());
+            }
+            return jobService.listAllAppointmentsByTechnicianId(list, tenantId, false, userName);
+        } catch (Exception e) {
+            logger.error("Error updating job task status: {}", e.getMessage(), e);
+            return handleException(e);
         }
     }
 

@@ -12,6 +12,7 @@ import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+import javax.servlet.http.HttpServletRequest;
 import java.util.*;
 import java.util.function.Function;
 
@@ -241,4 +242,25 @@ public class JwtTokenProvider {
         }
         return null;
     }
+
+    public String getUserIdFromToken(HttpServletRequest request) {
+        try {
+            String header = request.getHeader("Authorization");
+            if (header == null || !header.startsWith("Bearer ")) {
+                throw new RuntimeException("Missing or invalid Authorization header");
+            }
+            String token = header.substring(7); // Remove "Bearer "
+            if (token.isBlank()) {
+                return null;
+            }
+            Claims claims = Jwts.parser()
+                    .setSigningKey(secret)
+                    .parseClaimsJws(token)
+                    .getBody();
+            return claims.get("id", String.class);
+        } catch (Exception e) {
+            throw new RuntimeException("Invalid token: " + e.getMessage());
+        }
+    }
+
 }

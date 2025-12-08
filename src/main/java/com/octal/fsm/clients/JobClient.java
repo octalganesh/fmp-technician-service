@@ -82,4 +82,7 @@ public interface JobClient {
     @PutMapping("/html-page/change/status/{id}")
     ResponseEntity<ApiResponse> changeStatusHTMLForm(@PathVariable("id") String id, @RequestHeader("tenantId") Long tenantId);
 
+    @PostMapping("/appointments/list/by-technician-id")
+    ResponseEntity<ApiResponse> listAllAppointmentsByTechnicianId(@RequestBody PageRequest.List list, @RequestHeader(USER_NAME) String userName, @RequestHeader("tenantId") Long tenantId,
+                                                                  @RequestHeader("superAdmin") boolean superAdmin);
 }

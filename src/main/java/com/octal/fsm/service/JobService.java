@@ -49,4 +49,6 @@ public interface JobService {
 
     ResponseEntity<ApiResponse> changeStatusHTMLForm(String id, Long tenantId);
 
+    ResponseEntity<ApiResponse> listAllAppointmentsByTechnicianId(PageRequest.List list, Long tenantId, boolean isSuperAdmin, String userName) throws CodeException;
+
 }
