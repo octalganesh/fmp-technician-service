@@ -416,7 +416,7 @@ public class TechnicianServiceImpl implements TechnicianService {
             dto.setUpdatedAt(technician.getUpdatedAt().toString());
             dto.setJoinedDate(technician.getJoinDate() != null ? technician.getJoinDate().toString() : LocalDateTime.now().toString());
             dto.setGender(technician.getGender());
-            dto.setRoleName(technician.getRole().getName());
+            dto.setRoleName(Objects.nonNull(technician.getRole()) ? technician.getRole().getName() : null);
             responseList.add(dto);
         }
 
