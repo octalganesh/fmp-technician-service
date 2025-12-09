@@ -230,4 +230,13 @@ public class JobServiceImpl implements JobService {
     public ResponseEntity<ApiResponse> changeStatusHTMLForm(String id, Long tenantId) {
         return jobClient.changeStatusHTMLForm(id, tenantId);
     }
+
+    @Override
+    public ResponseEntity<ApiResponse> listAllAppointmentsByTechnicianId(PageRequest.List list, Long tenantId, boolean isSuperAdmin, String userName) throws CodeException {
+        try {
+            return jobClient.listAllAppointmentsByTechnicianId(list, userName, tenantId, isSuperAdmin);
+        } catch (FeignException e) {
+            throw new CodeException("Remote Job-service failed: " + e.contentUTF8(), ErrorCode.COMMON);
+        }
+    }
 }

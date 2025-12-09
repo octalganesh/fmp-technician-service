@@ -36,6 +36,7 @@ public class PageRequest {
         private String joinDate;
         private Gender gender;
         private String designation;
+        private java.util.List<String> technicianId;
     }
 
 
