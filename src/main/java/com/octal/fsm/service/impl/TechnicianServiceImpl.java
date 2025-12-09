@@ -17,6 +17,8 @@ import com.octal.fsm.listeners.event.AddTechnicianUserInAuthEvent;
 import com.octal.fsm.models.request.PageRequest;
 import com.octal.fsm.repositories.TechnicianRepository;
 import com.octal.fsm.repositories.UserVerificationRepository;
+import com.octal.fsm.service.AdminClientService;
+import com.octal.fsm.service.JobClientService;
 import com.octal.fsm.service.TechnicianService;
 import com.octal.fsm.service.UserVerificationService;
 import com.octal.fsm.specification.GenericSpecificationsBuilder;
@@ -73,6 +75,10 @@ public class TechnicianServiceImpl implements TechnicianService {
 
     @Autowired
     private NotificationClient notificationClient;
+    @Autowired
+    private AdminClientService adminClientService;
+    @Autowired
+    private JobClientService jobClientService;
 
     @Autowired
     private JobClient jobClient;
@@ -198,62 +204,11 @@ public class TechnicianServiceImpl implements TechnicianService {
         Optional<Technician> technicianRecord = technicianRepository.findByUuid(id);
         Map<String, TechnicianDto.TaskStats> taskSummaryMap = new HashMap<>();
         if (technicianRecord.isPresent()) {
-            ResponseEntity<ApiResponse> response = jobClient.getTechnicianTaskSummary(List.of(technicianRecord.get().getUuid()), tenantId, isSuperAdmin);
-            if (response != null && response.getStatusCode().is2xxSuccessful()) {
-                ApiResponse apiResponse = response.getBody();
-                if (apiResponse != null && apiResponse.getData() != null) {
-                    ObjectMapper mapper = new ObjectMapper();
-                    Object data = apiResponse.getData();
-                    if (data instanceof Map<?, ?>) {
-                        Map<?, ?> mapData = (Map<?, ?>) data;
-                        for (Map.Entry<?, ?> entry : mapData.entrySet()) {
-
-                            String key = entry.getKey().toString();
-
-                            // Convert each value to TaskStats object
-                            TechnicianDto.TaskStats stats =
-                                    mapper.convertValue(entry.getValue(), TechnicianDto.TaskStats.class);
-
-                            taskSummaryMap.put(key, stats);
-                        }
-                    } else {
-                        LOGGER.warn("Unexpected data type in response: {}", data.getClass());
-                    }
-                } else {
-                    LOGGER.warn("Empty ApiResponse body or data");
-                }
-            } else {
-                LOGGER.error("Failed to fetch technician task summary: {}",
-                        response != null ? response.getStatusCode() : "null response");
-            }
-
+            taskSummaryMap = jobClientService.getTechnicianTaskSummary(List.of(technicianRecord.get().getUuid()), tenantId, isSuperAdmin);
         }
         Map<String, Double> ratingSummaryMap = new HashMap<>();
         if (technicianRecord.isPresent()) {
-            ResponseEntity<ApiResponse> response = adminClient.getFeedbackSummary(List.of(technicianRecord.get().getUuid()), tenantId, isSuperAdmin);
-            if (response != null && response.getStatusCode().is2xxSuccessful()) {
-                ApiResponse apiResponse = response.getBody();
-                if (apiResponse != null && apiResponse.getData() != null) {
-                    Object data = apiResponse.getData();
-                    if (data instanceof Map<?, ?>) {
-                        // Type-safe conversion
-                        ratingSummaryMap = ((Map<?, ?>) data).entrySet().stream()
-                                .filter(e -> e.getKey() instanceof String && e.getValue() instanceof Double)
-                                .collect(Collectors.toMap(
-                                        e -> (String) e.getKey(),
-                                        e -> (Double) e.getValue()
-                                ));
-                    } else {
-                        LOGGER.warn("Unexpected data type in response for feedback summary: {}", data.getClass());
-                    }
-                } else {
-                    LOGGER.warn("Empty ApiResponse body or data for for feedback summary");
-                }
-            } else {
-                LOGGER.error("Failed to fetch technician feedback summary: {}",
-                        response != null ? response.getStatusCode() : "null response");
-            }
-
+            ratingSummaryMap = adminClientService.getRatingData(List.of(technicianRecord.get().getUuid()), tenantId, isSuperAdmin);
         }
         if (technicianRecord.isPresent()) {
             TechnicianDto.list technician = new TechnicianDto.list();
@@ -331,62 +286,11 @@ public class TechnicianServiceImpl implements TechnicianService {
         Page<Technician> pagedResult = technicianRepository.findAll(builder.build(), pageable);
         Map<String, TechnicianDto.TaskStats> taskSummaryMap = new HashMap<>();
         if (!pagedResult.isEmpty()) {
-            ResponseEntity<ApiResponse> response = jobClient.getTechnicianTaskSummary(pagedResult.get().map(Technician::getUuid).collect(Collectors.toList()), tenantId, isSuperAdmin);
-            if (response != null && response.getStatusCode().is2xxSuccessful()) {
-                ApiResponse apiResponse = response.getBody();
-                if (apiResponse != null && apiResponse.getData() != null) {
-                    ObjectMapper mapper = new ObjectMapper();
-                    Object data = apiResponse.getData();
-                    if (data instanceof Map<?, ?>) {
-                        Map<?, ?> mapData = (Map<?, ?>) data;
-                        for (Map.Entry<?, ?> entry : mapData.entrySet()) {
-
-                            String key = entry.getKey().toString();
-
-                            // Convert each value to TaskStats object
-                            TechnicianDto.TaskStats stats =
-                                    mapper.convertValue(entry.getValue(), TechnicianDto.TaskStats.class);
-
-                            taskSummaryMap.put(key, stats);
-                        }
-                    } else {
-                        LOGGER.warn("Unexpected data type in response: {}", data.getClass());
-                    }
-                } else {
-                    LOGGER.warn("Empty ApiResponse body or data");
-                }
-            } else {
-                LOGGER.error("Failed to fetch technician task summary: {}",
-                        response != null ? response.getStatusCode() : "null response");
-            }
-
+            taskSummaryMap = jobClientService.getTechnicianTaskSummary(pagedResult.get().map(Technician::getUuid).collect(Collectors.toList()), tenantId, isSuperAdmin);
         }
         Map<String, Double> ratingSummaryMap = new HashMap<>();
         if (!pagedResult.isEmpty()) {
-            ResponseEntity<ApiResponse> response = adminClient.getFeedbackSummary(pagedResult.get().map(Technician::getUuid).collect(Collectors.toList()), tenantId, isSuperAdmin);
-            if (response != null && response.getStatusCode().is2xxSuccessful()) {
-                ApiResponse apiResponse = response.getBody();
-                if (apiResponse != null && apiResponse.getData() != null) {
-                    Object data = apiResponse.getData();
-                    if (data instanceof Map<?, ?>) {
-                        // Type-safe conversion
-                        ratingSummaryMap = ((Map<?, ?>) data).entrySet().stream()
-                                .filter(e -> e.getKey() instanceof String && e.getValue() instanceof Double)
-                                .collect(Collectors.toMap(
-                                        e -> (String) e.getKey(),
-                                        e -> (Double) e.getValue()
-                                ));
-                    } else {
-                        LOGGER.warn("Unexpected data type in response for feedback summary: {}", data.getClass());
-                    }
-                } else {
-                    LOGGER.warn("Empty ApiResponse body or data for for feedback summary");
-                }
-            } else {
-                LOGGER.error("Failed to fetch technician feedback summary: {}",
-                        response != null ? response.getStatusCode() : "null response");
-            }
-
+            ratingSummaryMap = adminClientService.getRatingData(pagedResult.get().map(Technician::getUuid).collect(Collectors.toList()), tenantId, isSuperAdmin);
         }
 
         List<TechnicianDto.list> responseList = new ArrayList<>();
