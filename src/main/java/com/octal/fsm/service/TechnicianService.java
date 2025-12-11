@@ -68,5 +68,7 @@ public interface TechnicianService {
     PageItem<TechnicianDto.list> getAllTech(PageRequest.List listRequest,Long tenantId,boolean isSuperAdmin)throws CodeException;
 
     Boolean notificationToggle(Technician loggedIntechnician, Long tenantId, boolean isSuperAdmin);
+
+    List<RoleDTO> getRoleList(Long tenantId, boolean isSuperAdmin);
 }
 

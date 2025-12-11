@@ -14,6 +14,7 @@ public class AuthenticationResponse implements Serializable {
     private String id;
     private String userName;
     private String email;
+    private String role;
 
     public String getEmail() {
         return email;
@@ -72,5 +73,12 @@ public class AuthenticationResponse implements Serializable {
 
     public void setUserName(String userName) {
         this.userName = userName;
+    }
+
+    public String getRole() {
+        return role;
+    }
+    public void setRole(String role) {
+        this.role = role;
     }
 }
