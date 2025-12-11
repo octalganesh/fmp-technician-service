@@ -27,6 +27,7 @@ public class TechnicianDto {
         @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
         private LocalDate joinedDate;
         private Boolean available;
+        private String roleId;
     }
 
     @Data
@@ -37,6 +38,7 @@ public class TechnicianDto {
         private String name;
         private String email;
         private String mobileNumber;
+        private String countryCode;
         private String employeeId;
         private String profilePicture;
         private String address;
@@ -50,6 +52,7 @@ public class TechnicianDto {
         private Gender gender;
         private String joinedDate;
         private MultiUserDeviceDetailsDTO.Response multiUserDeviceDetails;
+        private String roleName;
 
     }
 
