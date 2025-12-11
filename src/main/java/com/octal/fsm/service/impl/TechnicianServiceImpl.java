@@ -763,6 +763,9 @@ public class TechnicianServiceImpl implements TechnicianService {
             RoleDTO roleDTO = new RoleDTO();
             roleDTO.setId(role.getUuid());
             roleDTO.setName(role.getName());
+            roleDTO.setCreatedAt(role.getCreatedAt().toString());
+            roleDTO.setUpdatedAt(role.getUpdatedAt().toString());
+            roleDTO.setDescription(role.getDescription());
             responseList.add(roleDTO);
         }
         return responseList;

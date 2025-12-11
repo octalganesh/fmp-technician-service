@@ -69,6 +69,6 @@ public interface TechnicianService {
 
     Boolean notificationToggle(Technician loggedIntechnician, Long tenantId, boolean isSuperAdmin);
 
-    Object getRoleList(Long tenantId, boolean isSuperAdmin);
+    List<RoleDTO> getRoleList(Long tenantId, boolean isSuperAdmin);
 }
 
