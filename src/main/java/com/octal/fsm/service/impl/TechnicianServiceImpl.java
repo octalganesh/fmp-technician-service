@@ -306,7 +306,17 @@ public class TechnicianServiceImpl implements TechnicianService {
         if (technicianRecord.isPresent()) {
             if (Boolean.TRUE.equals(technicianRecord.get().getActive())) {
                 technicianRecord.get().setActive(false);
-                technicianRepository.save(technicianRecord.get());
+                technicianRecord.get().setToken(null);
+                technicianRecord.get().getMultiUserDeviceDetails().setDeviceToken("");
+                Technician save = technicianRepository.save(technicianRecord.get());
+
+                TechnicianRegisterRequest authRegisterRequest = new TechnicianRegisterRequest();
+                authRegisterRequest.setActive(save.getActive());
+                authRegisterRequest.setRole("technician");
+                authRegisterRequest.setEmail(save.getEmail());
+                authRegisterRequest.setFullName(save.getName());
+                authRegisterRequest.setToken(null);
+                eventPublisher.publishEvent(new AddTechnicianUserInAuthEvent(authRegisterRequest, save, tenantId, false,false));
                 return false;
             } else {
                 technicianRecord.get().setActive(true);
