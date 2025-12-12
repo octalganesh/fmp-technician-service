@@ -658,6 +658,7 @@ public class TechnicianServiceImpl implements TechnicianService {
                 .map(MultiUserDeviceDetails::getPushEnabled)
                 .orElse(false));
         response.setProfileImage(user.get().getProfilePicture());
+        response.setRoleName(Objects.nonNull(user.get().getRole())? user.get().getRole().getName():null);
         return response;
     }
 
