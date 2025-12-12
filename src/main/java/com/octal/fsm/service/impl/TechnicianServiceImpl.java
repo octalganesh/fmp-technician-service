@@ -175,7 +175,7 @@ public class TechnicianServiceImpl implements TechnicianService {
         technicianRegisterRequest.setFullName(technician.getName());
         technicianRegisterRequest.setTenantId(String.valueOf(tenantId));
         technician.setPassword(randomPassword);
-        eventPublisher.publishEvent(new AddTechnicianUserInAuthEvent(technicianRegisterRequest, technician, tenantId, isSuperAdmin));
+        eventPublisher.publishEvent(new AddTechnicianUserInAuthEvent(technicianRegisterRequest, technician, tenantId, isSuperAdmin,true));
         return technician.getUuid();
     }
 

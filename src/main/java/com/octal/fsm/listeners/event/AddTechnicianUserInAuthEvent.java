@@ -9,13 +9,15 @@ public class AddTechnicianUserInAuthEvent extends ApplicationEvent {
     private final Technician technician;
     private final Long tenantId;
     private final boolean isSuperAdmin;
+    private final boolean isSendMail;
 
-    public AddTechnicianUserInAuthEvent(TechnicianRegisterRequest user, Technician technician, Long tenantId, boolean isSuperAdmin) {
+    public AddTechnicianUserInAuthEvent(TechnicianRegisterRequest user, Technician technician, Long tenantId, boolean isSuperAdmin,boolean isSendMail) {
         super(user);
         this.user = user;
         this.technician = technician;
         this.tenantId = tenantId;
         this.isSuperAdmin = isSuperAdmin;
+        this.isSendMail = isSendMail;
     }
 
     public Long getTenantId() {
@@ -32,5 +34,9 @@ public class AddTechnicianUserInAuthEvent extends ApplicationEvent {
 
     public TechnicianRegisterRequest getUser() {
         return user;
+    }
+
+    public boolean isSendMail() {
+        return isSendMail;
     }
 }
