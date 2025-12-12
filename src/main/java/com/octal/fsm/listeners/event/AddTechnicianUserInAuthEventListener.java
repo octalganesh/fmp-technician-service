@@ -65,13 +65,14 @@ public class AddTechnicianUserInAuthEventListener implements ApplicationListener
         } catch (Exception e) {
             e.printStackTrace();
         }
-
         try {
-            SendMailRequestDTO request = new SendMailRequestDTO();
-            request.setObjectData(event.getTechnician());
-            request.setTemplateName("TECHNICIAN_WELCOME");
-            request.setObjectName("Technician");
-            adminClient.sendDynamicMail(request, event.getTenantId(), event.isSuperAdmin());
+            if (event.isSendMail()) {
+                SendMailRequestDTO request = new SendMailRequestDTO();
+                request.setObjectData(event.getTechnician());
+                request.setTemplateName("TECHNICIAN_WELCOME");
+                request.setObjectName("Technician");
+                adminClient.sendDynamicMail(request, event.getTenantId(), event.isSuperAdmin());
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
