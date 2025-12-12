@@ -43,4 +43,7 @@ public interface AdminClient {
     @PostMapping("/customer-feedback/get-feedback-summary-for-technician")
     ResponseEntity<ApiResponse> getFeedbackSummary(@RequestBody List<String> technicianUuids,
                                                    @RequestHeader("tenantId") Long tenantId, @RequestHeader("isSuperAdmin") boolean isSuperAdmin);
+
+    @GetMapping("/announcement/read-unread-announcement/{id}")
+    ResponseEntity<ApiResponse> readUnreadAnnouncement(@PathVariable("id") String id, @RequestHeader("tenantId") Long tenantId);
 }

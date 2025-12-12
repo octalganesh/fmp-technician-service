@@ -304,5 +304,17 @@ public class TechnicianController extends BaseController {
         }
     }
 
+    @GetMapping("/read-unread-announcement/{id}")
+    public ResponseEntity<ApiResponse> updateReadUnreadAnnouncement(@PathVariable("id") String id, HttpServletRequest request) {
+        logger.info("TechnicianController.updateReadUnreadAnnouncement");
+        try {
+            Long tenantId = getTenantId(request);
+            boolean isSuperAdmin = isSuperAdmin(request);
+            return technicianService.readUnreadAnnouncements(id,tenantId);
+        } catch (Exception e) {
+            return handleException(e);
+        }
+    }
+
 }
 

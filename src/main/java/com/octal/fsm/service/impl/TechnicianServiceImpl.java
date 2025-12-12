@@ -886,4 +886,13 @@ public class TechnicianServiceImpl implements TechnicianService {
         return responseList;
     }
 
+    @Override
+    public ResponseEntity<ApiResponse> readUnreadAnnouncements(String id, Long tenantId) throws CodeException {
+        try {
+            return adminClient.readUnreadAnnouncement(id, tenantId);
+        } catch (FeignException e) {
+            throw new CodeException("Remote admin-service failed: " + e.contentUTF8(), ErrorCode.COMMON);
+        }
+    }
+
 }
