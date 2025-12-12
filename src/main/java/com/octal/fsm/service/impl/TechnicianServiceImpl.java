@@ -159,6 +159,11 @@ public class TechnicianServiceImpl implements TechnicianService {
                 throw new CodeException("Technician not Found!", ErrorCode.COMMON);
             }
         }
+        if(add.getRoleId()!=null){
+            Optional<Role> roleOptional=roleRepository.findByUuid(add.getRoleId());
+            roleOptional.ifPresent(newtechnicianRecord::setRole);
+        }
+
         newtechnicianRecord.setDeleted(false);
         newtechnicianRecord.setEmail(add.getEmail());
         newtechnicianRecord.setMobileNumber(add.getMobileNumber());
