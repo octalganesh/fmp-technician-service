@@ -45,5 +45,5 @@ public interface AdminClient {
                                                    @RequestHeader("tenantId") Long tenantId, @RequestHeader("isSuperAdmin") boolean isSuperAdmin);
 
     @GetMapping("/announcement/read-unread-announcement/{id}")
-    ResponseEntity<ApiResponse> readUnreadAnnouncement(@PathVariable("id") String id, @RequestHeader("tenantId") Long tenantId);
+    ResponseEntity<ApiResponse> readUnreadAnnouncement(@RequestParam("id") String id,@RequestParam("userId") String userId, @RequestHeader("tenantId") Long tenantId);
 }
