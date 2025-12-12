@@ -287,6 +287,7 @@ public class TechnicianServiceImpl implements TechnicianService {
             technician.setCreatedAt(technicianRecord.get().getCreatedAt().toString());
             technician.setUpdatedAt(technicianRecord.get().getUpdatedAt().toString());
             technician.setGender(technicianRecord.get().getGender());
+            technician.setRoleName(Objects.nonNull(technicianRecord.get().getRole()) ? technicianRecord.get().getRole().getName() : null);
             if (technicianRecord.get().getMultiUserDeviceDetails() != null) {
                 MultiUserDeviceDetails multiUserDeviceDetails = technicianRecord.get().getMultiUserDeviceDetails();
                 MultiUserDeviceDetailsDTO.Response multiUserDeviceDetailsDTO = new MultiUserDeviceDetailsDTO.Response();
