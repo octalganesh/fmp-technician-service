@@ -12,6 +12,7 @@ public class TechnicianDetailDTO {
     private Boolean pushEnabled;
     private String profileImage;
     private String technicianId;
+    private String roleName;
 
     @Data
     public static class ChangePassword {
