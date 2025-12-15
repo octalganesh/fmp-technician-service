@@ -7,6 +7,7 @@ import com.octal.fsm.dto.SendMailRequestDTO;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
@@ -24,6 +25,9 @@ public class AddTechnicianUserInAuthEventListener implements ApplicationListener
 
     @Autowired
     private AdminClient adminClient;
+
+    @Value("${login:technician:url}")
+    private String technicianLoginUrl;
 
     @Override
     @Async("addTechnicianEvent")
@@ -69,8 +73,9 @@ public class AddTechnicianUserInAuthEventListener implements ApplicationListener
             if (event.isSendMail()) {
                 SendMailRequestDTO request = new SendMailRequestDTO();
                 request.setObjectData(event.getTechnician());
+                request.setObjectName(technicianLoginUrl);
                 request.setTemplateName("TECHNICIAN_WELCOME");
-                request.setObjectName("Technician");
+//                request.setObjectName("Technician");
                 adminClient.sendDynamicMail(request, event.getTenantId(), event.isSuperAdmin());
             }
         } catch (Exception e) {
