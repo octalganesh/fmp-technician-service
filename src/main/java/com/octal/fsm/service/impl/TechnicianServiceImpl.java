@@ -160,6 +160,11 @@ public class TechnicianServiceImpl implements TechnicianService {
                 throw new CodeException("Technician not Found!", ErrorCode.COMMON);
             }
         }
+        if(add.getRoleId()!=null){
+            Optional<Role> roleOptional=roleRepository.findByUuid(add.getRoleId());
+            roleOptional.ifPresent(newtechnicianRecord::setRole);
+        }
+
         newtechnicianRecord.setDeleted(false);
         newtechnicianRecord.setEmail(add.getEmail());
         newtechnicianRecord.setMobileNumber(add.getMobileNumber());
@@ -237,6 +242,7 @@ public class TechnicianServiceImpl implements TechnicianService {
             technician.setCreatedAt(technicianRecord.get().getCreatedAt().toString());
             technician.setUpdatedAt(technicianRecord.get().getUpdatedAt().toString());
             technician.setGender(technicianRecord.get().getGender());
+            technician.setRoleName(Objects.nonNull(technicianRecord.get().getRole()) ? technicianRecord.get().getRole().getName() : null);
             if (technicianRecord.get().getMultiUserDeviceDetails() != null) {
                 MultiUserDeviceDetails multiUserDeviceDetails = technicianRecord.get().getMultiUserDeviceDetails();
                 MultiUserDeviceDetailsDTO.Response multiUserDeviceDetailsDTO = new MultiUserDeviceDetailsDTO.Response();
@@ -556,6 +562,7 @@ public class TechnicianServiceImpl implements TechnicianService {
                 .map(MultiUserDeviceDetails::getPushEnabled)
                 .orElse(false));
         response.setProfileImage(user.get().getProfilePicture());
+        response.setRoleName(Objects.nonNull(user.get().getRole())? user.get().getRole().getName():null);
         return response;
     }
 
