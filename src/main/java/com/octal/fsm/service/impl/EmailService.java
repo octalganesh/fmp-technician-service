@@ -1,40 +1,50 @@
 package com.octal.fsm.service.impl;
 
+import com.google.gson.Gson;
+import com.octal.fsm.clients.NotificationClient;
 import com.octal.fsm.dto.EmailDTO;
+import com.octal.fsm.dto.EmailRequestDTO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.spring5.SpringTemplateEngine;
 
-import javax.mail.MessagingException;
-import javax.mail.internet.MimeMessage;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class EmailService {
 
     @Autowired
-    private JavaMailSender mailSender;
-
-    @Autowired
     private SpringTemplateEngine templateEngine;
 
-    public void sendMail(EmailDTO mail) throws MessagingException {
-        MimeMessage message = mailSender.createMimeMessage();
-        MimeMessageHelper helper = new MimeMessageHelper(message, true);
+    @Autowired
+    private NotificationClient notificationClient;
 
-        helper.setTo(mail.getMailTo());
-        helper.setSubject(mail.getSubject());
+    public void sendMail(EmailDTO mail) {
+        try{
+            EmailRequestDTO emailRequestDTO = new EmailRequestDTO();
+            emailRequestDTO.setToMail(mail.getMailTo());
+            emailRequestDTO.setSubject(mail.getSubject());
+            // Load Thymeleaf template
+            Context context = new Context();
+            context.setVariables(mail.getProps());
 
-        // Load Thymeleaf template
-        Context context = new Context();
-        context.setVariables(mail.getProps());
+            String htmlContent = templateEngine.process(mail.getTemplateName(), context);
+            emailRequestDTO.setBody(htmlContent);
 
-        String htmlContent = templateEngine.process(mail.getTemplateName(), context);
-        helper.setText(htmlContent, true);
-
-        mailSender.send(message);
+            if (mail.getAttachments() != null) {
+                List<String> attachments = mail.getAttachments()
+                        .stream().map(String::valueOf)  // converts Object → String safely
+                        .collect(Collectors.toList());
+                emailRequestDTO.setAttachments(attachments);
+            }
+            notificationClient.sendEmailToUser(emailRequestDTO);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }
 

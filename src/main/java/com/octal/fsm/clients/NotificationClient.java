@@ -2,6 +2,7 @@ package com.octal.fsm.clients;
 
 
 import com.octal.fsm.common.ApiResponse;
+import com.octal.fsm.dto.EmailRequestDTO;
 import com.octal.fsm.dto.PushNotificationRequest;
 import com.octal.fsm.dto.UserNotificationListDTO;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -33,6 +34,9 @@ public interface NotificationClient {
 
     @GetMapping(value = "/notification-content/get-by-slug")
     ResponseEntity<ApiResponse> getNotificationContent(@RequestParam("slug") String slug);
+
+    @PostMapping(value = "/email/send-to-user")
+    ResponseEntity<ApiResponse> sendEmailToUser(EmailRequestDTO emailRequestDTO);
 
 
 }

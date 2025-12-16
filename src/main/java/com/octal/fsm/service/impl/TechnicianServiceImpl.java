@@ -38,7 +38,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.mail.MessagingException;
 import java.security.SecureRandom;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -569,7 +568,7 @@ public class TechnicianServiceImpl implements TechnicianService {
                     userVerificationService.generateUserOtp(user1, UserOtpVerification.Types.FORGOT_PASSWORD);
                 } catch (CodeException e) {
                     //throw new UserNotFoundException("Failed to generate OTP for user: " + user1.getEmail());
-                } catch (MessagingException e) {
+                } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
             });

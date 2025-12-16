@@ -15,7 +15,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.mail.MessagingException;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -47,7 +46,7 @@ public class UserVerificationServiceImpl implements UserVerificationService {
 
     @Override
     @Transactional(propagation = Propagation.REQUIRED)
-    public UserOtpVerification generateUserOtp(Technician user, UserOtpVerification.Types types) throws CodeException, MessagingException {
+    public UserOtpVerification generateUserOtp(Technician user, UserOtpVerification.Types types) throws CodeException {
         UserOtpVerification registrationToken;
         if (user != null) {
             Optional<UserOtpVerification> userOtpVerificationObj = userOtpVerificationRepository.findByTypeAndUser(UserOtpVerification.Types.FORGOT_PASSWORD, user);
@@ -70,7 +69,7 @@ public class UserVerificationServiceImpl implements UserVerificationService {
         return null;
     }
 
-    private UserOtpVerification mapUserOtpObject(Technician user, UserOtpVerification.Types types, UserOtpVerification userOtpVerification) throws CodeException, MessagingException {
+    private UserOtpVerification mapUserOtpObject(Technician user, UserOtpVerification.Types types, UserOtpVerification userOtpVerification) throws CodeException {
         // generate random otp
         // generate one random number with 6 digit
         String otp = String.valueOf(random.nextInt(100000));

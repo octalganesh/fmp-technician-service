@@ -6,13 +6,11 @@ import com.octal.fsm.entities.UserOtpVerification;
 import com.octal.fsm.exceptions.CodeException;
 import org.springframework.stereotype.Component;
 
-import javax.mail.MessagingException;
-
 @Component
 public interface UserVerificationService {
 
 
-    UserOtpVerification generateUserOtp(Technician user, UserOtpVerification.Types types) throws CodeException, MessagingException;
+    UserOtpVerification generateUserOtp(Technician user, UserOtpVerification.Types types) throws CodeException;
 
     UserOtpVerification resendUserOtp(Technician user, UserOtpVerification.Types types);
 
