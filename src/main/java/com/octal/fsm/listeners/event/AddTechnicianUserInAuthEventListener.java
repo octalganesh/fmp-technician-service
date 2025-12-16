@@ -26,9 +26,6 @@ public class AddTechnicianUserInAuthEventListener implements ApplicationListener
     @Autowired
     private AdminClient adminClient;
 
-    @Value("${login:technician:url}")
-    private String technicianLoginUrl;
-
     @Override
     @Async("addTechnicianEvent")
     public void onApplicationEvent(AddTechnicianUserInAuthEvent event) {
@@ -73,9 +70,8 @@ public class AddTechnicianUserInAuthEventListener implements ApplicationListener
             if (event.isSendMail()) {
                 SendMailRequestDTO request = new SendMailRequestDTO();
                 request.setObjectData(event.getTechnician());
-                request.setObjectName(technicianLoginUrl);
                 request.setTemplateName("TECHNICIAN_WELCOME");
-//                request.setObjectName("Technician");
+                request.setObjectName("Technician");
                 adminClient.sendDynamicMail(request, event.getTenantId(), event.isSuperAdmin());
             }
         } catch (Exception e) {
