@@ -83,8 +83,11 @@ public class GeneralSettingService {
 
 
     public boolean getBoolean(Long tenantId, SettingKey key) {
-        return Boolean.parseBoolean(getSettingValue(tenantId, key)
-        );
+        String value = getSettingValue(tenantId, key);
+        if (value == null || value.isBlank()) {
+            return true;
+        }
+        return Boolean.parseBoolean(value);
     }
 
 
@@ -137,12 +140,31 @@ public class GeneralSettingService {
         String timeFormat = getTimeFormat(tenantId);
 
         String timePattern =
-                "12".equals(timeFormat) ? "hh:mm a" : "HH:mm";
+                "12".equals(timeFormat) ? "hh:mm:ss a" : "HH:mm:ss";
 
         return DateTimeFormatter.ofPattern(
                 dateFormat + " " + timePattern
         );
     }
+
+    public DateTimeFormatter buildTenantDateFormatter(Long tenantId) {
+        String rawDateFormat = getDateFormat(tenantId);
+        if (rawDateFormat == null || rawDateFormat.isBlank()) {
+            rawDateFormat = "dd/MM/yyyy";
+        }
+        String dateFormat = normalizeDateFormat(rawDateFormat);
+        return DateTimeFormatter.ofPattern(dateFormat);
+    }
+
+    public DateTimeFormatter buildTenantTimeFormatter(Long tenantId) {
+        String timeFormat = getTimeFormat(tenantId); // "12" or "24"
+        String pattern =
+                "12".equals(timeFormat)
+                        ? "hh:mm:ss a"   // 12-hour
+                        : "HH:mm:ss";    // 24-hour (default)
+        return DateTimeFormatter.ofPattern(pattern);
+    }
+
 
     public String formatDateTime(LocalDateTime dateTime, Long tenantId) {
         if (dateTime == null || tenantId == null) {
@@ -154,7 +176,7 @@ public class GeneralSettingService {
         }
         String dateFormat = normalizeDateFormat(rawDateFormat);
         String timeFormatSetting = getTimeFormat(tenantId);
-        String timePattern = "12".equals(timeFormatSetting) ? "hh:mm a" : "HH:mm";
+        String timePattern = "12".equals(timeFormatSetting) ? "hh:mm:ss a" : "HH:mm:ss";
 
         String finalPattern = dateFormat + " " + timePattern;
         return dateTime.format(

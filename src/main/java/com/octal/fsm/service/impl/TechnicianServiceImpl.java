@@ -19,6 +19,7 @@ import com.octal.fsm.models.request.PageRequest;
 import com.octal.fsm.repositories.RoleRepository;
 import com.octal.fsm.repositories.TechnicianRepository;
 import com.octal.fsm.repositories.UserVerificationRepository;
+import com.octal.fsm.service.GeneralSettingService;
 import com.octal.fsm.service.TechnicianService;
 import com.octal.fsm.service.UserVerificationService;
 import com.octal.fsm.specification.GenericSpecificationsBuilder;
@@ -81,6 +82,8 @@ public class TechnicianServiceImpl implements TechnicianService {
 
     @Autowired
     private RoleRepository roleRepository;
+    @Autowired
+    private GeneralSettingService generalSettingService;
 
     @Value("${aws.base-url}")
     private String awsS3BaseUrl;
@@ -270,6 +273,7 @@ public class TechnicianServiceImpl implements TechnicianService {
 
         }
         if (technicianRecord.isPresent()) {
+            DateTimeFormatter dateTimeFormatter = generalSettingService.buildTenantDateTimeFormatter(tenantId);
             TechnicianDto.list technician = new TechnicianDto.list();
             technician.setEmployeeId(technicianRecord.get().getEmployeeId());
             technician.setEmail(technicianRecord.get().getEmail());
@@ -287,9 +291,9 @@ public class TechnicianServiceImpl implements TechnicianService {
             technician.setCountryCode(technicianRecord.get().getMobileNumber().split(" ")[0]);
             technician.setProfilePicture(technicianRecord.get().getProfilePicture());
             technician.setIsActive(technicianRecord.get().getActive());
-            technician.setJoinedDate(technicianRecord.get().getJoinDate() != null ? technicianRecord.get().getJoinDate().toString() : LocalDateTime.now().toString());
-            technician.setCreatedAt(technicianRecord.get().getCreatedAt().toString());
-            technician.setUpdatedAt(technicianRecord.get().getUpdatedAt().toString());
+            technician.setJoinedDate(technicianRecord.get().getJoinDate() != null ? technicianRecord.get().getJoinDate().format(dateTimeFormatter) : LocalDateTime.now().toString());
+            technician.setCreatedAt(technicianRecord.get().getCreatedAt().format(dateTimeFormatter));
+            technician.setUpdatedAt(technicianRecord.get().getUpdatedAt().format(dateTimeFormatter));
             technician.setGender(technicianRecord.get().getGender());
             technician.setRoleName(Objects.nonNull(technicianRecord.get().getRole()) ? technicianRecord.get().getRole().getName() : null);
             if (technicianRecord.get().getMultiUserDeviceDetails() != null) {
@@ -347,6 +351,7 @@ public class TechnicianServiceImpl implements TechnicianService {
         String trimmedText = listRequest.getSearchText().trim();
         listRequest.setSearchText(trimmedText);
         GenericSpecificationsBuilder<Technician> builder = new GenericSpecificationsBuilder<>();
+        listRequest.setPageSize(generalSettingService.getPageSize(tenantId));
         Pageable pageable = null;
         if (Boolean.TRUE.equals(listRequest.getAsc())) {
             pageable = org.springframework.data.domain.PageRequest.of(listRequest.getPageNumber(), listRequest.getPageSize(), Sort.by(listRequest.getShortingField()).ascending());
@@ -416,6 +421,7 @@ public class TechnicianServiceImpl implements TechnicianService {
         }
 
         List<TechnicianDto.list> responseList = new ArrayList<>();
+        DateTimeFormatter dateTimeFormatter = generalSettingService.buildTenantDateTimeFormatter(tenantId);
         for (Technician technician : pagedResult.getContent()) {
             TechnicianDto.list dto = new TechnicianDto.list();
             dto.setId(technician.getUuid());
@@ -432,10 +438,10 @@ public class TechnicianServiceImpl implements TechnicianService {
             //dto.setAddress(new AddressDTO(technician.getAddress().getStreet(), technician.getAddress().getCity(), technician.getAddress().getState(), technician.getAddress().getPostalCode(), technician.getAddress().getCountry()));
             dto.setAddress(technician.getAddress());
             dto.setIsActive(technician.getActive());
-            dto.setCreatedAt(String.valueOf(technician.getCreatedAt()));
+            dto.setCreatedAt(technician.getCreatedAt().format(dateTimeFormatter));
             dto.setEmployeeId(technician.getEmployeeId());
-            dto.setUpdatedAt(technician.getUpdatedAt().toString());
-            dto.setJoinedDate(technician.getJoinDate() != null ? technician.getJoinDate().toString() : LocalDateTime.now().toString());
+            dto.setUpdatedAt(technician.getUpdatedAt().format(dateTimeFormatter));
+            dto.setJoinedDate(technician.getJoinDate() != null ? technician.getJoinDate().format(dateTimeFormatter) : LocalDateTime.now().toString());
             dto.setGender(technician.getGender());
             dto.setRoleName(Objects.nonNull(technician.getRole()) ? technician.getRole().getName() : null);
             responseList.add(dto);
@@ -453,6 +459,7 @@ public class TechnicianServiceImpl implements TechnicianService {
         String trimmedText = listRequest.getSearchText().trim();
         listRequest.setSearchText(trimmedText);
         GenericSpecificationsBuilder<Technician> builder = new GenericSpecificationsBuilder<>();
+        listRequest.setPageSize(generalSettingService.getPageSize(tenantId));
         Pageable pageable = null;
         if (Boolean.TRUE.equals(listRequest.getAsc())) {
             pageable = org.springframework.data.domain.PageRequest.of(listRequest.getPageNumber(), listRequest.getPageSize(), Sort.by(listRequest.getShortingField()).ascending());
@@ -830,6 +837,7 @@ public class TechnicianServiceImpl implements TechnicianService {
     public PageItem<TechnicianDto.list> getAllTech(PageRequest.List listRequest, Long tenantId, boolean isSuperAdmin) throws CodeException {
         GenericSpecificationsBuilder<Technician> builder = new GenericSpecificationsBuilder<>();
         Pageable pageable = null;
+        listRequest.setPageSize(generalSettingService.getPageSize(tenantId));
         if (Boolean.TRUE.equals(listRequest.getAsc())) {
             pageable = org.springframework.data.domain.PageRequest.of(listRequest.getPageNumber(), listRequest.getPageSize(), Sort.by(listRequest.getShortingField()).ascending());
         } else {
@@ -839,7 +847,8 @@ public class TechnicianServiceImpl implements TechnicianService {
         if (listRequest.getIsActive() != null)
             builder.with(technicianSpecificationFactory.isEqual("isActive", listRequest.getIsActive()));
         Page<Technician> pagedResult = technicianRepository.findAll(builder.build(), pageable);
-
+        DateTimeFormatter dateTimeFormatter = generalSettingService.buildTenantDateTimeFormatter(tenantId);
+        TechnicianDto.list technician = new TechnicianDto.list();
         List<TechnicianDto.list> responseList = new ArrayList<>();
         for (Technician t : pagedResult.getContent()) {
             TechnicianDto.list dto = new TechnicianDto.list();
@@ -850,7 +859,7 @@ public class TechnicianServiceImpl implements TechnicianService {
             dto.setEmployeeId(t.getEmployeeId());
             dto.setProfilePicture(t.getProfilePicture());
             dto.setIsActive(t.getActive());
-            dto.setJoinedDate(t.getJoinDate() != null ? t.getJoinDate().toString() : null);
+            dto.setJoinedDate(t.getJoinDate() != null ? t.getJoinDate().format(dateTimeFormatter) : null);
             dto.setRoleName(t.getRole().getName());
             responseList.add(dto);
         }
@@ -878,12 +887,13 @@ public class TechnicianServiceImpl implements TechnicianService {
     public List<RoleDTO> getRoleList(Long tenantId, boolean isSuperAdmin) {
         List<Role>roleList= roleRepository.findAll();
         List<RoleDTO> responseList=new ArrayList<>();
+        DateTimeFormatter dateTimeFormatter = generalSettingService.buildTenantDateTimeFormatter(tenantId);
         for(Role role:roleList) {
             RoleDTO roleDTO = new RoleDTO();
             roleDTO.setId(role.getUuid());
             roleDTO.setName(role.getName());
-            roleDTO.setCreatedAt(role.getCreatedAt().toString());
-            roleDTO.setUpdatedAt(role.getUpdatedAt().toString());
+            roleDTO.setCreatedAt(role.getCreatedAt().format(dateTimeFormatter));
+            roleDTO.setUpdatedAt(role.getUpdatedAt().format(dateTimeFormatter));
             roleDTO.setDescription(role.getDescription());
             responseList.add(roleDTO);
         }
