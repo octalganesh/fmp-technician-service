@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+import java.util.Collections;
 import java.util.List;
 
 @RestController
@@ -171,6 +172,7 @@ public class TechnicianController extends BaseController {
             boolean isSuperAdmin = isSuperAdmin(request);
             Technician loggedIntechnician = technicianService.getTechnicianByEmailId(technicianName);
             if (loggedIntechnician != null) {
+                listRequest.setTechnicianId(Collections.singletonList(loggedIntechnician.getUuid()));
                 return technicianService.getAnnouncements(listRequest, tenantId, isSuperAdmin);
             } else {
                 return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, "technician not found.",
@@ -299,6 +301,25 @@ public class TechnicianController extends BaseController {
             Long tenantId = getTenantId(request);
             boolean isSuperAdmin = isSuperAdmin(request);
             return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "Role list fetched successfully!", technicianService.getRoleList(tenantId, isSuperAdmin), "200", HttpStatus.OK), HttpStatus.OK);
+        } catch (Exception e) {
+            return handleException(e);
+        }
+    }
+
+    @GetMapping("/read-unread-announcement/{id}")
+    public ResponseEntity<ApiResponse> updateReadUnreadAnnouncement(@PathVariable("id") String id, HttpServletRequest request) {
+        logger.info("TechnicianController.updateReadUnreadAnnouncement");
+        String technicianName = request.getHeader(CommonConstants.technician_NAME);
+        try {
+            Long tenantId = getTenantId(request);
+            boolean isSuperAdmin = isSuperAdmin(request);
+            Technician loggedIntechnician = technicianService.getTechnicianByEmailId(technicianName);
+            if (loggedIntechnician != null) {
+                return technicianService.readUnreadAnnouncements(id,loggedIntechnician.getUuid(),tenantId);
+            } else {
+                return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, "technician not found.",
+                        null, "400", HttpStatus.OK), HttpStatus.OK);
+            }
         } catch (Exception e) {
             return handleException(e);
         }

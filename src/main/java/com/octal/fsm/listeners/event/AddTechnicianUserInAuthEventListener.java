@@ -4,9 +4,11 @@ import com.octal.fsm.clients.AdminClient;
 import com.octal.fsm.clients.AuthServiceClient;
 import com.octal.fsm.clients.NotificationClient;
 import com.octal.fsm.dto.SendMailRequestDTO;
+import com.octal.fsm.dto.TechnicianDto;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
@@ -68,7 +70,16 @@ public class AddTechnicianUserInAuthEventListener implements ApplicationListener
         try {
             if (event.isSendMail()) {
                 SendMailRequestDTO request = new SendMailRequestDTO();
-                request.setObjectData(event.getTechnician());
+                TechnicianDto.Add technicianDto = new TechnicianDto.Add();
+                technicianDto.setId(event.getTechnician().getUuid());
+                technicianDto.setName(event.getTechnician().getName());
+                technicianDto.setEmail(event.getTechnician().getEmail());
+                technicianDto.setEmployeeId(event.getTechnician().getEmployeeId());
+                technicianDto.setAddress(event.getTechnician().getAddress());
+                technicianDto.setJoinedDate(event.getTechnician().getJoinDate().toLocalDate());
+                technicianDto.setProfilePicture(event.getTechnician().getProfilePicture());
+                technicianDto.setPassword(event.getTechnician().getPassword());
+                request.setObjectData(technicianDto);
                 request.setTemplateName("TECHNICIAN_WELCOME");
                 request.setObjectName("Technician");
                 adminClient.sendDynamicMail(request, event.getTenantId(), event.isSuperAdmin());

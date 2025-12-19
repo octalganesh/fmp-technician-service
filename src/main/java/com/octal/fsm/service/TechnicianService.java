@@ -70,5 +70,7 @@ public interface TechnicianService {
     Boolean notificationToggle(Technician loggedIntechnician, Long tenantId, boolean isSuperAdmin);
 
     List<RoleDTO> getRoleList(Long tenantId, boolean isSuperAdmin);
+
+    ResponseEntity<ApiResponse> readUnreadAnnouncements(String id,String userId, Long tenantId) throws CodeException;
 }
 
