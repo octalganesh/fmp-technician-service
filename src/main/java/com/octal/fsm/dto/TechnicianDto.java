@@ -14,6 +14,7 @@ public class TechnicianDto {
 
     @Data
     @AllArgsConstructor
+    @NoArgsConstructor
     public static class Add {
         private String id;
         private String name;
@@ -28,6 +29,7 @@ public class TechnicianDto {
         private LocalDate joinedDate;
         private Boolean available;
         private String roleId;
+        private String password;
     }
 
     @Data
