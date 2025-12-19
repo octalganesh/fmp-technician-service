@@ -187,7 +187,16 @@ public class TechnicianServiceImpl implements TechnicianService {
         technicianRegisterRequest.setFullName(technician.getName());
         technicianRegisterRequest.setTenantId(String.valueOf(tenantId));
         technician.setPassword(randomPassword);
-        eventPublisher.publishEvent(new AddTechnicianUserInAuthEvent(technicianRegisterRequest, technician, tenantId, isSuperAdmin,true));
+        boolean isNew = TextUtils.isEmpty(add.getId());
+        eventPublisher.publishEvent(
+                new AddTechnicianUserInAuthEvent(
+                        technicianRegisterRequest,
+                        technician,
+                        tenantId,
+                        isSuperAdmin,
+                        isNew
+                )
+        );
         return technician.getUuid();
     }
 
@@ -302,7 +311,7 @@ public class TechnicianServiceImpl implements TechnicianService {
                 multiUserDeviceDetailsDTO.setDeviceToken(multiUserDeviceDetails.getDeviceToken());
                 multiUserDeviceDetailsDTO.setDeviceType(multiUserDeviceDetails.getDeviceType());
                 multiUserDeviceDetailsDTO.setAppVersion(multiUserDeviceDetails.getAppVersion());
-                multiUserDeviceDetailsDTO.setPusEnabled(multiUserDeviceDetailsDTO.getPusEnabled());
+                multiUserDeviceDetailsDTO.setPushEnabled(multiUserDeviceDetailsDTO.getPushEnabled());
                 technician.setMultiUserDeviceDetails(multiUserDeviceDetailsDTO);
                 technician.setMultiUserDeviceDetails(multiUserDeviceDetailsDTO);
             }
@@ -737,7 +746,7 @@ public class TechnicianServiceImpl implements TechnicianService {
             dto.setDeviceToken(userDeviceDetails.getDeviceToken());
             dto.setAppVersion(userDeviceDetails.getAppVersion());
             dto.setDeviceId(userDeviceDetails.getDeviceId());
-            dto.setPusEnabled(userDeviceDetails.getPushEnabled());
+            dto.setPushEnabled(userDeviceDetails.getPushEnabled());
             deviceDetailsDTOS.add(dto);
         }
         return deviceDetailsDTOS;
