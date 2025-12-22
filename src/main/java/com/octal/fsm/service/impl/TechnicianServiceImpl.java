@@ -132,6 +132,7 @@ public class TechnicianServiceImpl implements TechnicianService {
             throw new CodeException("technician name is already present!", ErrorCode.RECORD_NOT_FOUND);
         }
         Technician newtechnicianRecord = null;
+        TechnicianRegisterRequest technicianRegisterRequest = new TechnicianRegisterRequest();
         if (TextUtils.isEmpty(add.getId())) {
             if (technicianRepository.existsByMobileNumberAndTenantId(add.getMobileNumber(), tenantId))
                 throw new CodeException("Technician with mobile number " + add.getMobileNumber() + " already exists", ErrorCode.RECORD_NOT_FOUND);
@@ -156,6 +157,10 @@ public class TechnicianServiceImpl implements TechnicianService {
                 newtechnicianRecord = technician.get();
                 newtechnicianRecord.setUpdatedAt(LocalDateTime.now());
                 newtechnicianRecord.setActive(add.getIsActive());
+                if (Boolean.FALSE.equals(add.getIsActive()) && Boolean.TRUE.equals(technician.get().getActive())) {
+                    newtechnicianRecord.setToken(null);
+                    technicianRegisterRequest.setToken(null);
+                }
             } else {
                 throw new CodeException("Technician not Found!", ErrorCode.COMMON);
             }
@@ -177,7 +182,6 @@ public class TechnicianServiceImpl implements TechnicianService {
         newtechnicianRecord.setJoinDate(add.getJoinedDate().atStartOfDay());
         newtechnicianRecord.setTenantId(tenantId);
         Technician technician = technicianRepository.save(newtechnicianRecord);
-        TechnicianRegisterRequest technicianRegisterRequest = new TechnicianRegisterRequest();
         technicianRegisterRequest.setActive(newtechnicianRecord.getActive());
         technicianRegisterRequest.setEmail(newtechnicianRecord.getEmail());
         technicianRegisterRequest.setRole("technician");
@@ -186,7 +190,16 @@ public class TechnicianServiceImpl implements TechnicianService {
         technicianRegisterRequest.setFullName(technician.getName());
         technicianRegisterRequest.setTenantId(String.valueOf(tenantId));
         technician.setPassword(randomPassword);
-        eventPublisher.publishEvent(new AddTechnicianUserInAuthEvent(technicianRegisterRequest, technician, tenantId, isSuperAdmin,true));
+        boolean isNew = TextUtils.isEmpty(add.getId());
+        eventPublisher.publishEvent(
+                new AddTechnicianUserInAuthEvent(
+                        technicianRegisterRequest,
+                        technician,
+                        tenantId,
+                        isSuperAdmin,
+                        isNew
+                )
+        );
         return technician.getUuid();
     }
 
@@ -249,6 +262,7 @@ public class TechnicianServiceImpl implements TechnicianService {
                 multiUserDeviceDetailsDTO.setDeviceToken(multiUserDeviceDetails.getDeviceToken());
                 multiUserDeviceDetailsDTO.setDeviceType(multiUserDeviceDetails.getDeviceType());
                 multiUserDeviceDetailsDTO.setAppVersion(multiUserDeviceDetails.getAppVersion());
+                multiUserDeviceDetailsDTO.setPushEnabled(multiUserDeviceDetailsDTO.getPushEnabled());
                 technician.setMultiUserDeviceDetails(multiUserDeviceDetailsDTO);
                 technician.setMultiUserDeviceDetails(multiUserDeviceDetailsDTO);
             }
@@ -629,6 +643,7 @@ public class TechnicianServiceImpl implements TechnicianService {
             dto.setDeviceToken(userDeviceDetails.getDeviceToken());
             dto.setAppVersion(userDeviceDetails.getAppVersion());
             dto.setDeviceId(userDeviceDetails.getDeviceId());
+            dto.setPushEnabled(userDeviceDetails.getPushEnabled());
             deviceDetailsDTOS.add(dto);
         }
         return deviceDetailsDTOS;
@@ -786,6 +801,15 @@ public class TechnicianServiceImpl implements TechnicianService {
             responseList.add(roleDTO);
         }
         return responseList;
+    }
+
+    @Override
+    public ResponseEntity<ApiResponse> readUnreadAnnouncements(String id,String userId, Long tenantId) throws CodeException {
+        try {
+            return adminClient.readUnreadAnnouncement(id,userId, tenantId);
+        } catch (FeignException e) {
+            throw new CodeException("Remote admin-service failed: " + e.contentUTF8(), ErrorCode.COMMON);
+        }
     }
 
 }
