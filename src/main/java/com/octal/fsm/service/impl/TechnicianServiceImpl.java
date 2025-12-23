@@ -715,33 +715,45 @@ public class TechnicianServiceImpl implements TechnicianService {
 
     @Override
     public Set<MultiUserDeviceDetailsDTO.Response> getTechniciansNotificationsData(TechnicianNotificationRequest notificationRequest) throws CodeException {
-        List<MultiUserDeviceDetails> multiUserDeviceDetails = new ArrayList<>();
+//      List<MultiUserDeviceDetails> multiUserDeviceDetails = new ArrayList<>();
+        List<TechnicianDeviceWithUserProjection> technicianDeviceWithUserProjections = new ArrayList<>();
         if (notificationRequest.getUserGroup().equals(NotificationUserGroup.ALL_USER)) {
-            multiUserDeviceDetails = technicianRepository.findByDeviceTokenNotNullAndDeviceTypeNotNullAndDeviceTokenNot("");
+            technicianDeviceWithUserProjections = technicianRepository.findAllValidDevices("");
         } else if (notificationRequest.getUserGroup().equals(NotificationUserGroup.ALL_ANDROID_USER)) {
-            multiUserDeviceDetails = technicianRepository.findByDeviceTypeIgnoreCaseAndDeviceTokenIsNotNullAndDeviceTokenNot("android", "");
+            technicianDeviceWithUserProjections = technicianRepository.findByDeviceType("android", "");
 
         } else if (notificationRequest.getUserGroup().equals(NotificationUserGroup.ALL_IOS_USER)) {
-            multiUserDeviceDetails = technicianRepository.findByDeviceTypeIgnoreCaseAndDeviceTokenIsNotNullAndDeviceTokenNot("iOS", "");
+            technicianDeviceWithUserProjections = technicianRepository.findByDeviceType("iOS", "");
 
         } else if (notificationRequest.getUserGroup().equals(NotificationUserGroup.PARTICULAR_USER)) {
 
-            multiUserDeviceDetails = technicianRepository.findByUserIdIn(notificationRequest.getUserIds());
+            technicianDeviceWithUserProjections = technicianRepository.findByUserUuidIn(notificationRequest.getUserIds());
 
         }
-        if (multiUserDeviceDetails.isEmpty()) {
+        if (technicianDeviceWithUserProjections.isEmpty()) {
             throw new CodeException("No Active users found to send notification", ErrorCode.COMMON);
         }
         Set<MultiUserDeviceDetailsDTO.Response> deviceDetailsDTOS = new HashSet<>();
-        for (MultiUserDeviceDetails userDeviceDetails : multiUserDeviceDetails) {
-            MultiUserDeviceDetailsDTO.Response dto = new MultiUserDeviceDetailsDTO.Response();
-            dto.setDeviceType(userDeviceDetails.getDeviceType());
-            dto.setDeviceToken(userDeviceDetails.getDeviceToken());
-            dto.setAppVersion(userDeviceDetails.getAppVersion());
-            dto.setDeviceId(userDeviceDetails.getDeviceId());
-            dto.setPushEnabled(userDeviceDetails.getPushEnabled());
+        for (TechnicianDeviceWithUserProjection projection : technicianDeviceWithUserProjections) {
+            MultiUserDeviceDetails device = projection.getMultiUserDeviceDetails();
+            MultiUserDeviceDetailsDTO.Response dto =  new MultiUserDeviceDetailsDTO.Response();
+            dto.setUserId(projection.getUuid());
+            dto.setDeviceType(device.getDeviceType());
+            dto.setDeviceToken(device.getDeviceToken());
+            dto.setAppVersion(device.getAppVersion());
+            dto.setDeviceId(device.getDeviceId());
+            dto.setPushEnabled(device.getPushEnabled());
             deviceDetailsDTOS.add(dto);
         }
+//        for (MultiUserDeviceDetails userDeviceDetails : multiUserDeviceDetails) {
+//            MultiUserDeviceDetailsDTO.Response dto = new MultiUserDeviceDetailsDTO.Response();
+//            dto.setDeviceType(userDeviceDetails.getDeviceType());
+//            dto.setDeviceToken(userDeviceDetails.getDeviceToken());
+//            dto.setAppVersion(userDeviceDetails.getAppVersion());
+//            dto.setDeviceId(userDeviceDetails.getDeviceId());
+//            dto.setPushEnabled(userDeviceDetails.getPushEnabled());
+//            deviceDetailsDTOS.add(dto);
+//        }
         return deviceDetailsDTOS;
     }
 
