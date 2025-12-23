@@ -715,45 +715,39 @@ public class TechnicianServiceImpl implements TechnicianService {
 
     @Override
     public Set<MultiUserDeviceDetailsDTO.Response> getTechniciansNotificationsData(TechnicianNotificationRequest notificationRequest) throws CodeException {
-//      List<MultiUserDeviceDetails> multiUserDeviceDetails = new ArrayList<>();
-        List<TechnicianDeviceWithUserProjection> technicianDeviceWithUserProjections = new ArrayList<>();
+        List<Technician> technicianList = new ArrayList<>();
         if (notificationRequest.getUserGroup().equals(NotificationUserGroup.ALL_USER)) {
-            technicianDeviceWithUserProjections = technicianRepository.findAllValidDevices("");
+            technicianList = technicianRepository.findByDeviceTokenNotNullAndDeviceTypeNotNullAndDeviceTokenNot("");
         } else if (notificationRequest.getUserGroup().equals(NotificationUserGroup.ALL_ANDROID_USER)) {
-            technicianDeviceWithUserProjections = technicianRepository.findByDeviceType("android", "");
+            technicianList = technicianRepository.findByDeviceTypeIgnoreCaseAndDeviceTokenIsNotNullAndDeviceTokenNot("android", "");
 
         } else if (notificationRequest.getUserGroup().equals(NotificationUserGroup.ALL_IOS_USER)) {
-            technicianDeviceWithUserProjections = technicianRepository.findByDeviceType("iOS", "");
+            technicianList = technicianRepository.findByDeviceTypeIgnoreCaseAndDeviceTokenIsNotNullAndDeviceTokenNot("iOS", "");
 
         } else if (notificationRequest.getUserGroup().equals(NotificationUserGroup.PARTICULAR_USER)) {
 
-            technicianDeviceWithUserProjections = technicianRepository.findByUserUuidIn(notificationRequest.getUserIds());
+            technicianList = technicianRepository.findByUserIdIn(notificationRequest.getUserIds());
 
         }
-        if (technicianDeviceWithUserProjections.isEmpty()) {
+        if (technicianList.isEmpty()) {
             throw new CodeException("No Active users found to send notification", ErrorCode.COMMON);
         }
+
         Set<MultiUserDeviceDetailsDTO.Response> deviceDetailsDTOS = new HashSet<>();
-        for (TechnicianDeviceWithUserProjection projection : technicianDeviceWithUserProjections) {
-            MultiUserDeviceDetails device = projection.getMultiUserDeviceDetails();
-            MultiUserDeviceDetailsDTO.Response dto =  new MultiUserDeviceDetailsDTO.Response();
-            dto.setUserId(projection.getUuid());
-            dto.setDeviceType(device.getDeviceType());
-            dto.setDeviceToken(device.getDeviceToken());
-            dto.setAppVersion(device.getAppVersion());
-            dto.setDeviceId(device.getDeviceId());
-            dto.setPushEnabled(device.getPushEnabled());
+        for (Technician technician : technicianList) {
+            MultiUserDeviceDetails multiUserDeviceDetails = technician.getMultiUserDeviceDetails();
+            if( multiUserDeviceDetails == null) {
+                continue;
+            }
+            MultiUserDeviceDetailsDTO.Response dto = new MultiUserDeviceDetailsDTO.Response();
+            dto.setUserId(technician.getUuid());
+            dto.setDeviceType(multiUserDeviceDetails.getDeviceType());
+            dto.setDeviceToken(multiUserDeviceDetails.getDeviceToken());
+            dto.setAppVersion(multiUserDeviceDetails.getAppVersion());
+            dto.setDeviceId(multiUserDeviceDetails.getDeviceId());
+            dto.setPushEnabled(multiUserDeviceDetails.getPushEnabled());
             deviceDetailsDTOS.add(dto);
         }
-//        for (MultiUserDeviceDetails userDeviceDetails : multiUserDeviceDetails) {
-//            MultiUserDeviceDetailsDTO.Response dto = new MultiUserDeviceDetailsDTO.Response();
-//            dto.setDeviceType(userDeviceDetails.getDeviceType());
-//            dto.setDeviceToken(userDeviceDetails.getDeviceToken());
-//            dto.setAppVersion(userDeviceDetails.getAppVersion());
-//            dto.setDeviceId(userDeviceDetails.getDeviceId());
-//            dto.setPushEnabled(userDeviceDetails.getPushEnabled());
-//            deviceDetailsDTOS.add(dto);
-//        }
         return deviceDetailsDTOS;
     }
 

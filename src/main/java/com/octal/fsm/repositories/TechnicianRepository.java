@@ -1,6 +1,5 @@
 package com.octal.fsm.repositories;
 
-import com.octal.fsm.dto.TechnicianDeviceWithUserProjection;
 import com.octal.fsm.dto.TechnicianDto;
 import com.octal.fsm.entities.MultiUserDeviceDetails;
 import com.octal.fsm.entities.Technician;
@@ -43,40 +42,24 @@ public interface TechnicianRepository extends JpaRepository<Technician, Long>, J
     List<Technician> findAllByTenantId(Long tenantId);
 
     // For ALL_USER
-    @Query("SELECT t.multiUserDeviceDetails FROM Technician t " +
+    @Query("SELECT t FROM Technician t " +
             "WHERE t.multiUserDeviceDetails.deviceToken IS NOT NULL " +
             "AND t.multiUserDeviceDetails.deviceToken <> '' " +
             "AND t.multiUserDeviceDetails.deviceType IS NOT NULL " +
             "AND t.multiUserDeviceDetails.deviceType <> ''")
-    List<MultiUserDeviceDetails> findByDeviceTokenNotNullAndDeviceTypeNotNullAndDeviceTokenNot(@Param("deviceToken") String deviceToken);
+    List<Technician> findByDeviceTokenNotNullAndDeviceTypeNotNullAndDeviceTokenNot(@Param("deviceToken") String deviceToken);
 
     // For ALL_ANDROID_USER or ALL_IOS_USER
-    @Query("SELECT t.multiUserDeviceDetails FROM Technician t " +
+    @Query("SELECT t FROM Technician t " +
             "WHERE LOWER(t.multiUserDeviceDetails.deviceType) = LOWER(:deviceType) " +
             "AND t.multiUserDeviceDetails.deviceToken IS NOT NULL " +
             "AND t.multiUserDeviceDetails.deviceToken <> :deviceToken")
-    List<MultiUserDeviceDetails> findByDeviceTypeIgnoreCaseAndDeviceTokenIsNotNullAndDeviceTokenNot(@Param("deviceType") String deviceType,
+    List<Technician> findByDeviceTypeIgnoreCaseAndDeviceTokenIsNotNullAndDeviceTokenNot(@Param("deviceType") String deviceType,
                                                                                                     @Param("deviceToken") String deviceToken);
 
     // For PARTICULAR_USER
-    @Query("SELECT t.multiUserDeviceDetails FROM Technician t WHERE t.uuid IN :userIds")
-    List<MultiUserDeviceDetails> findByUserIdIn(@Param("userIds") List<String> userIds);
-
-    @Query("SELECT t AS technician FROM Technician t " +
-            "WHERE LOWER(t.multiUserDeviceDetails.deviceType) = LOWER(:deviceType) " +
-            "AND t.multiUserDeviceDetails.deviceToken IS NOT NULL " +
-            "AND t.multiUserDeviceDetails.deviceToken <> :deviceToken")
-    List<TechnicianDeviceWithUserProjection> findByDeviceType(@Param("deviceType") String deviceType, @Param("deviceToken") String deviceToken);
-
-    @Query("SELECT t AS technician FROM Technician t " +
-            "WHERE t.multiUserDeviceDetails.deviceToken IS NOT NULL " +
-            "AND t.multiUserDeviceDetails.deviceToken <> '' " +
-            "AND t.multiUserDeviceDetails.deviceType IS NOT NULL " +
-            "AND t.multiUserDeviceDetails.deviceType <> ''")
-    List<TechnicianDeviceWithUserProjection> findAllValidDevices(@Param("deviceToken") String deviceToken);
-
-    @Query("SELECT t AS technician FROM Technician t WHERE t.uuid IN :userIds")
-    List<TechnicianDeviceWithUserProjection> findByUserUuidIn(@Param("userIds") List<String> userIds);
+    @Query("SELECT t FROM Technician t WHERE t.uuid IN :userIds")
+    List<Technician> findByUserIdIn(@Param("userIds") List<String> userIds);
 
     long countByAndCreatedAtBetween(LocalDateTime startDate, LocalDateTime endDate);
 
