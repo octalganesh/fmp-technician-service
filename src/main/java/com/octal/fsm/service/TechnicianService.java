@@ -72,5 +72,7 @@ public interface TechnicianService {
     List<RoleDTO> getRoleList(Long tenantId, boolean isSuperAdmin);
 
     ResponseEntity<ApiResponse> readUnreadAnnouncements(String id,String userId, Long tenantId) throws CodeException;
+
+    ResponseEntity<ApiResponse> getAllInventoryData(PageRequest.List listRequest,Long tenantId,boolean isSuperAdmin) throws CodeException;
 }
 

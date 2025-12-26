@@ -914,4 +914,9 @@ public class TechnicianServiceImpl implements TechnicianService {
         }
     }
 
+    @Override
+    public ResponseEntity<ApiResponse> getAllInventoryData(PageRequest.List listRequest, Long tenantId, boolean isSuperAdmin) throws CodeException {
+        return jobClient.listAllInventory(listRequest, tenantId, isSuperAdmin);
+    }
+
 }

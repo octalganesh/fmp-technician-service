@@ -325,5 +325,17 @@ public class TechnicianController extends BaseController {
         }
     }
 
+    @PostMapping("/get-all-inventory")
+    public ResponseEntity<ApiResponse> getAllInventory(@RequestBody PageRequest.List listRequest,HttpServletRequest request) {
+        logger.info("StaticContentController.get-all-inventory");
+        try {
+            Long tenantId = getTenantId(request);
+            boolean isSuperAdmin = isSuperAdmin(request);
+            return technicianService.getAllInventoryData(listRequest,tenantId,isSuperAdmin);
+        } catch (Exception e) {
+            return handleException(e);
+        }
+    }
+
 }
 
