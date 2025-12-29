@@ -32,8 +32,15 @@ public class InventoryRequestController extends BaseController{
     public ResponseEntity<ApiResponse> request(@RequestBody InventoryRequestDTO.Create create, HttpServletRequest request) throws CodeException {
         logger.info("InventoryRequestController.create-request");
         try {
+            String technicianName = request.getHeader(CommonConstants.technician_NAME);
             Long tenantId = getTenantId(request);
             boolean isSuperAdmin = isSuperAdmin(request);
+            Technician loggedIntechnician = technicianService.getTechnicianByEmailId(technicianName);
+            if(loggedIntechnician == null){
+                return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, "Technician not found.",
+                        null, "400", HttpStatus.OK), HttpStatus.OK);
+            }
+            create.setTechnicianId(loggedIntechnician.getUuid());
             return inventoryRequestService.inventoryRequest(create,tenantId,isSuperAdmin);
         } catch (Exception e) {
             return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, e.getMessage(), null,
