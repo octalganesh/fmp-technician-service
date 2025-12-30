@@ -715,31 +715,37 @@ public class TechnicianServiceImpl implements TechnicianService {
 
     @Override
     public Set<MultiUserDeviceDetailsDTO.Response> getTechniciansNotificationsData(TechnicianNotificationRequest notificationRequest) throws CodeException {
-        List<MultiUserDeviceDetails> multiUserDeviceDetails = new ArrayList<>();
+        List<Technician> technicianList = new ArrayList<>();
         if (notificationRequest.getUserGroup().equals(NotificationUserGroup.ALL_USER)) {
-            multiUserDeviceDetails = technicianRepository.findByDeviceTokenNotNullAndDeviceTypeNotNullAndDeviceTokenNot("");
+            technicianList = technicianRepository.findByDeviceTokenNotNullAndDeviceTypeNotNullAndDeviceTokenNot("");
         } else if (notificationRequest.getUserGroup().equals(NotificationUserGroup.ALL_ANDROID_USER)) {
-            multiUserDeviceDetails = technicianRepository.findByDeviceTypeIgnoreCaseAndDeviceTokenIsNotNullAndDeviceTokenNot("android", "");
+            technicianList = technicianRepository.findByDeviceTypeIgnoreCaseAndDeviceTokenIsNotNullAndDeviceTokenNot("android", "");
 
         } else if (notificationRequest.getUserGroup().equals(NotificationUserGroup.ALL_IOS_USER)) {
-            multiUserDeviceDetails = technicianRepository.findByDeviceTypeIgnoreCaseAndDeviceTokenIsNotNullAndDeviceTokenNot("iOS", "");
+            technicianList = technicianRepository.findByDeviceTypeIgnoreCaseAndDeviceTokenIsNotNullAndDeviceTokenNot("iOS", "");
 
         } else if (notificationRequest.getUserGroup().equals(NotificationUserGroup.PARTICULAR_USER)) {
 
-            multiUserDeviceDetails = technicianRepository.findByUserIdIn(notificationRequest.getUserIds());
+            technicianList = technicianRepository.findByUserIdIn(notificationRequest.getUserIds());
 
         }
-        if (multiUserDeviceDetails.isEmpty()) {
+        if (technicianList.isEmpty()) {
             throw new CodeException("No Active users found to send notification", ErrorCode.COMMON);
         }
+
         Set<MultiUserDeviceDetailsDTO.Response> deviceDetailsDTOS = new HashSet<>();
-        for (MultiUserDeviceDetails userDeviceDetails : multiUserDeviceDetails) {
+        for (Technician technician : technicianList) {
+            MultiUserDeviceDetails multiUserDeviceDetails = technician.getMultiUserDeviceDetails();
+            if( multiUserDeviceDetails == null) {
+                continue;
+            }
             MultiUserDeviceDetailsDTO.Response dto = new MultiUserDeviceDetailsDTO.Response();
-            dto.setDeviceType(userDeviceDetails.getDeviceType());
-            dto.setDeviceToken(userDeviceDetails.getDeviceToken());
-            dto.setAppVersion(userDeviceDetails.getAppVersion());
-            dto.setDeviceId(userDeviceDetails.getDeviceId());
-            dto.setPushEnabled(userDeviceDetails.getPushEnabled());
+            dto.setUserId(technician.getUuid());
+            dto.setDeviceType(multiUserDeviceDetails.getDeviceType());
+            dto.setDeviceToken(multiUserDeviceDetails.getDeviceToken());
+            dto.setAppVersion(multiUserDeviceDetails.getAppVersion());
+            dto.setDeviceId(multiUserDeviceDetails.getDeviceId());
+            dto.setPushEnabled(multiUserDeviceDetails.getPushEnabled());
             deviceDetailsDTOS.add(dto);
         }
         return deviceDetailsDTOS;
