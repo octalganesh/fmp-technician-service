@@ -764,6 +764,7 @@ public class TechnicianServiceImpl implements TechnicianService {
 //        prepareTechnicianSearchFilterForAll(listRequest, builder, tenantId, isSuperAdmin);
         if (listRequest.getIsActive() != null)
             builder.with(technicianSpecificationFactory.isEqual("isActive", listRequest.getIsActive()));
+        builder.with(technicianSpecificationFactory.isEqual("tenantId", tenantId));
         Page<Technician> pagedResult = technicianRepository.findAll(builder.build(), pageable);
         DateTimeFormatter dateTimeFormatter = generalSettingService.buildTenantDateTimeFormatter(tenantId);
         TechnicianDto.list technician = new TechnicianDto.list();
