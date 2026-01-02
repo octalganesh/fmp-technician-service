@@ -92,4 +92,8 @@ public interface JobClient {
 
     @PostMapping("/inventory-requests/create-inventory-request")
     ResponseEntity<ApiResponse> inventoryRequest(@RequestBody InventoryRequestDTO.Create create, @RequestHeader("tenantId") Long tenantId, @RequestHeader("superAdmin") boolean superAdmin);
+
+    @PostMapping("/inventory-requests/get-inventory-request")
+    ResponseEntity<ApiResponse> getAllInventoryRequestList(@RequestBody PageRequest.List listRequest, @RequestHeader("tenantId") Long tenantId,
+                                                           @RequestHeader("superAdmin") boolean superAdmin);
 }
