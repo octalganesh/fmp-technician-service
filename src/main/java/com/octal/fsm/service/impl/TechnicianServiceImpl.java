@@ -479,7 +479,7 @@ public class TechnicianServiceImpl implements TechnicianService {
         if(tenantId == null){
             return null;
         }
-        Optional<Technician> user = technicianRepository.findByUuidAndTenantId(email,tenantId);
+        Optional<Technician> user = technicianRepository.findByEmailAndTenantId(email,tenantId);
         return user.orElse(null);
     }
 
