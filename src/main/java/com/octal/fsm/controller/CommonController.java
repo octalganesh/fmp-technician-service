@@ -31,7 +31,7 @@ public class CommonController extends BaseController {
         try {
             Long tenantId = getTenantId(request);
             boolean isSuperAdmin = isSuperAdmin(request);
-            Technician loggedIntechnician = technicianService.getTechnicianByEmailId(loggedInUserName);
+            Technician loggedIntechnician = technicianService.getTechnicianByEmailIdAndTenantId(loggedInUserName,tenantId);
             if (loggedIntechnician != null) {
                 listRequest.setSearchText("");
                 listRequest.setAsc(false);
@@ -54,7 +54,7 @@ public class CommonController extends BaseController {
         try {
             Long tenantId = getTenantId(request);
             boolean isSuperAdmin = isSuperAdmin(request);
-            Technician loggedIntechnician = technicianService.getTechnicianByEmailId(loggedInUserName);
+            Technician loggedIntechnician = technicianService.getTechnicianByEmailIdAndTenantId(loggedInUserName,tenantId);
             if (loggedIntechnician != null) {
                 listRequest.setSearchText("");
                 listRequest.setAsc(false);

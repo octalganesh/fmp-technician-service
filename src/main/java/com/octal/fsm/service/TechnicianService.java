@@ -33,6 +33,8 @@ public interface TechnicianService {
 
     Technician getTechnicianByEmailId(String email);
 
+    Technician getTechnicianByEmailIdAndTenantId(String email, Long tenantId);
+
     AuthTechnicianDTO fetchAuthenticatedTechnicianDetailsByEmail(String email);
 
     void changeTechnicianPassword(@Valid ChangePasswordDTO passwordDTO, String header) throws CodeException;
@@ -72,5 +74,7 @@ public interface TechnicianService {
     List<RoleDTO> getRoleList(Long tenantId, boolean isSuperAdmin);
 
     ResponseEntity<ApiResponse> readUnreadAnnouncements(String id,String userId, Long tenantId) throws CodeException;
+
+    TechnicianTenantDTO getTechnicianByEmailIdWithTenants(String email);
 }
 

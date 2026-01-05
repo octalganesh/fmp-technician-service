@@ -1,5 +1,6 @@
 package com.octal.fsm.service.impl;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.octal.fsm.clients.AdminClient;
 import com.octal.fsm.clients.JobClient;
@@ -91,6 +92,9 @@ public class TechnicianServiceImpl implements TechnicianService {
     @Autowired
     private GeneralSettingService generalSettingService;
 
+    @Autowired
+    private ObjectMapper objectMapper;
+
     @Value("${aws.base-url}")
     private String awsS3BaseUrl;
 
@@ -151,7 +155,7 @@ public class TechnicianServiceImpl implements TechnicianService {
         } else {
             Optional<Technician> technician = technicianRepository.findByUuidAndTenantId(add.getId(), tenantId);
             Optional<Technician> optional = technicianRepository.findByMobileNumberAndTenantId(add.getMobileNumber(), tenantId);
-            Optional<Technician> optionalTechnician1 = technicianRepository.findByEmail(add.getEmail());
+            Optional<Technician> optionalTechnician1 = technicianRepository.findByEmailAndTenantId(add.getEmail(),tenantId);
             if (optionalTechnician1.isPresent() && !optionalTechnician1.get().getUuid().equals(add.getId()))
                 throw new CodeException("Technician with email " + add.getEmail() + " already exists", ErrorCode.RECORD_NOT_FOUND);
             if (optional.isPresent() && !optional.get().getUuid().equals(add.getId()))
@@ -457,7 +461,7 @@ public class TechnicianServiceImpl implements TechnicianService {
 
     @Override
     public AuthTechnicianDTO fetchAuthenticatedUserDetailsByEmail(String email, Long tenantId, boolean isSuperAdmin) {
-        Optional<Technician> user = technicianRepository.findByEmail(email);
+        Optional<Technician> user = technicianRepository.findByEmailAndTenantId(email,tenantId);
         return user.map(TechnicianTransformer.userToAuthDto::apply).orElse(null);
     }
 
@@ -466,6 +470,16 @@ public class TechnicianServiceImpl implements TechnicianService {
     @Transactional(readOnly = true) // Ensures the query is optimized for read
     public Technician getTechnicianByEmailId(String email) {
         Optional<Technician> user = technicianRepository.findByEmail(email);
+        return user.orElse(null);
+    }
+
+    @Override
+    @Transactional(readOnly = true) // Ensures the query is optimized for read
+    public Technician getTechnicianByEmailIdAndTenantId(String email,Long tenantId) {
+        if(tenantId == null){
+            return null;
+        }
+        Optional<Technician> user = technicianRepository.findByUuidAndTenantId(email,tenantId);
         return user.orElse(null);
     }
 
@@ -826,6 +840,38 @@ public class TechnicianServiceImpl implements TechnicianService {
         } catch (FeignException e) {
             throw new CodeException("Remote admin-service failed: " + e.contentUTF8(), ErrorCode.COMMON);
         }
+    }
+
+    @Override
+    public TechnicianTenantDTO getTechnicianByEmailIdWithTenants(String email) {
+        List<Technician> technicianList = technicianRepository.findAllByEmail(email);
+        if (technicianList == null || technicianList.isEmpty()) {
+            return null;
+        }
+        List<Long> tenantIds = technicianList.stream()
+                .map(Technician::getTenantId).filter(Objects::nonNull)
+                .distinct().collect(Collectors.toList());
+        if(tenantIds.isEmpty()) {
+            return null;
+        }
+        TechnicianTenantDTO technicianTenantDTO = new TechnicianTenantDTO();
+        technicianTenantDTO.setEmail(email);
+        try {
+            TechnicianTenantDTO.TenantRequestDTO tenantRequestDTO = new TechnicianTenantDTO.TenantRequestDTO();
+            tenantRequestDTO.setTenantIds(tenantIds);
+            ResponseEntity<ApiResponse> responseEntity = adminClient.getTenantsByIds(tenantRequestDTO);
+            ApiResponse tenantResponse = responseEntity.getBody();
+            if (tenantResponse == null || tenantResponse.getStatus() == null || !tenantResponse.getStatus().equalsIgnoreCase("200") || tenantResponse.getData() == null) {
+                technicianTenantDTO.setTenants(Collections.emptyList());
+            }
+            List<TechnicianTenantDTO.TenantDetailDTO> tenantDetailDTOS = objectMapper.convertValue(tenantResponse.getData(), new TypeReference<List<TechnicianTenantDTO.TenantDetailDTO>>() {
+            });
+            technicianTenantDTO.setTenants(tenantDetailDTOS);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            technicianTenantDTO.setTenants(Collections.emptyList());
+        }
+        return technicianTenantDTO;
     }
 
 }

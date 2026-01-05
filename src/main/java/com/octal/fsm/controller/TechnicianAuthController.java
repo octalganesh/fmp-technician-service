@@ -57,8 +57,12 @@ public class TechnicianAuthController extends BaseController {
     @PostMapping(value = "/auth/login")
     public ResponseEntity<ApiResponse> technicianLogin(@Valid @RequestBody LoginRequest request) {
         try {
-
-            Technician technician = technicianService.getTechnicianByEmailId(request.getEmail());
+            Long tenantId = Long.parseLong(request.getTenantId());
+            if (request.getTenantId() == null || request.getTenantId().isEmpty()) {
+                return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, "Tenant id is required", null,
+                        "400", HttpStatus.BAD_REQUEST), HttpStatus.BAD_REQUEST);
+            }
+            Technician technician = technicianService.getTechnicianByEmailIdAndTenantId(request.getEmail(),tenantId);
             if (technician == null) {
                 return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "Invalid email address provided. Please enter a registered and valid email.", null,
                         "400", HttpStatus.OK), HttpStatus.OK);
@@ -66,6 +70,7 @@ public class TechnicianAuthController extends BaseController {
             if(!technician.getActive())
                 return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "User account is inactive. Please contact support.", null,
                         "400", HttpStatus.OK), HttpStatus.OK);
+//            authenticate(request.getEmail() + "|"+request.getTenantId(), request.getPassword());
             authenticate(request.getEmail(), request.getPassword());
             AuthenticationResponse authenticationResponse = jwtTokenProvider.generateToken(technician);
             //save jwt token on the time of log in
@@ -110,12 +115,34 @@ public class TechnicianAuthController extends BaseController {
 
     }
 
+    @PostMapping(value = "/auth/email/login")
+    public ResponseEntity<ApiResponse> technicianLoginWithOnyEmail(@RequestBody LoginRequest request) {
+        try {
+            if (request.getEmail() == null || request.getEmail().isEmpty()) {
+                return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, "Email is required", null,
+                        "400", HttpStatus.BAD_REQUEST), HttpStatus.BAD_REQUEST);
+            }
+            TechnicianTenantDTO technicianByEmailIdWithTenants = technicianService.getTechnicianByEmailIdWithTenants(request.getEmail());
+            if (technicianByEmailIdWithTenants == null) {
+                return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "Invalid email address provided. Please enter a registered and valid email.", null,
+                        "400", HttpStatus.OK), HttpStatus.OK);
+            }
+            return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "Technician details fetch successfully", technicianByEmailIdWithTenants,
+                    "200", HttpStatus.OK), HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, e.getMessage(), null,
+                    "500", HttpStatus.OK), HttpStatus.OK);
+        }
+
+    }
+
     @PostMapping(value = "/auth/signout")
     public ResponseEntity<ApiResponse> technicianLogout(HttpServletRequest request) {
         logger.info("TechnicianAuthController.technicianLogout");
         String technicianName = request.getHeader(CommonConstants.technician_NAME);
         try {
-            Technician loggedIntechnician = technicianService.getTechnicianByEmailId(technicianName);
+            Long tenantId = getTenantId(request);
+            Technician loggedIntechnician = technicianService.getTechnicianByEmailIdAndTenantId(technicianName,tenantId);
             if (loggedIntechnician != null) {
                 //remove jwt token on the time of log out
                 loggedIntechnician.setToken(null);
@@ -147,7 +174,8 @@ public class TechnicianAuthController extends BaseController {
         logger.info("AdminAuthController.getProfileDetails");
         String technicianName = httpServletRequest.getHeader(CommonConstants.technician_NAME);
         try {
-            Technician loggedIntechnician = technicianService.getTechnicianByEmailId(technicianName);
+            Long tenantId = getTenantId(httpServletRequest);
+            Technician loggedIntechnician = technicianService.getTechnicianByEmailIdAndTenantId(technicianName,tenantId);
             if (loggedIntechnician != null) {
                 //if (Boolean.TRUE.equals(loggedIntechnician.getIsAdmin())) {
                 return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "Profile Details.", technicianService.getProfileDetails(loggedIntechnician.getUuid()),
@@ -183,7 +211,7 @@ public class TechnicianAuthController extends BaseController {
         try {
             Long tenantId = getTenantId(request);
             boolean isSuperAdmin = isSuperAdmin(request);
-            Technician loggedIntechnician = technicianService.getTechnicianByEmailId(technicianName);
+            Technician loggedIntechnician = technicianService.getTechnicianByEmailIdAndTenantId(technicianName,tenantId);
             if (loggedIntechnician != null) {
                 return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "Profile Update Successfully", technicianService.updateProfile(loggedIntechnician, technicianDetailDTO, tenantId, isSuperAdmin),
                         "200", HttpStatus.OK), HttpStatus.OK);
@@ -209,7 +237,7 @@ public class TechnicianAuthController extends BaseController {
         try {
             Long tenantId = getTenantId(request);
             boolean isSuperAdmin = isSuperAdmin(request);
-            Technician loggedIntechnician = technicianService.getTechnicianByEmailId(technicianName);
+            Technician loggedIntechnician = technicianService.getTechnicianByEmailIdAndTenantId(technicianName,tenantId);
             if (loggedIntechnician != null) {
                 technicianService.updatePassword(changePassword, loggedIntechnician, tenantId, isSuperAdmin);
                 return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "Password Update Successfully", null,

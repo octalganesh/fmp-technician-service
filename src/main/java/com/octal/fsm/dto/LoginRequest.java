@@ -18,6 +18,8 @@ public class LoginRequest implements Serializable {
     private String deviceType;
     @NotBlank
     private String fcmToken;
+    @NotBlank
+    private String tenantId;
 
     public LoginRequest(String email, String password, String deviceId, String deviceType, String fcmToken) {
         this.email = email;
@@ -68,5 +70,12 @@ public class LoginRequest implements Serializable {
 
     public void setFcmToken(String fcmToken) {
         this.fcmToken = fcmToken;
+    }
+
+    public String getTenantId() {
+        return tenantId;
+    }
+    public void setTenantId(String tenantId) {
+        this.tenantId = tenantId;
     }
 }
