@@ -215,7 +215,7 @@ public class TechnicianController extends BaseController {
     }
 
     @PostMapping("/count")
-    public ResponseEntity<ApiResponse> totalCount(@RequestBody JobDashboardResponseDTO.Search search, HttpServletRequest request) {
+    public ResponseEntity<ApiResponse> totalCount(@RequestBody(required = false) JobDashboardResponseDTO.Search search, HttpServletRequest request) {
         logger.info("TechnicianController./count");
         try {
             return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "Dashboard data Generated Successfully.", technicianService.countTechnician(search), "200", HttpStatus.OK), HttpStatus.OK);
