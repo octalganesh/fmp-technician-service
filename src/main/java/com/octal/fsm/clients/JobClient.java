@@ -96,4 +96,8 @@ public interface JobClient {
     @PostMapping("/inventory-requests/get-inventory-request")
     ResponseEntity<ApiResponse> getAllInventoryRequestList(@RequestBody PageRequest.List listRequest, @RequestHeader("tenantId") Long tenantId,
                                                            @RequestHeader("superAdmin") boolean superAdmin);
+
+    @GetMapping("/jobs/all-jobs-for-technician/{technicianId}")
+    ResponseEntity<ApiResponse> getAllJobByTechnician(@PathVariable("technicianId") String technicianId, @RequestHeader("userName") String userName, @RequestHeader("tenantId") Long tenantId,
+                                                         @RequestHeader("isSuperAdmin") boolean isSuperAdmin);
 }
