@@ -10,6 +10,7 @@ public class InventoryRequestDTO {
     @Data
     public static class Create {
         private String technicianId;
+        private String comment;
         private String taskId;
         private List<Item> items;
     }
