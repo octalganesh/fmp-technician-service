@@ -46,4 +46,10 @@ public interface AdminClient {
 
     @GetMapping("/announcement/read-unread-announcement/{id}")
     ResponseEntity<ApiResponse> readUnreadAnnouncement(@RequestParam("id") String id,@RequestParam("userId") String userId, @RequestHeader("tenantId") Long tenantId);
+
+    @GetMapping("/general-setting/get-setting/{key}")
+    ResponseEntity<com.octal.fsm.common.ApiResponse> getGeneralSettingBYKey(@PathVariable("key") String key, @RequestHeader("tenantId") Long tenantId);
+
+    @GetMapping("/general-setting/get-setting-map")
+    ResponseEntity<com.octal.fsm.common.ApiResponse> getGeneralSettingMap(@RequestHeader("tenantId") Long tenantId);
 }
