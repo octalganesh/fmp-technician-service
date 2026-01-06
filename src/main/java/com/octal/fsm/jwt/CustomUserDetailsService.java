@@ -47,7 +47,7 @@ public class CustomUserDetailsService implements UserDetailsService {
             throw new UsernameNotFoundException("TenantId is required for technician login");
         }
 
-        Technician technician = technicianRepository.findByEmailAndTenantId(username,tenantId)
+        Technician technician = technicianRepository.findByEmailAndTenantId(userEmail,tenantId)
                 .orElseThrow(() -> new UsernameNotFoundException("Technician not found with username and tenant id: " + username));
 
         List<GrantedAuthority> authorities = Collections.singletonList(
