@@ -266,8 +266,7 @@ public class TechnicianServiceImpl implements TechnicianService {
                 multiUserDeviceDetailsDTO.setDeviceToken(multiUserDeviceDetails.getDeviceToken());
                 multiUserDeviceDetailsDTO.setDeviceType(multiUserDeviceDetails.getDeviceType());
                 multiUserDeviceDetailsDTO.setAppVersion(multiUserDeviceDetails.getAppVersion());
-                multiUserDeviceDetailsDTO.setPushEnabled(multiUserDeviceDetailsDTO.getPushEnabled());
-                technician.setMultiUserDeviceDetails(multiUserDeviceDetailsDTO);
+                multiUserDeviceDetailsDTO.setPushEnabled(multiUserDeviceDetails.getPushEnabled());
                 technician.setMultiUserDeviceDetails(multiUserDeviceDetailsDTO);
             }
             return technician;
@@ -656,7 +655,7 @@ public class TechnicianServiceImpl implements TechnicianService {
             dto.setDeviceToken(multiUserDeviceDetails.getDeviceToken());
             dto.setAppVersion(multiUserDeviceDetails.getAppVersion());
             dto.setDeviceId(multiUserDeviceDetails.getDeviceId());
-            dto.setPushEnabled(multiUserDeviceDetails.getPushEnabled());
+            dto.setPushEnabled(multiUserDeviceDetails.getPushEnabled() != null ? multiUserDeviceDetails.getPushEnabled() : true);
             deviceDetailsDTOS.add(dto);
         }
         return deviceDetailsDTOS;
