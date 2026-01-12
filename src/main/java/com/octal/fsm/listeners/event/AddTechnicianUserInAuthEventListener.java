@@ -4,6 +4,8 @@ import com.octal.fsm.clients.AdminClient;
 import com.octal.fsm.clients.AuthServiceClient;
 import com.octal.fsm.clients.NotificationClient;
 import com.octal.fsm.dto.SendMailRequestDTO;
+import com.octal.fsm.dto.TechnicianDto;
+import com.octal.fsm.service.GeneralSettingService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +27,8 @@ public class AddTechnicianUserInAuthEventListener implements ApplicationListener
 
     @Autowired
     private AdminClient adminClient;
+    @Autowired
+    private GeneralSettingService generalSettingService;
 
     @Override
     @Async("addTechnicianEvent")
@@ -67,9 +71,19 @@ public class AddTechnicianUserInAuthEventListener implements ApplicationListener
             e.printStackTrace();
         }
         try {
-            if (event.isSendMail()) {
+            boolean notificationEnabled = generalSettingService.isNotificationEnabled(event.getTenantId());
+            if (notificationEnabled && event.isSendMail()) {
                 SendMailRequestDTO request = new SendMailRequestDTO();
-                request.setObjectData(event.getTechnician());
+                TechnicianDto.Add technicianDto = new TechnicianDto.Add();
+                technicianDto.setId(event.getTechnician().getUuid());
+                technicianDto.setName(event.getTechnician().getName());
+                technicianDto.setEmail(event.getTechnician().getEmail());
+                technicianDto.setEmployeeId(event.getTechnician().getEmployeeId());
+                technicianDto.setAddress(event.getTechnician().getAddress());
+                technicianDto.setJoinedDate(event.getTechnician().getJoinDate().toLocalDate());
+                technicianDto.setProfilePicture(event.getTechnician().getProfilePicture());
+                technicianDto.setPassword(event.getTechnician().getPassword());
+                request.setObjectData(technicianDto);
                 request.setTemplateName("TECHNICIAN_WELCOME");
                 request.setObjectName("Technician");
                 adminClient.sendDynamicMail(request, event.getTenantId(), event.isSuperAdmin());
