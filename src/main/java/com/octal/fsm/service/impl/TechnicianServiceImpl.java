@@ -179,9 +179,9 @@ public class TechnicianServiceImpl implements TechnicianService {
         newtechnicianRecord.setName(add.getName());
         //newtechnicianRecord.setAddress(new Address(add.getAddress().getStreet(), add.getAddress().getCity(), add.getAddress().getState(), add.getAddress().getPostalCode(), add.getAddress().getCountry()));
         newtechnicianRecord.setAddress(add.getAddress());
-        if(add.getGender() != null){
+        //if(add.getGender() != null){
             newtechnicianRecord.setGender(add.getGender());
-        }
+        //}
         if (!TextUtils.isEmpty(add.getProfilePicture()))
             newtechnicianRecord.setProfilePicture(awsS3BaseUrl + add.getProfilePicture());
         newtechnicianRecord.setJoinDate(add.getJoinedDate().atStartOfDay());
