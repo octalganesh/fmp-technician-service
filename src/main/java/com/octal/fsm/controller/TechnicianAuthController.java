@@ -273,16 +273,15 @@ public class TechnicianAuthController extends BaseController {
     }
 
     @GetMapping("/forget/password")
-    public ResponseEntity<ApiResponse> forgetTechnicianPassword(@RequestParam("email") String email) {
+    public ResponseEntity<ApiResponse> forgetTechnicianPassword(@RequestParam("email") String email,@RequestParam("tenantId") Long tenantId) {
         try {
-            if (!TextUtils.isEmpty(email)) {
-                technicianService.resetTechnicianPassword(email);
-                return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "A password reset email has been sent. Please check your inbox and follow the link to reset your password.", null,
-                        "200", HttpStatus.OK), HttpStatus.OK);
-            } else {
-                return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "Invalid request,email id not found in request", null,
-                        "400", HttpStatus.OK), HttpStatus.OK);
+            if (TextUtils.isEmpty(email) || TextUtils.isEmpty(tenantId)) {
+                return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "Invalid request, email or tenantId not found in request", null,
+                        "101", HttpStatus.OK), HttpStatus.OK);
             }
+            technicianService.resetTechnicianPassword(email,tenantId);
+            return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "A password reset email has been sent. Please check your inbox and follow the link to reset your password.", null,
+                    "200", HttpStatus.OK), HttpStatus.OK);
         } catch (CodeException e) {
             return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, e.getMessage(), null,
                     String.valueOf(e.getCode().getCode()), HttpStatus.OK), HttpStatus.OK);

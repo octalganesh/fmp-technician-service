@@ -500,8 +500,8 @@ public class TechnicianServiceImpl implements TechnicianService {
     }
 
     @Override
-    public void resetTechnicianPassword(String email) throws CodeException {
-        Optional<Technician> user = technicianRepository.findByEmail(email);
+    public void resetTechnicianPassword(String email,Long tenantId) throws CodeException {
+        Optional<Technician> user = technicianRepository.findByEmailAndTenantId(email,tenantId);
         // if user is present then send email with generated OTP
         if (user.isPresent()) {
             user.ifPresent(user1 -> {

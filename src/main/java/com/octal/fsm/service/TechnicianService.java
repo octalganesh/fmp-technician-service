@@ -39,7 +39,7 @@ public interface TechnicianService {
 
     void changeTechnicianPassword(@Valid ChangePasswordDTO passwordDTO, String header) throws CodeException;
 
-    void resetTechnicianPassword(String email) throws CodeException;
+    void resetTechnicianPassword(String email,Long tenantId) throws CodeException;
 
     void resetTechnicianPassword(String token, String newPassword, String confirmPassword) throws CodeException;
 
