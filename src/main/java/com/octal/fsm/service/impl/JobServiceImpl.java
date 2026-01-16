@@ -239,4 +239,13 @@ public class JobServiceImpl implements JobService {
             throw new CodeException("Remote Job-service failed: " + e.contentUTF8(), ErrorCode.COMMON);
         }
     }
+
+    @Override
+    public ResponseEntity<ApiResponse> getAllJobsWithLimitedData(Technician loggedInTechnician, Long tenantId, boolean isSuperAdmin,String userName) throws CodeException {
+        try {
+            return  jobClient.getAllJobByTechnician(loggedInTechnician.getUuid(), userName, tenantId, isSuperAdmin);
+        } catch (FeignException e) {
+            throw new CodeException("Remote job-service failed: " + e.contentUTF8(), ErrorCode.COMMON);
+        }
+    }
 }

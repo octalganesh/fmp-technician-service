@@ -77,6 +77,7 @@ public class SendMailToTechnicianEventListener implements ApplicationListener<Se
                             dto.setDeviceType(multiUserDeviceDetails.getDeviceType());
                             dto.setAppVersion(multiUserDeviceDetails.getAppVersion());
                             dto.setDeviceId(multiUserDeviceDetails.getDeviceId());
+                            dto.setPushEnabled(multiUserDeviceDetails.getPushEnabled() != null ? multiUserDeviceDetails.getPushEnabled() : true);
                             frontOfficeDeviceDetails.add(dto);
                         }
                     }

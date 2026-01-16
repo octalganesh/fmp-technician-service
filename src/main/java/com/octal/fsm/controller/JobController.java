@@ -294,4 +294,22 @@ public class JobController extends BaseController {
         }
     }
 
+    @GetMapping("/get-all-job-tasks")
+    public ResponseEntity<ApiResponse> getAllJobs(HttpServletRequest request) {
+        String technicianName = request.getHeader(CommonConstants.technician_NAME);
+        try {
+            Long tenantId = getTenantId(request);
+            boolean isSuperAdmin = isSuperAdmin(request);
+            Technician loggedIntechnician = technicianService.getTechnicianByEmailId(technicianName);
+            if (loggedIntechnician != null) {
+                return jobService.getAllJobsWithLimitedData(loggedIntechnician, tenantId, isSuperAdmin, technicianName);
+            } else {
+                return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, "Technician not found.",
+                        null, "400", HttpStatus.OK), HttpStatus.OK);
+            }
+        } catch (Exception e) {
+            logger.error("Error updating job task status: {}", e.getMessage(), e);
+            return handleException(e);
+        }
+    }
 }

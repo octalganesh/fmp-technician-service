@@ -132,8 +132,8 @@ public class TechnicianServiceImpl implements TechnicianService {
             throw new CodeException("email id is required", ErrorCode.COMMON);
         if (TextUtils.isEmpty(add.getAddress()))
             throw new CodeException("address is required", ErrorCode.COMMON);
-        if (add.getGender() == null)
-            throw new CodeException("gender is required", ErrorCode.COMMON);
+//        if (add.getGender() == null)
+//            throw new CodeException("gender is required", ErrorCode.COMMON);
         Optional<Technician> optionalTechnician = technicianRepository.findByUuidAndTenantId(add.getId(), tenantId);
         if (optionalTechnician.isPresent() && !optionalTechnician.get().getUuid().equals(add.getId())) {
             throw new CodeException("technician name is already present!", ErrorCode.RECORD_NOT_FOUND);
@@ -183,7 +183,9 @@ public class TechnicianServiceImpl implements TechnicianService {
         newtechnicianRecord.setName(add.getName());
         //newtechnicianRecord.setAddress(new Address(add.getAddress().getStreet(), add.getAddress().getCity(), add.getAddress().getState(), add.getAddress().getPostalCode(), add.getAddress().getCountry()));
         newtechnicianRecord.setAddress(add.getAddress());
-        newtechnicianRecord.setGender(add.getGender());
+        //if(add.getGender() != null){
+            newtechnicianRecord.setGender(add.getGender());
+        //}
         if (!TextUtils.isEmpty(add.getProfilePicture()))
             newtechnicianRecord.setProfilePicture(awsS3BaseUrl + add.getProfilePicture());
         newtechnicianRecord.setJoinDate(add.getJoinedDate().atStartOfDay());
@@ -262,7 +264,9 @@ public class TechnicianServiceImpl implements TechnicianService {
             technician.setJoinedDate(technicianRecord.get().getJoinDate() != null ? technicianRecord.get().getJoinDate().format(dateTimeFormatter) : LocalDateTime.now().toString());
             technician.setCreatedAt(technicianRecord.get().getCreatedAt().format(dateTimeFormatter));
             technician.setUpdatedAt(technicianRecord.get().getUpdatedAt().format(dateTimeFormatter));
-            technician.setGender(technicianRecord.get().getGender());
+            if(technicianRecord.get().getGender() != null){
+                technician.setGender(technicianRecord.get().getGender());
+            }
             technician.setRoleName(Objects.nonNull(technicianRecord.get().getRole()) ? technicianRecord.get().getRole().getName() : null);
             if (technicianRecord.get().getMultiUserDeviceDetails() != null) {
                 MultiUserDeviceDetails multiUserDeviceDetails = technicianRecord.get().getMultiUserDeviceDetails();
@@ -270,8 +274,7 @@ public class TechnicianServiceImpl implements TechnicianService {
                 multiUserDeviceDetailsDTO.setDeviceToken(multiUserDeviceDetails.getDeviceToken());
                 multiUserDeviceDetailsDTO.setDeviceType(multiUserDeviceDetails.getDeviceType());
                 multiUserDeviceDetailsDTO.setAppVersion(multiUserDeviceDetails.getAppVersion());
-                multiUserDeviceDetailsDTO.setPushEnabled(multiUserDeviceDetailsDTO.getPushEnabled());
-                technician.setMultiUserDeviceDetails(multiUserDeviceDetailsDTO);
+                multiUserDeviceDetailsDTO.setPushEnabled(multiUserDeviceDetails.getPushEnabled());
                 technician.setMultiUserDeviceDetails(multiUserDeviceDetailsDTO);
             }
             return technician;
@@ -319,7 +322,7 @@ public class TechnicianServiceImpl implements TechnicianService {
         String trimmedText = listRequest.getSearchText().trim();
         listRequest.setSearchText(trimmedText);
         GenericSpecificationsBuilder<Technician> builder = new GenericSpecificationsBuilder<>();
-        listRequest.setPageSize(generalSettingService.getPageSize(tenantId));
+        //listRequest.setPageSize(generalSettingService.getPageSize(tenantId));
         Pageable pageable = null;
         if (Boolean.TRUE.equals(listRequest.getAsc())) {
             pageable = org.springframework.data.domain.PageRequest.of(listRequest.getPageNumber(), listRequest.getPageSize(), Sort.by(listRequest.getShortingField()).ascending());
@@ -359,7 +362,9 @@ public class TechnicianServiceImpl implements TechnicianService {
             dto.setEmployeeId(technician.getEmployeeId());
             dto.setUpdatedAt(technician.getUpdatedAt().format(dateTimeFormatter));
             dto.setJoinedDate(technician.getJoinDate() != null ? technician.getJoinDate().format(dateTimeFormatter) : LocalDateTime.now().toString());
-            dto.setGender(technician.getGender());
+            if(technician.getGender() != null){
+                dto.setGender(technician.getGender());
+            }
             dto.setRoleName(Objects.nonNull(technician.getRole()) ? technician.getRole().getName() : null);
             responseList.add(dto);
         }
@@ -376,7 +381,7 @@ public class TechnicianServiceImpl implements TechnicianService {
         String trimmedText = listRequest.getSearchText().trim();
         listRequest.setSearchText(trimmedText);
         GenericSpecificationsBuilder<Technician> builder = new GenericSpecificationsBuilder<>();
-        listRequest.setPageSize(generalSettingService.getPageSize(tenantId));
+        //listRequest.setPageSize(generalSettingService.getPageSize(tenantId));
         Pageable pageable = null;
         if (Boolean.TRUE.equals(listRequest.getAsc())) {
             pageable = org.springframework.data.domain.PageRequest.of(listRequest.getPageNumber(), listRequest.getPageSize(), Sort.by(listRequest.getShortingField()).ascending());
@@ -670,7 +675,7 @@ public class TechnicianServiceImpl implements TechnicianService {
             dto.setDeviceToken(multiUserDeviceDetails.getDeviceToken());
             dto.setAppVersion(multiUserDeviceDetails.getAppVersion());
             dto.setDeviceId(multiUserDeviceDetails.getDeviceId());
-            dto.setPushEnabled(multiUserDeviceDetails.getPushEnabled());
+            dto.setPushEnabled(multiUserDeviceDetails.getPushEnabled() != null ? multiUserDeviceDetails.getPushEnabled() : true);
             deviceDetailsDTOS.add(dto);
         }
         return deviceDetailsDTOS;
@@ -716,10 +721,14 @@ public class TechnicianServiceImpl implements TechnicianService {
 
     @Override
     public JobDashboardResponseDTO.Detail countTechnician(JobDashboardResponseDTO.Search search) throws CodeException {
+        long count;
         if (search.getStartDate() == null || search.getEndDate() == null) {
-            throw new CodeException("Start date and end date are required", ErrorCode.COMMON);
+//            throw new CodeException("Start date and end date are required", ErrorCode.COMMON);
+            count = technicianRepository.count();
         }
-        long count = technicianRepository.countByAndCreatedAtBetween(search.getStartDate().atStartOfDay(), search.getEndDate().atTime(23, 59, 59));
+        else{
+            count = technicianRepository.countByAndCreatedAtBetween(search.getStartDate().atStartOfDay(), search.getEndDate().atTime(23, 59, 59));
+        }
         JobDashboardResponseDTO.Detail st = new JobDashboardResponseDTO.Detail();
         st.setTotalNoOfTechnician(count);
         return st;
@@ -840,6 +849,16 @@ public class TechnicianServiceImpl implements TechnicianService {
         } catch (FeignException e) {
             throw new CodeException("Remote admin-service failed: " + e.contentUTF8(), ErrorCode.COMMON);
         }
+    }
+
+    @Override
+    public ResponseEntity<ApiResponse> getAllInventoryData(PageRequest.List listRequest, Long tenantId, boolean isSuperAdmin) throws CodeException {
+        return jobClient.listAllInventory(listRequest, tenantId, isSuperAdmin);
+    }
+
+    @Override
+    public ResponseEntity<ApiResponse> getAllInventoryRequest(PageRequest.List listRequest, Long tenantId, boolean isSuperAdmin) throws CodeException {
+        return jobClient.getAllInventoryRequestList(listRequest,tenantId,isSuperAdmin);
     }
 
     @Override
