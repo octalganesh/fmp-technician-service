@@ -93,7 +93,7 @@ public class TechnicianAuthController extends BaseController {
             authRegisterRequest.setToken(save.getToken());
             eventPublisher.publishEvent(new AddTechnicianUserInAuthEvent(authRegisterRequest, save, null, false,false));
 
-            authenticationResponse.setRole("technician");
+            authenticationResponse.setRole(save.getRole().getName());
 
             authenticationResponse.setId(technician.getUuid());
             return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "User logged in successfully", authenticationResponse,
