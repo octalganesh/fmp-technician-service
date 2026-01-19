@@ -310,4 +310,22 @@ public class JobController extends BaseController {
             return handleException(e);
         }
     }
+
+    @GetMapping("/get-appointment-by-id/{id}")
+    public ResponseEntity<ApiResponse> getAppointmentsById(@PathVariable("id") String id, HttpServletRequest request) {
+        String technicianName = request.getHeader(CommonConstants.technician_NAME);
+        try {
+            Long tenantId = getTenantId(request);
+            Technician loggedIntechnician = technicianService.getTechnicianByEmailId(technicianName);
+            if (loggedIntechnician != null) {
+                return jobService.getAppointmentsById(id, tenantId, loggedIntechnician.getName());
+            } else {
+                return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, "Technician not found.",
+                        null, "400", HttpStatus.OK), HttpStatus.OK);
+            }
+        } catch (Exception e) {
+            logger.error("Error getting appointment: {}", e.getMessage(), e);
+            return handleException(e);
+        }
+    }
 }
