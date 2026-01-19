@@ -310,6 +310,25 @@ public class JobController extends BaseController {
             return handleException(e);
         }
     }
+    @PostMapping("/appointments/list")
+    public ResponseEntity<ApiResponse> listAllAppointments(@RequestBody PageRequest.List list, HttpServletRequest request) {
+        String userName = request.getHeader(CommonConstants.USER_NAME);
+        try {
+            Long tenantId = getTenantId(request);
+            if (tenantId == null)
+                tenantId = 1L;
+            String technicianId = jwtTokenProvider.getUserIdFromToken(request);
+            if (technicianId != null) {
+                list.setTechnicianId(Collections.singletonList(technicianId));
+            } else {
+                list.setTechnicianId(new ArrayList<>());
+            }
+            return jobService.listAllAppointmentsByTechnicianId(list, tenantId, false, userName);
+        } catch (Exception e) {
+            logger.error("Error updating job task status: {}", e.getMessage(), e);
+            return handleException(e);
+        }
+    }
 
     @GetMapping("/get-appointment-by-id/{id}")
     public ResponseEntity<ApiResponse> getAppointmentsById(@PathVariable("id") String id, HttpServletRequest request) {
