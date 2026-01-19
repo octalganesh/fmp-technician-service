@@ -310,4 +310,41 @@ public class JobController extends BaseController {
             return handleException(e);
         }
     }
+    @PostMapping("/appointments/list")
+    public ResponseEntity<ApiResponse> listAllAppointments(@RequestBody PageRequest.List list, HttpServletRequest request) {
+        String userName = request.getHeader(CommonConstants.USER_NAME);
+        try {
+            Long tenantId = getTenantId(request);
+            if (tenantId == null)
+                tenantId = 1L;
+            String technicianId = jwtTokenProvider.getUserIdFromToken(request);
+            if (technicianId != null) {
+                list.setTechnicianId(Collections.singletonList(technicianId));
+            } else {
+                list.setTechnicianId(new ArrayList<>());
+            }
+            return jobService.listAllAppointmentsByTechnicianId(list, tenantId, false, userName);
+        } catch (Exception e) {
+            logger.error("Error updating job task status: {}", e.getMessage(), e);
+            return handleException(e);
+        }
+    }
+
+    @GetMapping("/get-appointment-by-id/{id}")
+    public ResponseEntity<ApiResponse> getAppointmentsById(@PathVariable("id") String id, HttpServletRequest request) {
+        String technicianName = request.getHeader(CommonConstants.technician_NAME);
+        try {
+            Long tenantId = getTenantId(request);
+            Technician loggedIntechnician = technicianService.getTechnicianByEmailId(technicianName);
+            if (loggedIntechnician != null) {
+                return jobService.getAppointmentsById(id, tenantId, loggedIntechnician.getName());
+            } else {
+                return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, "Technician not found.",
+                        null, "400", HttpStatus.OK), HttpStatus.OK);
+            }
+        } catch (Exception e) {
+            logger.error("Error getting appointment: {}", e.getMessage(), e);
+            return handleException(e);
+        }
+    }
 }
