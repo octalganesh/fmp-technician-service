@@ -248,4 +248,13 @@ public class JobServiceImpl implements JobService {
             throw new CodeException("Remote job-service failed: " + e.contentUTF8(), ErrorCode.COMMON);
         }
     }
+
+    @Override
+    public ResponseEntity<ApiResponse> getAppointmentsById(String id, Long tenantId,String userName) throws CodeException {
+        try {
+            return jobClient.getAppointmentsById(id, tenantId, userName);
+        } catch (FeignException e) {
+            throw new CodeException("Remote Job-service failed: " + e.contentUTF8(), ErrorCode.COMMON);
+        }
+    }
 }

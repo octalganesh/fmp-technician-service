@@ -87,6 +87,9 @@ public interface JobClient {
     ResponseEntity<ApiResponse> listAllAppointmentsByTechnicianId(@RequestBody PageRequest.List list, @RequestHeader(USER_NAME) String userName, @RequestHeader("tenantId") Long tenantId,
                                                                   @RequestHeader("superAdmin") boolean superAdmin);
 
+    @GetMapping("/appointments/get-by-id/{id}")
+    ResponseEntity<ApiResponse> getAppointmentsById(@PathVariable("id") String id, @RequestHeader("tenantId") Long tenantId,@RequestHeader(USER_NAME) String userName);
+
     @PostMapping("/inventory/list")
     ResponseEntity<ApiResponse> listAllInventory(@RequestBody PageRequest.List list, @RequestHeader("tenantId") Long tenantId, @RequestHeader("superAdmin") boolean superAdmin);
 
