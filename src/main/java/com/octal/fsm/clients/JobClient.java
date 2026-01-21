@@ -10,6 +10,7 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.util.List;
 
@@ -103,4 +104,7 @@ public interface JobClient {
     @GetMapping("/jobs/all-jobs-for-technician/{technicianId}")
     ResponseEntity<ApiResponse> getAllJobByTechnician(@PathVariable("technicianId") String technicianId, @RequestHeader("userName") String userName, @RequestHeader("tenantId") Long tenantId,
                                                          @RequestHeader("isSuperAdmin") boolean isSuperAdmin);
+
+    @PutMapping("/appointments/update-status/{id}")
+    ResponseEntity<ApiResponse> updateAppointmentStatus(@PathVariable("id") String id, @RequestHeader("tenantId") Long tenantId,@RequestHeader(USER_NAME) String userName);
 }
