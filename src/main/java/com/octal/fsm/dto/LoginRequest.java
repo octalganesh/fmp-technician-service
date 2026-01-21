@@ -16,7 +16,7 @@ public class LoginRequest implements Serializable {
 
     @NotBlank
     private String deviceType;
-    @NotBlank
+    //@NotBlank
     private String fcmToken;
     @NotBlank
     private String tenantId;
