@@ -170,7 +170,7 @@ public class TechnicianController extends BaseController {
         try {
             Long tenantId = getTenantId(request);
             boolean isSuperAdmin = isSuperAdmin(request);
-            Technician loggedIntechnician = technicianService.getTechnicianByEmailId(technicianName);
+            Technician loggedIntechnician = technicianService.getTechnicianByEmailIdAndTenantId(technicianName,tenantId);
             if (loggedIntechnician != null) {
                 listRequest.setTechnicianId(Collections.singletonList(loggedIntechnician.getUuid()));
                 return technicianService.getAnnouncements(listRequest, tenantId, isSuperAdmin);
@@ -199,9 +199,9 @@ public class TechnicianController extends BaseController {
         logger.info("TechnicianController.getNotificationList");
         String technicianName = request.getHeader(CommonConstants.technician_NAME);
         try {
-            //Long tenantId = getTenantId(request);
+            Long tenantId = getTenantId(request);
             //boolean isSuperAdmin=isSuperAdmin(request);
-            Technician loggedIntechnician = technicianService.getTechnicianByEmailId(technicianName);
+            Technician loggedIntechnician = technicianService.getTechnicianByEmailIdAndTenantId(technicianName,tenantId);
             if (loggedIntechnician != null) {
                 return technicianService.getNotificationList(listRequest, loggedIntechnician);
             } else {
@@ -279,7 +279,7 @@ public class TechnicianController extends BaseController {
         try {
             Long tenantId = getTenantId(request);
             boolean isSuperAdmin = isSuperAdmin(request);
-            Technician loggedIntechnician = technicianService.getTechnicianByEmailId(technicianName);
+            Technician loggedIntechnician = technicianService.getTechnicianByEmailIdAndTenantId(technicianName,tenantId);
             if (loggedIntechnician != null) {
                 Boolean status = technicianService.notificationToggle(loggedIntechnician, tenantId, isSuperAdmin);
                 String messageResponse = Boolean.TRUE.equals(status) ? "Notifications enabled Successfully!" : "Notifications disabled Successfully!";
@@ -313,7 +313,7 @@ public class TechnicianController extends BaseController {
         try {
             Long tenantId = getTenantId(request);
             boolean isSuperAdmin = isSuperAdmin(request);
-            Technician loggedIntechnician = technicianService.getTechnicianByEmailId(technicianName);
+            Technician loggedIntechnician = technicianService.getTechnicianByEmailIdAndTenantId(technicianName,tenantId);
             if (loggedIntechnician != null) {
                 return technicianService.readUnreadAnnouncements(id,loggedIntechnician.getUuid(),tenantId);
             } else {

@@ -27,8 +27,28 @@ public class CustomUserDetailsService implements UserDetailsService {
     @Override
     @Transactional
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        Technician technician = technicianRepository.findByEmail(username)
-                .orElseThrow(() -> new UsernameNotFoundException("Technician not found with username: " + username));
+        String userEmail = username;
+        Long tenantId = null;
+        // Split only if the username contains '|'
+        if (username.contains("|")) {
+            String[] parts = username.split("\\|");
+            userEmail = parts[0];
+            if (parts.length > 1) {
+                try {
+                    tenantId = Long.parseLong(parts[1]);
+                } catch (NumberFormatException e) {
+                    throw new UsernameNotFoundException("Invalid tenantId in username");
+                }
+            }else{
+                tenantId = 1L; // default tenantId
+            }
+        }
+        if (tenantId == null) {
+            throw new UsernameNotFoundException("TenantId is required for technician login");
+        }
+
+        Technician technician = technicianRepository.findByEmailAndTenantId(userEmail,tenantId)
+                .orElseThrow(() -> new UsernameNotFoundException("Technician not found with username and tenant id: " + username));
 
         List<GrantedAuthority> authorities = Collections.singletonList(
                 new SimpleGrantedAuthority("ROLE_TECHNICIAN")

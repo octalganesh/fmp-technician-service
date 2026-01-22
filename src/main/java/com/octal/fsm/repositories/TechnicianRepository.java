@@ -33,6 +33,8 @@ public interface TechnicianRepository extends JpaRepository<Technician, Long>, J
 
     boolean existsByEmailAndTenantId(String email, Long tenantId);
 
+    Optional<Technician> findByEmailAndTenantId(String email, Long tenantId);
+
     Optional<Technician> findByMobileNumberAndTenantId(String mobileNumber, Long tenantId);
 
     Optional<Technician> findByEmployeeId(String employeeId);
@@ -65,5 +67,8 @@ public interface TechnicianRepository extends JpaRepository<Technician, Long>, J
 
     @Query("SELECT t FROM Technician t WHERE t.uuid IN :ids")
     List<Technician> findByUuid(@Param("ids") List<String> ids);
+
+    @Query("SELECT t FROM Technician t WHERE t.email = :email")
+    List<Technician> findAllByEmail(@Param("email") String email);
 }
 

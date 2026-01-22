@@ -33,11 +33,13 @@ public interface TechnicianService {
 
     Technician getTechnicianByEmailId(String email);
 
+    Technician getTechnicianByEmailIdAndTenantId(String email, Long tenantId);
+
     AuthTechnicianDTO fetchAuthenticatedTechnicianDetailsByEmail(String email);
 
     void changeTechnicianPassword(@Valid ChangePasswordDTO passwordDTO, String header) throws CodeException;
 
-    void resetTechnicianPassword(String email) throws CodeException;
+    void resetTechnicianPassword(String email,Long tenantId) throws CodeException;
 
     void resetTechnicianPassword(String token, String newPassword, String confirmPassword) throws CodeException;
 
@@ -77,5 +79,7 @@ public interface TechnicianService {
 
     ResponseEntity<ApiResponse> getAllInventoryRequest(PageRequest.List listRequest, Long tenantId, boolean isSuperAdmin) throws CodeException;
 
+
+    TechnicianTenantDTO getTechnicianByEmailIdWithTenants(String email);
 }
 

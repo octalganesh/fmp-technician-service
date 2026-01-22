@@ -55,4 +55,5 @@ public interface JobService {
 
     ResponseEntity<ApiResponse> getAppointmentsById(String id, Long tenantId,String userName) throws CodeException;
 
+    ResponseEntity<ApiResponse> updateAppointmentStatus(String id, Long tenantId, String name) throws CodeException;
 }
