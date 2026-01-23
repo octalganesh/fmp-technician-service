@@ -302,6 +302,7 @@ public class TechnicianServiceImpl implements TechnicianService {
                 authRegisterRequest.setEmail(save.getEmail());
                 authRegisterRequest.setFullName(save.getName());
                 authRegisterRequest.setToken(null);
+                authRegisterRequest.setTenantId(String.valueOf(tenantId));
                 eventPublisher.publishEvent(new AddTechnicianUserInAuthEvent(authRegisterRequest, save, tenantId, false,false));
                 return false;
             } else {

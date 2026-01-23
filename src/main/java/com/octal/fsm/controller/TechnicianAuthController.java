@@ -96,6 +96,7 @@ public class TechnicianAuthController extends BaseController {
             authRegisterRequest.setCreatedAt(save.getCreatedAt());
             authRegisterRequest.setFullName(save.getName());
             authRegisterRequest.setToken(save.getToken());
+            authRegisterRequest.setTenantId(String.valueOf(tenantId));
             eventPublisher.publishEvent(new AddTechnicianUserInAuthEvent(authRegisterRequest, save, null, false,false));
 
             authenticationResponse.setRole(save.getRole().getName());
@@ -155,6 +156,7 @@ public class TechnicianAuthController extends BaseController {
                 authRegisterRequest.setEmail(loggedIntechnician.getEmail());
                 authRegisterRequest.setFullName(loggedIntechnician.getName());
                 authRegisterRequest.setToken(null);
+                authRegisterRequest.setTenantId(String.valueOf(tenantId));
                 eventPublisher.publishEvent(new AddTechnicianUserInAuthEvent(authRegisterRequest, loggedIntechnician, getTenantId(request), false,false));
 
                 return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "Technician logout successfully", null,

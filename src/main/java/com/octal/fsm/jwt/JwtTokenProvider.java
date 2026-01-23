@@ -65,6 +65,8 @@ public class JwtTokenProvider {
         claims.put("firstName", technician.getName());
         claims.put("lastName", technician.getName());
         claims.put("role", roles.get(0));
+        if(technician.getTenantId() != null)
+            claims.put("tenantId", String.valueOf(technician.getTenantId()));
         claims.put("profileImage", technician.getProfilePicture());
         claims.put("permission", "");
         claims.put("serviceRole", "technician");
@@ -121,6 +123,8 @@ public class JwtTokenProvider {
         claims.put("id", user.getUuid());
         claims.put("emailId", user.getEmail());
         claims.put("firstName", user.getName());
+        if(user.getTenantId() != null)
+            claims.put("tenantId", String.valueOf(user.getTenantId()));
 //        claims.put("lastName", user.getLastName());
 //        claims.put("role", roles.get(0));
         claims.put("profileImage", user.getProfilePicture());
