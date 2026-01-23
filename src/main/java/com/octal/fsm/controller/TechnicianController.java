@@ -170,7 +170,7 @@ public class TechnicianController extends BaseController {
         try {
             Long tenantId = getTenantId(request);
             boolean isSuperAdmin = isSuperAdmin(request);
-            Technician loggedIntechnician = technicianService.getTechnicianByEmailId(technicianName);
+            Technician loggedIntechnician = technicianService.getTechnicianByEmailIdAndTenantId(technicianName,tenantId);
             if (loggedIntechnician != null) {
                 listRequest.setTechnicianId(Collections.singletonList(loggedIntechnician.getUuid()));
                 return technicianService.getAnnouncements(listRequest, tenantId, isSuperAdmin);
@@ -199,9 +199,9 @@ public class TechnicianController extends BaseController {
         logger.info("TechnicianController.getNotificationList");
         String technicianName = request.getHeader(CommonConstants.technician_NAME);
         try {
-            //Long tenantId = getTenantId(request);
+            Long tenantId = getTenantId(request);
             //boolean isSuperAdmin=isSuperAdmin(request);
-            Technician loggedIntechnician = technicianService.getTechnicianByEmailId(technicianName);
+            Technician loggedIntechnician = technicianService.getTechnicianByEmailIdAndTenantId(technicianName,tenantId);
             if (loggedIntechnician != null) {
                 return technicianService.getNotificationList(listRequest, loggedIntechnician);
             } else {
@@ -215,7 +215,7 @@ public class TechnicianController extends BaseController {
     }
 
     @PostMapping("/count")
-    public ResponseEntity<ApiResponse> totalCount(@RequestBody JobDashboardResponseDTO.Search search, HttpServletRequest request) {
+    public ResponseEntity<ApiResponse> totalCount(@RequestBody(required = false) JobDashboardResponseDTO.Search search, HttpServletRequest request) {
         logger.info("TechnicianController./count");
         try {
             return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "Dashboard data Generated Successfully.", technicianService.countTechnician(search), "200", HttpStatus.OK), HttpStatus.OK);
@@ -279,7 +279,7 @@ public class TechnicianController extends BaseController {
         try {
             Long tenantId = getTenantId(request);
             boolean isSuperAdmin = isSuperAdmin(request);
-            Technician loggedIntechnician = technicianService.getTechnicianByEmailId(technicianName);
+            Technician loggedIntechnician = technicianService.getTechnicianByEmailIdAndTenantId(technicianName,tenantId);
             if (loggedIntechnician != null) {
                 Boolean status = technicianService.notificationToggle(loggedIntechnician, tenantId, isSuperAdmin);
                 String messageResponse = Boolean.TRUE.equals(status) ? "Notifications enabled Successfully!" : "Notifications disabled Successfully!";
@@ -313,7 +313,7 @@ public class TechnicianController extends BaseController {
         try {
             Long tenantId = getTenantId(request);
             boolean isSuperAdmin = isSuperAdmin(request);
-            Technician loggedIntechnician = technicianService.getTechnicianByEmailId(technicianName);
+            Technician loggedIntechnician = technicianService.getTechnicianByEmailIdAndTenantId(technicianName,tenantId);
             if (loggedIntechnician != null) {
                 return technicianService.readUnreadAnnouncements(id,loggedIntechnician.getUuid(),tenantId);
             } else {
@@ -321,6 +321,38 @@ public class TechnicianController extends BaseController {
                         null, "400", HttpStatus.OK), HttpStatus.OK);
             }
         } catch (Exception e) {
+            return handleException(e);
+        }
+    }
+
+    @PostMapping("/get-all-inventory")
+    public ResponseEntity<ApiResponse> getAllInventory(@RequestBody PageRequest.List listRequest,HttpServletRequest request) {
+        logger.info("StaticContentController.get-all-inventory");
+        try {
+            Long tenantId = getTenantId(request);
+            boolean isSuperAdmin = isSuperAdmin(request);
+            return technicianService.getAllInventoryData(listRequest,tenantId,isSuperAdmin);
+        } catch (Exception e) {
+            return handleException(e);
+        }
+    }
+
+    @PostMapping("/inventory-request-list")
+    public ResponseEntity<ApiResponse> getInventoryRequestList(@RequestBody PageRequest.List listRequest, HttpServletRequest request) {
+        try {
+            Long tenantId = getTenantId(request);
+            boolean isSuperAdmin = isSuperAdmin(request);
+            String technicianName = request.getHeader(CommonConstants.technician_NAME);
+            Technician loggedIntechnician = technicianService.getTechnicianByEmailId(technicianName);
+            if (loggedIntechnician != null) {
+                listRequest.setTechnicianId(Collections.singletonList(loggedIntechnician.getUuid()));
+                return technicianService.getAllInventoryRequest(listRequest, tenantId, isSuperAdmin);
+            } else {
+                return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, "Technician not found.",
+                        null, "400", HttpStatus.OK), HttpStatus.OK);
+            }
+        } catch (Exception e) {
+            logger.error("Error retrieving inventory request list: {}", e.getMessage(), e);
             return handleException(e);
         }
     }

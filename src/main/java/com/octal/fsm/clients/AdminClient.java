@@ -3,6 +3,7 @@ package com.octal.fsm.clients;
 import com.octal.fsm.common.ApiResponse;
 import com.octal.fsm.dto.CustomerFeedbackDTO;
 import com.octal.fsm.dto.SendMailRequestDTO;
+import com.octal.fsm.dto.TechnicianTenantDTO;
 import com.octal.fsm.models.request.PageRequest;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
@@ -46,4 +47,13 @@ public interface AdminClient {
 
     @GetMapping("/announcement/read-unread-announcement/{id}")
     ResponseEntity<ApiResponse> readUnreadAnnouncement(@RequestParam("id") String id,@RequestParam("userId") String userId, @RequestHeader("tenantId") Long tenantId);
+
+    @GetMapping("/general-setting/get-setting/{key}")
+    ResponseEntity<com.octal.fsm.common.ApiResponse> getGeneralSettingBYKey(@PathVariable("key") String key, @RequestHeader("tenantId") Long tenantId);
+
+    @GetMapping("/general-setting/get-setting-map")
+    ResponseEntity<com.octal.fsm.common.ApiResponse> getGeneralSettingMap(@RequestHeader("tenantId") Long tenantId);
+
+    @PostMapping("/tenant/by/uuids")
+    ResponseEntity<ApiResponse> getTenantsByIds(@RequestBody TechnicianTenantDTO.TenantRequestDTO tenantRequestDTO);
 }

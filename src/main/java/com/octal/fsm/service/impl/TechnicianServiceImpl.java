@@ -1,5 +1,6 @@
 package com.octal.fsm.service.impl;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.octal.fsm.clients.AdminClient;
 import com.octal.fsm.clients.JobClient;
@@ -19,6 +20,9 @@ import com.octal.fsm.models.request.PageRequest;
 import com.octal.fsm.repositories.RoleRepository;
 import com.octal.fsm.repositories.TechnicianRepository;
 import com.octal.fsm.repositories.UserVerificationRepository;
+import com.octal.fsm.service.GeneralSettingService;
+import com.octal.fsm.service.AdminClientService;
+import com.octal.fsm.service.JobClientService;
 import com.octal.fsm.service.TechnicianService;
 import com.octal.fsm.service.UserVerificationService;
 import com.octal.fsm.specification.GenericSpecificationsBuilder;
@@ -75,12 +79,21 @@ public class TechnicianServiceImpl implements TechnicianService {
 
     @Autowired
     private NotificationClient notificationClient;
+    @Autowired
+    private AdminClientService adminClientService;
+    @Autowired
+    private JobClientService jobClientService;
 
     @Autowired
     private JobClient jobClient;
 
     @Autowired
     private RoleRepository roleRepository;
+    @Autowired
+    private GeneralSettingService generalSettingService;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Value("${aws.base-url}")
     private String awsS3BaseUrl;
@@ -119,8 +132,8 @@ public class TechnicianServiceImpl implements TechnicianService {
             throw new CodeException("email id is required", ErrorCode.COMMON);
         if (TextUtils.isEmpty(add.getAddress()))
             throw new CodeException("address is required", ErrorCode.COMMON);
-        if (add.getGender() == null)
-            throw new CodeException("gender is required", ErrorCode.COMMON);
+//        if (add.getGender() == null)
+//            throw new CodeException("gender is required", ErrorCode.COMMON);
         Optional<Technician> optionalTechnician = technicianRepository.findByUuidAndTenantId(add.getId(), tenantId);
         if (optionalTechnician.isPresent() && !optionalTechnician.get().getUuid().equals(add.getId())) {
             throw new CodeException("technician name is already present!", ErrorCode.RECORD_NOT_FOUND);
@@ -142,7 +155,7 @@ public class TechnicianServiceImpl implements TechnicianService {
         } else {
             Optional<Technician> technician = technicianRepository.findByUuidAndTenantId(add.getId(), tenantId);
             Optional<Technician> optional = technicianRepository.findByMobileNumberAndTenantId(add.getMobileNumber(), tenantId);
-            Optional<Technician> optionalTechnician1 = technicianRepository.findByEmail(add.getEmail());
+            Optional<Technician> optionalTechnician1 = technicianRepository.findByEmailAndTenantId(add.getEmail(),tenantId);
             if (optionalTechnician1.isPresent() && !optionalTechnician1.get().getUuid().equals(add.getId()))
                 throw new CodeException("Technician with email " + add.getEmail() + " already exists", ErrorCode.RECORD_NOT_FOUND);
             if (optional.isPresent() && !optional.get().getUuid().equals(add.getId()))
@@ -170,7 +183,9 @@ public class TechnicianServiceImpl implements TechnicianService {
         newtechnicianRecord.setName(add.getName());
         //newtechnicianRecord.setAddress(new Address(add.getAddress().getStreet(), add.getAddress().getCity(), add.getAddress().getState(), add.getAddress().getPostalCode(), add.getAddress().getCountry()));
         newtechnicianRecord.setAddress(add.getAddress());
-        newtechnicianRecord.setGender(add.getGender());
+        //if(add.getGender() != null){
+            newtechnicianRecord.setGender(add.getGender());
+        //}
         if (!TextUtils.isEmpty(add.getProfilePicture()))
             newtechnicianRecord.setProfilePicture(awsS3BaseUrl + add.getProfilePicture());
         newtechnicianRecord.setJoinDate(add.getJoinedDate().atStartOfDay());
@@ -221,64 +236,14 @@ public class TechnicianServiceImpl implements TechnicianService {
         Optional<Technician> technicianRecord = technicianRepository.findByUuid(id);
         Map<String, TechnicianDto.TaskStats> taskSummaryMap = new HashMap<>();
         if (technicianRecord.isPresent()) {
-            ResponseEntity<ApiResponse> response = jobClient.getTechnicianTaskSummary(List.of(technicianRecord.get().getUuid()), tenantId, isSuperAdmin);
-            if (response != null && response.getStatusCode().is2xxSuccessful()) {
-                ApiResponse apiResponse = response.getBody();
-                if (apiResponse != null && apiResponse.getData() != null) {
-                    ObjectMapper mapper = new ObjectMapper();
-                    Object data = apiResponse.getData();
-                    if (data instanceof Map<?, ?>) {
-                        Map<?, ?> mapData = (Map<?, ?>) data;
-                        for (Map.Entry<?, ?> entry : mapData.entrySet()) {
-
-                            String key = entry.getKey().toString();
-
-                            // Convert each value to TaskStats object
-                            TechnicianDto.TaskStats stats =
-                                    mapper.convertValue(entry.getValue(), TechnicianDto.TaskStats.class);
-
-                            taskSummaryMap.put(key, stats);
-                        }
-                    } else {
-                        LOGGER.warn("Unexpected data type in response: {}", data.getClass());
-                    }
-                } else {
-                    LOGGER.warn("Empty ApiResponse body or data");
-                }
-            } else {
-                LOGGER.error("Failed to fetch technician task summary: {}",
-                        response != null ? response.getStatusCode() : "null response");
-            }
-
+            taskSummaryMap = jobClientService.getTechnicianTaskSummary(List.of(technicianRecord.get().getUuid()), tenantId, isSuperAdmin);
         }
         Map<String, Double> ratingSummaryMap = new HashMap<>();
         if (technicianRecord.isPresent()) {
-            ResponseEntity<ApiResponse> response = adminClient.getFeedbackSummary(List.of(technicianRecord.get().getUuid()), tenantId, isSuperAdmin);
-            if (response != null && response.getStatusCode().is2xxSuccessful()) {
-                ApiResponse apiResponse = response.getBody();
-                if (apiResponse != null && apiResponse.getData() != null) {
-                    Object data = apiResponse.getData();
-                    if (data instanceof Map<?, ?>) {
-                        // Type-safe conversion
-                        ratingSummaryMap = ((Map<?, ?>) data).entrySet().stream()
-                                .filter(e -> e.getKey() instanceof String && e.getValue() instanceof Double)
-                                .collect(Collectors.toMap(
-                                        e -> (String) e.getKey(),
-                                        e -> (Double) e.getValue()
-                                ));
-                    } else {
-                        LOGGER.warn("Unexpected data type in response for feedback summary: {}", data.getClass());
-                    }
-                } else {
-                    LOGGER.warn("Empty ApiResponse body or data for for feedback summary");
-                }
-            } else {
-                LOGGER.error("Failed to fetch technician feedback summary: {}",
-                        response != null ? response.getStatusCode() : "null response");
-            }
-
+            ratingSummaryMap = adminClientService.getRatingData(List.of(technicianRecord.get().getUuid()), tenantId, isSuperAdmin);
         }
         if (technicianRecord.isPresent()) {
+            DateTimeFormatter dateTimeFormatter = generalSettingService.buildTenantDateTimeFormatter(tenantId);
             TechnicianDto.list technician = new TechnicianDto.list();
             technician.setEmployeeId(technicianRecord.get().getEmployeeId());
             technician.setEmail(technicianRecord.get().getEmail());
@@ -296,10 +261,12 @@ public class TechnicianServiceImpl implements TechnicianService {
             technician.setCountryCode(technicianRecord.get().getMobileNumber().split(" ")[0]);
             technician.setProfilePicture(technicianRecord.get().getProfilePicture());
             technician.setIsActive(technicianRecord.get().getActive());
-            technician.setJoinedDate(technicianRecord.get().getJoinDate() != null ? technicianRecord.get().getJoinDate().toString() : LocalDateTime.now().toString());
-            technician.setCreatedAt(technicianRecord.get().getCreatedAt().toString());
-            technician.setUpdatedAt(technicianRecord.get().getUpdatedAt().toString());
-            technician.setGender(technicianRecord.get().getGender());
+            technician.setJoinedDate(technicianRecord.get().getJoinDate() != null ? technicianRecord.get().getJoinDate().format(dateTimeFormatter) : LocalDateTime.now().toString());
+            technician.setCreatedAt(technicianRecord.get().getCreatedAt().format(dateTimeFormatter));
+            technician.setUpdatedAt(technicianRecord.get().getUpdatedAt().format(dateTimeFormatter));
+            if(technicianRecord.get().getGender() != null){
+                technician.setGender(technicianRecord.get().getGender());
+            }
             technician.setRoleName(Objects.nonNull(technicianRecord.get().getRole()) ? technicianRecord.get().getRole().getName() : null);
             if (technicianRecord.get().getMultiUserDeviceDetails() != null) {
                 MultiUserDeviceDetails multiUserDeviceDetails = technicianRecord.get().getMultiUserDeviceDetails();
@@ -307,8 +274,7 @@ public class TechnicianServiceImpl implements TechnicianService {
                 multiUserDeviceDetailsDTO.setDeviceToken(multiUserDeviceDetails.getDeviceToken());
                 multiUserDeviceDetailsDTO.setDeviceType(multiUserDeviceDetails.getDeviceType());
                 multiUserDeviceDetailsDTO.setAppVersion(multiUserDeviceDetails.getAppVersion());
-                multiUserDeviceDetailsDTO.setPushEnabled(multiUserDeviceDetailsDTO.getPushEnabled());
-                technician.setMultiUserDeviceDetails(multiUserDeviceDetailsDTO);
+                multiUserDeviceDetailsDTO.setPushEnabled(multiUserDeviceDetails.getPushEnabled());
                 technician.setMultiUserDeviceDetails(multiUserDeviceDetailsDTO);
             }
             return technician;
@@ -356,6 +322,7 @@ public class TechnicianServiceImpl implements TechnicianService {
         String trimmedText = listRequest.getSearchText().trim();
         listRequest.setSearchText(trimmedText);
         GenericSpecificationsBuilder<Technician> builder = new GenericSpecificationsBuilder<>();
+        //listRequest.setPageSize(generalSettingService.getPageSize(tenantId));
         Pageable pageable = null;
         if (Boolean.TRUE.equals(listRequest.getAsc())) {
             pageable = org.springframework.data.domain.PageRequest.of(listRequest.getPageNumber(), listRequest.getPageSize(), Sort.by(listRequest.getShortingField()).ascending());
@@ -366,65 +333,15 @@ public class TechnicianServiceImpl implements TechnicianService {
         Page<Technician> pagedResult = technicianRepository.findAll(builder.build(), pageable);
         Map<String, TechnicianDto.TaskStats> taskSummaryMap = new HashMap<>();
         if (!pagedResult.isEmpty()) {
-            ResponseEntity<ApiResponse> response = jobClient.getTechnicianTaskSummary(pagedResult.get().map(Technician::getUuid).collect(Collectors.toList()), tenantId, isSuperAdmin);
-            if (response != null && response.getStatusCode().is2xxSuccessful()) {
-                ApiResponse apiResponse = response.getBody();
-                if (apiResponse != null && apiResponse.getData() != null) {
-                    ObjectMapper mapper = new ObjectMapper();
-                    Object data = apiResponse.getData();
-                    if (data instanceof Map<?, ?>) {
-                        Map<?, ?> mapData = (Map<?, ?>) data;
-                        for (Map.Entry<?, ?> entry : mapData.entrySet()) {
-
-                            String key = entry.getKey().toString();
-
-                            // Convert each value to TaskStats object
-                            TechnicianDto.TaskStats stats =
-                                    mapper.convertValue(entry.getValue(), TechnicianDto.TaskStats.class);
-
-                            taskSummaryMap.put(key, stats);
-                        }
-                    } else {
-                        LOGGER.warn("Unexpected data type in response: {}", data.getClass());
-                    }
-                } else {
-                    LOGGER.warn("Empty ApiResponse body or data");
-                }
-            } else {
-                LOGGER.error("Failed to fetch technician task summary: {}",
-                        response != null ? response.getStatusCode() : "null response");
-            }
-
+            taskSummaryMap = jobClientService.getTechnicianTaskSummary(pagedResult.get().map(Technician::getUuid).collect(Collectors.toList()), tenantId, isSuperAdmin);
         }
         Map<String, Double> ratingSummaryMap = new HashMap<>();
         if (!pagedResult.isEmpty()) {
-            ResponseEntity<ApiResponse> response = adminClient.getFeedbackSummary(pagedResult.get().map(Technician::getUuid).collect(Collectors.toList()), tenantId, isSuperAdmin);
-            if (response != null && response.getStatusCode().is2xxSuccessful()) {
-                ApiResponse apiResponse = response.getBody();
-                if (apiResponse != null && apiResponse.getData() != null) {
-                    Object data = apiResponse.getData();
-                    if (data instanceof Map<?, ?>) {
-                        // Type-safe conversion
-                        ratingSummaryMap = ((Map<?, ?>) data).entrySet().stream()
-                                .filter(e -> e.getKey() instanceof String && e.getValue() instanceof Double)
-                                .collect(Collectors.toMap(
-                                        e -> (String) e.getKey(),
-                                        e -> (Double) e.getValue()
-                                ));
-                    } else {
-                        LOGGER.warn("Unexpected data type in response for feedback summary: {}", data.getClass());
-                    }
-                } else {
-                    LOGGER.warn("Empty ApiResponse body or data for for feedback summary");
-                }
-            } else {
-                LOGGER.error("Failed to fetch technician feedback summary: {}",
-                        response != null ? response.getStatusCode() : "null response");
-            }
-
+            ratingSummaryMap = adminClientService.getRatingData(pagedResult.get().map(Technician::getUuid).collect(Collectors.toList()), tenantId, isSuperAdmin);
         }
 
         List<TechnicianDto.list> responseList = new ArrayList<>();
+        DateTimeFormatter dateTimeFormatter = generalSettingService.buildTenantDateTimeFormatter(tenantId);
         for (Technician technician : pagedResult.getContent()) {
             TechnicianDto.list dto = new TechnicianDto.list();
             dto.setId(technician.getUuid());
@@ -441,11 +358,13 @@ public class TechnicianServiceImpl implements TechnicianService {
             //dto.setAddress(new AddressDTO(technician.getAddress().getStreet(), technician.getAddress().getCity(), technician.getAddress().getState(), technician.getAddress().getPostalCode(), technician.getAddress().getCountry()));
             dto.setAddress(technician.getAddress());
             dto.setIsActive(technician.getActive());
-            dto.setCreatedAt(String.valueOf(technician.getCreatedAt()));
+            dto.setCreatedAt(technician.getCreatedAt().format(dateTimeFormatter));
             dto.setEmployeeId(technician.getEmployeeId());
-            dto.setUpdatedAt(technician.getUpdatedAt().toString());
-            dto.setJoinedDate(technician.getJoinDate() != null ? technician.getJoinDate().toString() : LocalDateTime.now().toString());
-            dto.setGender(technician.getGender());
+            dto.setUpdatedAt(technician.getUpdatedAt().format(dateTimeFormatter));
+            dto.setJoinedDate(technician.getJoinDate() != null ? technician.getJoinDate().format(dateTimeFormatter) : LocalDateTime.now().toString());
+            if(technician.getGender() != null){
+                dto.setGender(technician.getGender());
+            }
             dto.setRoleName(Objects.nonNull(technician.getRole()) ? technician.getRole().getName() : null);
             responseList.add(dto);
         }
@@ -462,6 +381,7 @@ public class TechnicianServiceImpl implements TechnicianService {
         String trimmedText = listRequest.getSearchText().trim();
         listRequest.setSearchText(trimmedText);
         GenericSpecificationsBuilder<Technician> builder = new GenericSpecificationsBuilder<>();
+        //listRequest.setPageSize(generalSettingService.getPageSize(tenantId));
         Pageable pageable = null;
         if (Boolean.TRUE.equals(listRequest.getAsc())) {
             pageable = org.springframework.data.domain.PageRequest.of(listRequest.getPageNumber(), listRequest.getPageSize(), Sort.by(listRequest.getShortingField()).ascending());
@@ -546,7 +466,7 @@ public class TechnicianServiceImpl implements TechnicianService {
 
     @Override
     public AuthTechnicianDTO fetchAuthenticatedUserDetailsByEmail(String email, Long tenantId, boolean isSuperAdmin) {
-        Optional<Technician> user = technicianRepository.findByEmail(email);
+        Optional<Technician> user = technicianRepository.findByEmailAndTenantId(email,tenantId);
         return user.map(TechnicianTransformer.userToAuthDto::apply).orElse(null);
     }
 
@@ -555,6 +475,16 @@ public class TechnicianServiceImpl implements TechnicianService {
     @Transactional(readOnly = true) // Ensures the query is optimized for read
     public Technician getTechnicianByEmailId(String email) {
         Optional<Technician> user = technicianRepository.findByEmail(email);
+        return user.orElse(null);
+    }
+
+    @Override
+    @Transactional(readOnly = true) // Ensures the query is optimized for read
+    public Technician getTechnicianByEmailIdAndTenantId(String email,Long tenantId) {
+        if(tenantId == null){
+            return null;
+        }
+        Optional<Technician> user = technicianRepository.findByEmailAndTenantId(email,tenantId);
         return user.orElse(null);
     }
 
@@ -570,8 +500,8 @@ public class TechnicianServiceImpl implements TechnicianService {
     }
 
     @Override
-    public void resetTechnicianPassword(String email) throws CodeException {
-        Optional<Technician> user = technicianRepository.findByEmail(email);
+    public void resetTechnicianPassword(String email,Long tenantId) throws CodeException {
+        Optional<Technician> user = technicianRepository.findByEmailAndTenantId(email,tenantId);
         // if user is present then send email with generated OTP
         if (user.isPresent()) {
             user.ifPresent(user1 -> {
@@ -745,7 +675,7 @@ public class TechnicianServiceImpl implements TechnicianService {
             dto.setDeviceToken(multiUserDeviceDetails.getDeviceToken());
             dto.setAppVersion(multiUserDeviceDetails.getAppVersion());
             dto.setDeviceId(multiUserDeviceDetails.getDeviceId());
-            dto.setPushEnabled(multiUserDeviceDetails.getPushEnabled());
+            dto.setPushEnabled(multiUserDeviceDetails.getPushEnabled() != null ? multiUserDeviceDetails.getPushEnabled() : true);
             deviceDetailsDTOS.add(dto);
         }
         return deviceDetailsDTOS;
@@ -791,10 +721,14 @@ public class TechnicianServiceImpl implements TechnicianService {
 
     @Override
     public JobDashboardResponseDTO.Detail countTechnician(JobDashboardResponseDTO.Search search) throws CodeException {
+        long count;
         if (search.getStartDate() == null || search.getEndDate() == null) {
-            throw new CodeException("Start date and end date are required", ErrorCode.COMMON);
+//            throw new CodeException("Start date and end date are required", ErrorCode.COMMON);
+            count = technicianRepository.count();
         }
-        long count = technicianRepository.countByAndCreatedAtBetween(search.getStartDate().atStartOfDay(), search.getEndDate().atTime(23, 59, 59));
+        else{
+            count = technicianRepository.countByAndCreatedAtBetween(search.getStartDate().atStartOfDay(), search.getEndDate().atTime(23, 59, 59));
+        }
         JobDashboardResponseDTO.Detail st = new JobDashboardResponseDTO.Detail();
         st.setTotalNoOfTechnician(count);
         return st;
@@ -855,7 +789,8 @@ public class TechnicianServiceImpl implements TechnicianService {
             builder.with(technicianSpecificationFactory.isEqual("isActive", listRequest.getIsActive()));
         builder.with(technicianSpecificationFactory.isEqual("tenantId", tenantId));
         Page<Technician> pagedResult = technicianRepository.findAll(builder.build(), pageable);
-
+        DateTimeFormatter dateTimeFormatter = generalSettingService.buildTenantDateTimeFormatter(tenantId);
+        TechnicianDto.list technician = new TechnicianDto.list();
         List<TechnicianDto.list> responseList = new ArrayList<>();
         for (Technician t : pagedResult.getContent()) {
             TechnicianDto.list dto = new TechnicianDto.list();
@@ -866,7 +801,7 @@ public class TechnicianServiceImpl implements TechnicianService {
             dto.setEmployeeId(t.getEmployeeId());
             dto.setProfilePicture(t.getProfilePicture());
             dto.setIsActive(t.getActive());
-            dto.setJoinedDate(t.getJoinDate() != null ? t.getJoinDate().toString() : null);
+            dto.setJoinedDate(t.getJoinDate() != null ? t.getJoinDate().format(dateTimeFormatter) : null);
             dto.setRoleName(t.getRole().getName());
             responseList.add(dto);
         }
@@ -894,12 +829,13 @@ public class TechnicianServiceImpl implements TechnicianService {
     public List<RoleDTO> getRoleList(Long tenantId, boolean isSuperAdmin) {
         List<Role>roleList= roleRepository.findAll();
         List<RoleDTO> responseList=new ArrayList<>();
+        DateTimeFormatter dateTimeFormatter = generalSettingService.buildTenantDateTimeFormatter(tenantId);
         for(Role role:roleList) {
             RoleDTO roleDTO = new RoleDTO();
             roleDTO.setId(role.getUuid());
             roleDTO.setName(role.getName());
-            roleDTO.setCreatedAt(role.getCreatedAt().toString());
-            roleDTO.setUpdatedAt(role.getUpdatedAt().toString());
+            roleDTO.setCreatedAt(role.getCreatedAt().format(dateTimeFormatter));
+            roleDTO.setUpdatedAt(role.getUpdatedAt().format(dateTimeFormatter));
             roleDTO.setDescription(role.getDescription());
             responseList.add(roleDTO);
         }
@@ -913,6 +849,48 @@ public class TechnicianServiceImpl implements TechnicianService {
         } catch (FeignException e) {
             throw new CodeException("Remote admin-service failed: " + e.contentUTF8(), ErrorCode.COMMON);
         }
+    }
+
+    @Override
+    public ResponseEntity<ApiResponse> getAllInventoryData(PageRequest.List listRequest, Long tenantId, boolean isSuperAdmin) throws CodeException {
+        return jobClient.listAllInventory(listRequest, tenantId, isSuperAdmin);
+    }
+
+    @Override
+    public ResponseEntity<ApiResponse> getAllInventoryRequest(PageRequest.List listRequest, Long tenantId, boolean isSuperAdmin) throws CodeException {
+        return jobClient.getAllInventoryRequestList(listRequest,tenantId,isSuperAdmin);
+    }
+
+    @Override
+    public TechnicianTenantDTO getTechnicianByEmailIdWithTenants(String email) {
+        List<Technician> technicianList = technicianRepository.findAllByEmail(email);
+        if (technicianList == null || technicianList.isEmpty()) {
+            return null;
+        }
+        List<Long> tenantIds = technicianList.stream()
+                .map(Technician::getTenantId).filter(Objects::nonNull)
+                .distinct().collect(Collectors.toList());
+        if(tenantIds.isEmpty()) {
+            return null;
+        }
+        TechnicianTenantDTO technicianTenantDTO = new TechnicianTenantDTO();
+        technicianTenantDTO.setEmail(email);
+        try {
+            TechnicianTenantDTO.TenantRequestDTO tenantRequestDTO = new TechnicianTenantDTO.TenantRequestDTO();
+            tenantRequestDTO.setTenantIds(tenantIds);
+            ResponseEntity<ApiResponse> responseEntity = adminClient.getTenantsByIds(tenantRequestDTO);
+            ApiResponse tenantResponse = responseEntity.getBody();
+            if (tenantResponse == null || tenantResponse.getStatus() == null || !tenantResponse.getStatus().equalsIgnoreCase("200") || tenantResponse.getData() == null) {
+                technicianTenantDTO.setTenants(Collections.emptyList());
+            }
+            List<TechnicianTenantDTO.TenantDetailDTO> tenantDetailDTOS = objectMapper.convertValue(tenantResponse.getData(), new TypeReference<List<TechnicianTenantDTO.TenantDetailDTO>>() {
+            });
+            technicianTenantDTO.setTenants(tenantDetailDTOS);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            technicianTenantDTO.setTenants(Collections.emptyList());
+        }
+        return technicianTenantDTO;
     }
 
 }

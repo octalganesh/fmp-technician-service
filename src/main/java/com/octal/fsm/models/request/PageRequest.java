@@ -37,6 +37,7 @@ public class PageRequest {
         private Gender gender;
         private String designation;
         private java.util.List<String> technicianId;
+        private String taskId;
     }
 
 

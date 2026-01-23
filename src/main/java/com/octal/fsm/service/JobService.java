@@ -51,4 +51,9 @@ public interface JobService {
 
     ResponseEntity<ApiResponse> listAllAppointmentsByTechnicianId(PageRequest.List list, Long tenantId, boolean isSuperAdmin, String userName) throws CodeException;
 
+    ResponseEntity<ApiResponse> getAllJobsWithLimitedData(Technician loggedInTechnician, Long tenantId, boolean isSuperAdmin,String userName) throws CodeException;
+
+    ResponseEntity<ApiResponse> getAppointmentsById(String id, Long tenantId,String userName) throws CodeException;
+
+    ResponseEntity<ApiResponse> updateAppointmentStatus(String id, Long tenantId, String name) throws CodeException;
 }

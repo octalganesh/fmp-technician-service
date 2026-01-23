@@ -9,6 +9,7 @@ import com.octal.fsm.dto.NotificationContentDTO;
 import com.octal.fsm.dto.PushNotificationRequest;
 import com.octal.fsm.dto.enums.PushNotificationType;
 import com.octal.fsm.entities.MultiUserDeviceDetails;
+import com.octal.fsm.service.GeneralSettingService;
 import com.octal.fsm.service.TechnicianService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -34,13 +35,17 @@ public class SendMailToTechnicianEventListener implements ApplicationListener<Se
     private TechnicianService technicianService;
     @Autowired
     private ObjectMapper objectMapper;
-
+    @Autowired
+    private GeneralSettingService generalSettingService;
 
     @Override
     @Async("SendMailToTechnicianEvent")
     public void onApplicationEvent(SendMailAndPushEvent sendMailAndPushEvent) {
+        boolean notificationEnabled = generalSettingService.isNotificationEnabled(sendMailAndPushEvent.getTenantId());
         DocumentDTO.Add uploadDocument = sendMailAndPushEvent.getUploadDocument();
-        sendNotificationToUser(uploadDocument, sendMailAndPushEvent.getTenantId());
+        if(notificationEnabled){
+            sendNotificationToUser(uploadDocument, sendMailAndPushEvent.getTenantId());
+        }
     }
 
     private void sendNotificationToUser(DocumentDTO.Add uploadDocument, Long tenantId) {
@@ -72,6 +77,7 @@ public class SendMailToTechnicianEventListener implements ApplicationListener<Se
                             dto.setDeviceType(multiUserDeviceDetails.getDeviceType());
                             dto.setAppVersion(multiUserDeviceDetails.getAppVersion());
                             dto.setDeviceId(multiUserDeviceDetails.getDeviceId());
+                            dto.setPushEnabled(multiUserDeviceDetails.getPushEnabled() != null ? multiUserDeviceDetails.getPushEnabled() : true);
                             frontOfficeDeviceDetails.add(dto);
                         }
                     }

@@ -42,7 +42,7 @@ public class JobController extends BaseController {
         try {
             Long tenantId = getTenantId(request);
             boolean isSuperAdmin = isSuperAdmin(request);
-            Technician loggedIntechnician = technicianService.getTechnicianByEmailId(technicianName);
+            Technician loggedIntechnician = technicianService.getTechnicianByEmailIdAndTenantId(technicianName, tenantId);
             if (loggedIntechnician != null) {
                 return jobService.getAllJobs(jobFilterRequestDTO, loggedIntechnician, tenantId, isSuperAdmin);
             } else {
@@ -62,7 +62,7 @@ public class JobController extends BaseController {
         try {
             Long tenantId = getTenantId(request);
             boolean isSuperAdmin = isSuperAdmin(request);
-            Technician loggedIntechnician = technicianService.getTechnicianByEmailId(technicianName);
+            Technician loggedIntechnician = technicianService.getTechnicianByEmailIdAndTenantId(technicianName, tenantId);
             if (loggedIntechnician != null) {
                 return jobService.getJobById(taskId, loggedIntechnician, tenantId, isSuperAdmin);
             } else {
@@ -82,7 +82,7 @@ public class JobController extends BaseController {
         try {
             Long tenantId = getTenantId(request);
             boolean isSuperAdmin = isSuperAdmin(request);
-            Technician loggedIntechnician = technicianService.getTechnicianByEmailId(loggedInUserName);
+            Technician loggedIntechnician = technicianService.getTechnicianByEmailIdAndTenantId(loggedInUserName, tenantId);
             if (loggedIntechnician != null) {
                 String messageResponse = jobService.addFeedback(feedback, loggedIntechnician, tenantId, isSuperAdmin);
                 return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, messageResponse, null, "200", HttpStatus.OK), HttpStatus.OK);
@@ -106,7 +106,7 @@ public class JobController extends BaseController {
         try {
             Long tenantId = getTenantId(request);
             boolean isSuperAdmin = isSuperAdmin(request);
-            Technician loggedIntechnician = technicianService.getTechnicianByEmailId(loggedInUserName);
+            Technician loggedIntechnician = technicianService.getTechnicianByEmailIdAndTenantId(loggedInUserName, tenantId);
             if (loggedIntechnician != null) {
                 return jobService.updateJobTaskStatus(taskId, status, note, signature, loggedIntechnician, tenantId, isSuperAdmin);
             } else {
@@ -125,7 +125,8 @@ public class JobController extends BaseController {
         logger.info("JobController.updateJobTask");
         String loggedInUserName = request.getHeader(CommonConstants.USER_NAME);
         try {
-            Technician loggedIntechnician = technicianService.getTechnicianByEmailId(loggedInUserName);
+            Long tenantId = getTenantId(request);
+            Technician loggedIntechnician = technicianService.getTechnicianByEmailIdAndTenantId(loggedInUserName, tenantId);
             if (loggedIntechnician != null) {
                 return jobService.updateJobTask(taskId, note, loggedIntechnician);
             } else {
@@ -144,7 +145,7 @@ public class JobController extends BaseController {
         try {
             Long tenantId = getTenantId(request);
             boolean isSuperAdmin = isSuperAdmin(request);
-            Technician loggedIntechnician = technicianService.getTechnicianByEmailId(userName);
+            Technician loggedIntechnician = technicianService.getTechnicianByEmailIdAndTenantId(userName, tenantId);
             if (loggedIntechnician != null) {
                 uploadDocument.forEach(obj -> {
                             obj.setUploadedBType("TECHNICIAN");
@@ -172,7 +173,7 @@ public class JobController extends BaseController {
         try {
             Long tenantId = getTenantId(request);
             boolean isSuperAdmin = isSuperAdmin(request);
-            Technician loggedIntechnician = technicianService.getTechnicianByEmailId(userName);
+            Technician loggedIntechnician = technicianService.getTechnicianByEmailIdAndTenantId(userName, tenantId);
             if (loggedIntechnician != null) {
                 return jobService.getDocumentTypeList(page, size, sortBy, order, loggedIntechnician.getEmail(), tenantId, isSuperAdmin);
             } else {
@@ -192,7 +193,8 @@ public class JobController extends BaseController {
         logger.info("JobController.updateDrawing");
         String loggedInUserName = request.getHeader(CommonConstants.USER_NAME);
         try {
-            Technician loggedIntechnician = technicianService.getTechnicianByEmailId(loggedInUserName);
+            Long tenantId = getTenantId(request);
+            Technician loggedIntechnician = technicianService.getTechnicianByEmailIdAndTenantId(loggedInUserName, tenantId);
             if (loggedIntechnician != null) {
                 return jobService.addDrawingInTask(taskId, taskDrawingRequest, loggedIntechnician);
             } else {
@@ -292,4 +294,79 @@ public class JobController extends BaseController {
         }
     }
 
+    @GetMapping("/get-all-job-tasks")
+    public ResponseEntity<ApiResponse> getAllJobs(HttpServletRequest request) {
+        String technicianName = request.getHeader(CommonConstants.technician_NAME);
+        try {
+            Long tenantId = getTenantId(request);
+            boolean isSuperAdmin = isSuperAdmin(request);
+            Technician loggedIntechnician = technicianService.getTechnicianByEmailId(technicianName);
+            if (loggedIntechnician != null) {
+                return jobService.getAllJobsWithLimitedData(loggedIntechnician, tenantId, isSuperAdmin, technicianName);
+            } else {
+                return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, "Technician not found.",
+                        null, "400", HttpStatus.OK), HttpStatus.OK);
+            }
+        } catch (Exception e) {
+            logger.error("Error updating job task status: {}", e.getMessage(), e);
+            return handleException(e);
+        }
+    }
+
+    @PostMapping("/appointments/list")
+    public ResponseEntity<ApiResponse> listAllAppointments(@RequestBody PageRequest.List list, HttpServletRequest request) {
+        String userName = request.getHeader(CommonConstants.USER_NAME);
+        try {
+            Long tenantId = getTenantId(request);
+            if (tenantId == null)
+                tenantId = 1L;
+            String technicianId = jwtTokenProvider.getUserIdFromToken(request);
+            if (technicianId != null) {
+                list.setTechnicianId(Collections.singletonList(technicianId));
+            } else {
+                list.setTechnicianId(new ArrayList<>());
+            }
+            return jobService.listAllAppointmentsByTechnicianId(list, tenantId, false, userName);
+        } catch (Exception e) {
+            logger.error("Error updating job task status: {}", e.getMessage(), e);
+            return handleException(e);
+        }
+    }
+
+    @GetMapping("/get-appointment-by-id/{id}")
+    public ResponseEntity<ApiResponse> getAppointmentsById(@PathVariable("id") String id, HttpServletRequest request) {
+        String technicianName = request.getHeader(CommonConstants.technician_NAME);
+        try {
+            Long tenantId = getTenantId(request);
+            Technician loggedIntechnician = technicianService.getTechnicianByEmailId(technicianName);
+            if (loggedIntechnician != null) {
+                return jobService.getAppointmentsById(id, tenantId, loggedIntechnician.getName());
+            } else {
+                return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, "Technician not found.",
+                        null, "400", HttpStatus.OK), HttpStatus.OK);
+            }
+        } catch (Exception e) {
+            logger.error("Error getting appointment: {}", e.getMessage(), e);
+            return handleException(e);
+        }
+    }
+
+    @PutMapping("/update-appointment-status/{id}")
+    public ResponseEntity<ApiResponse> updateAppointmentStatus(@PathVariable("id") String id,
+                                                               HttpServletRequest request) {
+        String technicianName = request.getHeader(CommonConstants.technician_NAME);
+        try {
+            Long tenantId = getTenantId(request);
+            Technician loggedIntechnician = technicianService.getTechnicianByEmailId(technicianName);
+            if (loggedIntechnician != null) {
+                return jobService.updateAppointmentStatus(id, tenantId, loggedIntechnician.getName());
+            } else {
+                return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, "Technician not found.",
+                        null, "400", HttpStatus.OK), HttpStatus.OK);
+            }
+        } catch (Exception e) {
+            logger.error("Error updating appointment: {}", e.getMessage(), e);
+            return handleException(e);
+        }
+    }
 }

@@ -3,12 +3,14 @@ package com.octal.fsm.clients;
 import com.octal.fsm.common.ApiResponse;
 import com.octal.fsm.dto.DocumentDTO;
 import com.octal.fsm.dto.HTMLFormDTO;
+import com.octal.fsm.dto.InventoryRequestDTO;
 import com.octal.fsm.dto.JobDTO;
 import com.octal.fsm.models.request.PageRequest;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.util.List;
 
@@ -85,4 +87,24 @@ public interface JobClient {
     @PostMapping("/appointments/list/by-technician-id")
     ResponseEntity<ApiResponse> listAllAppointmentsByTechnicianId(@RequestBody PageRequest.List list, @RequestHeader(USER_NAME) String userName, @RequestHeader("tenantId") Long tenantId,
                                                                   @RequestHeader("superAdmin") boolean superAdmin);
+
+    @GetMapping("/appointments/get-by-id/{id}")
+    ResponseEntity<ApiResponse> getAppointmentsById(@PathVariable("id") String id, @RequestHeader("tenantId") Long tenantId,@RequestHeader(USER_NAME) String userName);
+
+    @PostMapping("/inventory/list")
+    ResponseEntity<ApiResponse> listAllInventory(@RequestBody PageRequest.List list, @RequestHeader("tenantId") Long tenantId, @RequestHeader("superAdmin") boolean superAdmin);
+
+    @PostMapping("/inventory-requests/create-inventory-request")
+    ResponseEntity<ApiResponse> inventoryRequest(@RequestBody InventoryRequestDTO.Create create, @RequestHeader("tenantId") Long tenantId, @RequestHeader("superAdmin") boolean superAdmin);
+
+    @PostMapping("/inventory-requests/get-inventory-request")
+    ResponseEntity<ApiResponse> getAllInventoryRequestList(@RequestBody PageRequest.List listRequest, @RequestHeader("tenantId") Long tenantId,
+                                                           @RequestHeader("superAdmin") boolean superAdmin);
+
+    @GetMapping("/jobs/all-jobs-for-technician/{technicianId}")
+    ResponseEntity<ApiResponse> getAllJobByTechnician(@PathVariable("technicianId") String technicianId, @RequestHeader("userName") String userName, @RequestHeader("tenantId") Long tenantId,
+                                                         @RequestHeader("isSuperAdmin") boolean isSuperAdmin);
+
+    @PutMapping("/appointments/update-status/{id}")
+    ResponseEntity<ApiResponse> updateAppointmentStatus(@PathVariable("id") String id, @RequestHeader("tenantId") Long tenantId,@RequestHeader(USER_NAME) String userName);
 }
