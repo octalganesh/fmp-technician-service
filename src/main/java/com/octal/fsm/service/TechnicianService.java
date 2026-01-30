@@ -59,7 +59,7 @@ public interface TechnicianService {
 
     ResponseEntity<ApiResponse> getNotificationList(UserNotificationListDTO.ListRequest listRequest, Technician loggedIntechnician) throws CodeException;
 
-    JobDashboardResponseDTO.Detail countTechnician(JobDashboardResponseDTO.Search search) throws CodeException;
+    JobDashboardResponseDTO.Detail countTechnician(JobDashboardResponseDTO.Search search, Long tenantId) throws CodeException;
 
     ResponseEntity<ApiResponse> getFrontOfficeDevices(String id, Long tenantId) throws CodeException;
 

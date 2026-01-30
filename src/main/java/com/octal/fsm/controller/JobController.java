@@ -300,7 +300,7 @@ public class JobController extends BaseController {
         try {
             Long tenantId = getTenantId(request);
             boolean isSuperAdmin = isSuperAdmin(request);
-            Technician loggedIntechnician = technicianService.getTechnicianByEmailId(technicianName);
+            Technician loggedIntechnician = technicianService.getTechnicianByEmailIdAndTenantId(technicianName,tenantId);
             if (loggedIntechnician != null) {
                 return jobService.getAllJobsWithLimitedData(loggedIntechnician, tenantId, isSuperAdmin, technicianName);
             } else {
@@ -338,7 +338,7 @@ public class JobController extends BaseController {
         String technicianName = request.getHeader(CommonConstants.technician_NAME);
         try {
             Long tenantId = getTenantId(request);
-            Technician loggedIntechnician = technicianService.getTechnicianByEmailId(technicianName);
+            Technician loggedIntechnician = technicianService.getTechnicianByEmailIdAndTenantId(technicianName,tenantId);
             if (loggedIntechnician != null) {
                 return jobService.getAppointmentsById(id, tenantId, loggedIntechnician.getName());
             } else {
@@ -357,7 +357,7 @@ public class JobController extends BaseController {
         String technicianName = request.getHeader(CommonConstants.technician_NAME);
         try {
             Long tenantId = getTenantId(request);
-            Technician loggedIntechnician = technicianService.getTechnicianByEmailId(technicianName);
+            Technician loggedIntechnician = technicianService.getTechnicianByEmailIdAndTenantId(technicianName,tenantId);
             if (loggedIntechnician != null) {
                 return jobService.updateAppointmentStatus(id, tenantId, loggedIntechnician.getName());
             } else {

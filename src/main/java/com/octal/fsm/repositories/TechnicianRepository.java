@@ -63,12 +63,15 @@ public interface TechnicianRepository extends JpaRepository<Technician, Long>, J
     @Query("SELECT t FROM Technician t WHERE t.uuid IN :userIds")
     List<Technician> findByUserIdIn(@Param("userIds") List<String> userIds);
 
-    long countByAndCreatedAtBetween(LocalDateTime startDate, LocalDateTime endDate);
+    long countByAndCreatedAtBetweenAndTenantId(LocalDateTime startDate, LocalDateTime endDate,Long tenantId);
 
     @Query("SELECT t FROM Technician t WHERE t.uuid IN :ids")
     List<Technician> findByUuid(@Param("ids") List<String> ids);
 
     @Query("SELECT t FROM Technician t WHERE t.email = :email")
     List<Technician> findAllByEmail(@Param("email") String email);
+
+    long countByTenantId(Long tenantId);
+
 }
 

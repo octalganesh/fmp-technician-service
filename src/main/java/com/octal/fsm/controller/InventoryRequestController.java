@@ -35,7 +35,7 @@ public class InventoryRequestController extends BaseController{
             String technicianName = request.getHeader(CommonConstants.technician_NAME);
             Long tenantId = getTenantId(request);
             boolean isSuperAdmin = isSuperAdmin(request);
-            Technician loggedIntechnician = technicianService.getTechnicianByEmailId(technicianName);
+            Technician loggedIntechnician = technicianService.getTechnicianByEmailIdAndTenantId(technicianName,tenantId);
             if(loggedIntechnician == null){
                 return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, "Technician not found.",
                         null, "400", HttpStatus.OK), HttpStatus.OK);

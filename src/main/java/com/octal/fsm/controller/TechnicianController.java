@@ -218,7 +218,8 @@ public class TechnicianController extends BaseController {
     public ResponseEntity<ApiResponse> totalCount(@RequestBody(required = false) JobDashboardResponseDTO.Search search, HttpServletRequest request) {
         logger.info("TechnicianController./count");
         try {
-            return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "Dashboard data Generated Successfully.", technicianService.countTechnician(search), "200", HttpStatus.OK), HttpStatus.OK);
+            Long tenantId = getTenantId(request);
+            return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, "Dashboard data Generated Successfully.", technicianService.countTechnician(search,tenantId), "200", HttpStatus.OK), HttpStatus.OK);
         } catch (Exception e) {
             return handleException(e);
         }
@@ -343,7 +344,7 @@ public class TechnicianController extends BaseController {
             Long tenantId = getTenantId(request);
             boolean isSuperAdmin = isSuperAdmin(request);
             String technicianName = request.getHeader(CommonConstants.technician_NAME);
-            Technician loggedIntechnician = technicianService.getTechnicianByEmailId(technicianName);
+            Technician loggedIntechnician = technicianService.getTechnicianByEmailIdAndTenantId(technicianName,tenantId);
             if (loggedIntechnician != null) {
                 listRequest.setTechnicianId(Collections.singletonList(loggedIntechnician.getUuid()));
                 return technicianService.getAllInventoryRequest(listRequest, tenantId, isSuperAdmin);
